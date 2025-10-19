@@ -1,3 +1,9 @@
+<div align="center">
+  <img src="./assets/sora-banner.png" alt="Sora Oracle - Powering the Future of Prediction Markets with Unrivaled Oracles" width="100%">
+</div>
+
+<div align="center">
+
 # Sora Oracle SDK - Permissionless & Open Source
 
 **A fully permissionless, open-source oracle SDK for BNB Chain**
@@ -7,6 +13,8 @@ Anyone can use any PancakeSwap pair. No gatekeepers. No permissions needed. Just
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Permissionless](https://img.shields.io/badge/Access-Permissionless-green.svg)]()
 [![Open Source](https://img.shields.io/badge/Source-Open-blue.svg)]()
+
+</div>
 
 ## 🌐 What Makes This Different
 

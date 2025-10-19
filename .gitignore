@@ -53,3 +53,6 @@ attached_assets/
 
 # Marketing materials (keep local only for creator)
 marketing_materials/
+
+# Assets folder is INCLUDED for GitHub (banner, logo)
+# !assets/
