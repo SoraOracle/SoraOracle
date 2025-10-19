@@ -38,20 +38,36 @@ async function main() {
     console.log("Gas Used:", receipt.gasUsed.toString());
     console.log("Transaction Fee:", hre.ethers.formatEther(receipt.gasUsed * receipt.gasPrice), "BNB");
 
-    // Check balances after
-    const providerBalanceAfter = await oracle.providerBalance();
-    const walletBalanceAfter = await hre.ethers.provider.getBalance(signer.address);
+    // Check balances after - query at the confirmed block to ensure fresh data
+    const providerBalanceAfter = await oracle.providerBalance({ blockTag: receipt.blockNumber });
+    const walletBalanceAfter = await hre.ethers.provider.getBalance(signer.address, receipt.blockNumber);
 
     const gasCost = receipt.gasUsed * receipt.gasPrice;
-    const netReceived = walletBalanceAfter - walletBalanceBefore + gasCost;
+    const walletDelta = walletBalanceAfter - walletBalanceBefore;
+    const grossWithdrawn = providerBalanceBefore - providerBalanceAfter;
+    const netGain = walletDelta + gasCost;
 
     console.log("\n💰 After Withdrawal:");
     console.log("   Provider Contract Balance:", hre.ethers.formatEther(providerBalanceAfter), "BNB");
     console.log("   Wallet Balance:", hre.ethers.formatEther(walletBalanceAfter), "BNB");
     console.log("\n📊 Withdrawal Summary:");
-    console.log("   Withdrawn:", hre.ethers.formatEther(netReceived), "BNB");
+    console.log("   Gross Withdrawn:", hre.ethers.formatEther(grossWithdrawn), "BNB");
     console.log("   Gas Cost:", hre.ethers.formatEther(gasCost), "BNB");
-    console.log("   Net Gain:", hre.ethers.formatEther(netReceived - gasCost), "BNB");
+    console.log("   Net Received:", hre.ethers.formatEther(walletDelta), "BNB");
+    console.log("   Verification: Net + Gas =", hre.ethers.formatEther(netGain), "BNB (should equal gross withdrawn)");
+
+    // Verify the withdrawal worked correctly
+    if (providerBalanceAfter !== 0n) {
+      console.error("\n❌ VERIFICATION FAILED: Provider balance not reset to zero!");
+      process.exit(1);
+    }
+    if (netGain !== grossWithdrawn) {
+      console.error("\n❌ VERIFICATION FAILED: Withdrawal amount mismatch!");
+      console.error("   Expected:", hre.ethers.formatEther(grossWithdrawn), "BNB");
+      console.error("   Received:", hre.ethers.formatEther(netGain), "BNB");
+      process.exit(1);
+    }
+    console.log("\n✅ VERIFICATION PASSED: Withdrawal completed successfully!");
 
   } catch (error) {
     console.error("\n❌ Error withdrawing rewards:");
