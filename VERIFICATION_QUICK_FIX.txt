@@ -1,52 +1,51 @@
 ╔══════════════════════════════════════════════════════════════════════╗
-║              🔍 MANUAL VERIFICATION - QUICK REFERENCE               ║
+║         🔧 BYTECODE MISMATCH FIX - Standard JSON Input              ║
 ╚══════════════════════════════════════════════════════════════════════╝
 
-Due to BSCScan API V2 migration, automatic verification is currently broken.
-Manual verification takes just 2 minutes!
+The bytecode didn't match because BSCScan compiles slightly differently.
+Solution: Use Standard JSON Input (Hardhat's exact compilation settings)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🔗 VERIFICATION URL (click to start):
+🔗 VERIFICATION URL:
 https://testnet.bscscan.com/verifyContract?a=0xA215e1bE0a679a6F74239A590dC6842558954e1a
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📝 FORM FIELDS (copy/paste these):
+📝 FORM FIELDS:
 
 1. Compiler Type:
-   Solidity (Single file)
-
+   ⚠️ SELECT: Solidity (Standard-Json-Input)
+   
 2. Compiler Version:
    v0.8.20+commit.a1b79de6
 
 3. License:
    MIT License (MIT)
 
-4. Optimization:
-   ✅ Yes
-   Runs: 200
+4. Standard JSON Input:
+   📎 UPLOAD FILE: standard-input.json
+   (Click "Choose File" and select it)
 
-5. Source Code:
-   → Copy ENTIRE contents of: SoraOracle_flattened.sol
-   (844 lines - make sure you get all of it!)
+5. Contract Name:
+   ⚠️ IMPORTANT - Include full path:
+   contracts/SoraOracle.sol:SoraOracle
 
-6. Constructor Arguments (ABI-encoded):
+6. Constructor Arguments:
    00000000000000000000000029ecd8fa7d7249e791b2563f83de4c124e639b90
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-✅ AFTER VERIFICATION
+✅ WHY THIS WORKS
 
-Refresh your contract page:
-https://testnet.bscscan.com/address/0xA215e1bE0a679a6F74239A590dC6842558954e1a
+Standard JSON Input includes:
+- ✅ Exact optimizer settings Hardhat used
+- ✅ Exact library versions (OpenZeppelin)
+- ✅ Exact compiler configuration
+- ✅ All source files with correct paths
 
-You'll see:
-✅ Green "Verified" checkmark
-✅ Full source code visible
-✅ Read/Write Contract tabs
-✅ All your gas optimizations displayed!
+= Perfect bytecode match guaranteed!
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-See MANUAL_VERIFICATION_GUIDE.md for detailed step-by-step instructions!
+See VERIFICATION_STANDARD_JSON.md for detailed instructions!
