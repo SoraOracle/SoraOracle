@@ -11,8 +11,9 @@
 Anyone can use any PancakeSwap pair. No gatekeepers. No permissions needed. Just plug in and build.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Permissionless](https://img.shields.io/badge/Access-Permissionless-green.svg)]()
-[![Open Source](https://img.shields.io/badge/Source-Open-blue.svg)]()
+[![X (Twitter)](https://img.shields.io/badge/X-Follow%20Us-black.svg?logo=x)](https://twitter.com/YOUR_HANDLE)
+[![Website](https://img.shields.io/badge/Website-Visit-orange.svg)](https://your-website.com)
+[![Documentation](https://img.shields.io/badge/Docs-Read-blue.svg)](./docs/SDK_GUIDE.md)
 
 </div>
 
