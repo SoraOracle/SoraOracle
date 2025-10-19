@@ -111,22 +111,27 @@ contract SimplePredictionMarket is Ownable, ReentrancyGuard {
 
         uint256 fee = (msg.value * FEE_PERCENTAGE) / 100;
         uint256 betAmount = msg.value - fee;
-        
-        require(fee <= type(uint48).max, "Fee overflow");
-        require(betAmount <= type(uint96).max, "Amount overflow");
 
         market.totalFees += fee;
         // Note: fees are NOT added to accumulatedFees yet - only when market resolves
 
         Position storage position = positions[_marketId][msg.sender];
-        position.feesPaid = uint48(uint256(position.feesPaid) + fee);
-
+        uint256 newFees = uint256(position.feesPaid) + fee;
+        uint256 newYes = uint256(position.yesAmount) + (_isYes ? betAmount : 0);
+        uint256 newNo = uint256(position.noAmount) + (_isYes ? 0 : betAmount);
+        
+        require(newFees <= type(uint48).max, "Fee overflow");
+        require(newYes <= type(uint96).max, "YES amount overflow");
+        require(newNo <= type(uint96).max, "NO amount overflow");
+        
+        position.feesPaid = uint48(newFees);
+        
         if (_isYes) {
             market.yesPool += betAmount;
-            position.yesAmount = uint96(uint256(position.yesAmount) + betAmount);
+            position.yesAmount = uint96(newYes);
         } else {
             market.noPool += betAmount;
-            position.noAmount = uint96(uint256(position.noAmount) + betAmount);
+            position.noAmount = uint96(newNo);
         }
 
         emit PositionTaken(_marketId, msg.sender, _isYes, betAmount);
