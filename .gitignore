@@ -47,3 +47,9 @@ build/
 replit.nix
 .upm/
 .config/
+replit.md
+show-status.js
+attached_assets/
+
+# Marketing materials (keep local only for creator)
+marketing_materials/
