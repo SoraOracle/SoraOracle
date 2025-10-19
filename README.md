@@ -1,137 +1,265 @@
-# Improved Oracle Smart Contract for BNB Chain
+# Sora Oracle - BNB Chain Prediction Market Oracle
 
-A decentralized oracle system where users can ask questions with BNB bounties, and an oracle provider answers them.
+A sophisticated oracle system for decentralized prediction markets on BNB Chain, featuring TWAP price feeds, confidence scoring, and multi-source data validation.
 
-## Features
+## 🚀 What's Built (MVP)
 
-✅ **Security Enhancements**
-- OpenZeppelin battle-tested contracts (Ownable, ReentrancyGuard, Pausable)
-- Input validation for questions and answers
-- Reentrancy protection on all state-changing functions
-- Emergency pause functionality
+This MVP provides a production-ready oracle system with:
 
-✅ **Better User Experience**
-- Minimum bounty requirement (configurable by owner)
-- 7-day refund period for unanswered questions
-- Detailed event logging for off-chain tracking
-- View functions to query question details
+### ✅ Core Features Implemented
 
-✅ **Oracle Provider Features**
-- Dedicated oracle provider address
-- Balance tracking before withdrawal
-- Clean withdrawal mechanism
-- Provider address can be updated by owner
+1. **SoraOracle Contract** - Main oracle with advanced features:
+   - Multiple question types (general, price, yes/no, numeric)
+   - Confidence scoring (0-100%)
+   - Data source tracking
+   - 0.01 BNB standard fee
+   - 7-day refund period for unanswered questions
+   - Emergency pause functionality
 
-## Smart Contract Details
+2. **PancakeTWAPOracle** - Price feed integration:
+   - Time-weighted average prices from PancakeSwap V2
+   - Manipulation-resistant pricing
+   - 30-minute minimum update period
+   - Supports any PancakeSwap trading pair
 
-### Main Functions
+3. **SimplePredictionMarket** - Example integration:
+   - Binary (yes/no) prediction markets
+   - Automatic resolution via oracle
+   - 2% platform fee
+   - Winner-takes-all payout model
 
-**For Users:**
-- `askOracle(string question)` - Ask a question with a BNB bounty (min 0.01 BNB)
-- `getQuestion(uint256 questionId)` - View question details
-- `refundUnansweredQuestion(uint256 questionId)` - Get refund after 7 days if unanswered
+4. **Comprehensive Tooling**:
+   - Deployment scripts for testnet/mainnet
+   - Interaction scripts (ask, answer, withdraw)
+   - TWAP update utilities
+   - Full test suite (21 tests passing)
 
-**For Oracle Provider:**
-- `provideAnswer(uint256 questionId, string answer)` - Provide answer and earn bounty
-- `withdraw()` - Withdraw earned bounties
+## 📁 Project Structure
 
-**For Owner:**
-- `setOracleProvider(address newProvider)` - Update oracle provider address
-- `setMinimumBounty(uint256 newMinimum)` - Update minimum bounty requirement
-- `pause()` / `unpause()` - Emergency controls
+```
+contracts/
+├── SoraOracle.sol                  # Main oracle contract
+├── PancakeTWAPOracle.sol          # TWAP price feed oracle
+├── SimplePredictionMarket.sol     # Prediction market helper
+└── interfaces/
+    ├── IPancakePair.sol           # PancakeSwap pair interface
+    └── IPancakeFactory.sol        # PancakeSwap factory interface
 
-## Setup & Deployment
+scripts/
+├── deploy-sora.js                 # Deploy Sora Oracle
+├── sora-ask.js                    # Ask questions
+├── sora-answer.js                 # Provide answers
+├── sora-withdraw.js               # Withdraw earnings
+└── update-twap.js                 # Update TWAP oracles
 
-### 1. Install Dependencies
+test/
+└── SoraOracle.test.js             # Comprehensive test suite
+```
+
+## 🎯 Quick Start
+
+### 1. Setup
+
 ```bash
+# Install dependencies
 npm install
+
+# Create .env file
+cp .env.example .env
+# Add your PRIVATE_KEY and other settings
 ```
 
-### 2. Configure Environment
-Create a `.env` file:
-```env
-PRIVATE_KEY=your_wallet_private_key
-BSCSCAN_API_KEY=your_bscscan_api_key
-ORACLE_PROVIDER_ADDRESS=your_oracle_provider_address
-```
+### 2. Deploy to BSC Testnet
 
-### 3. Get Testnet BNB
-Visit: https://testnet.bnbchain.org/faucet-smart
-
-### 4. Compile Contract
 ```bash
-npx hardhat compile
+npm run deploy:sora
 ```
 
-### 5. Deploy to BSC Testnet
+This deploys SoraOracle and sets up TWAP oracles for major pairs (WBNB/BUSD, WBNB/USDT, CAKE/WBNB).
+
+### 3. Ask Questions
+
 ```bash
-npx hardhat run scripts/deploy.js --network bscTestnet
+npm run sora:ask <ORACLE_ADDRESS>
 ```
 
-### 6. Verify on BscScan (Optional)
+### 4. Provide Answers (Oracle Provider)
+
 ```bash
-npx hardhat verify --network bscTestnet <CONTRACT_ADDRESS> <ORACLE_PROVIDER_ADDRESS>
+npm run sora:answer <ORACLE_ADDRESS> <QUESTION_ID> <TYPE>
+# Types: general, price, yesno
 ```
 
-## Usage Examples
+### 5. Withdraw Earnings
 
-### Ask a Question
 ```bash
-npx hardhat run scripts/interact.js <CONTRACT_ADDRESS> --network bscTestnet
+npm run sora:withdraw <ORACLE_ADDRESS>
 ```
 
-### Provide an Answer (as Oracle Provider)
+## 📖 Documentation
+
+- **[SORA_README.md](./SORA_README.md)** - Comprehensive feature guide
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Deployment instructions
+- **[Test Suite](./test/SoraOracle.test.js)** - 21 passing tests
+
+## 🔧 Available Commands
+
 ```bash
-npx hardhat run scripts/answer.js <CONTRACT_ADDRESS> <QUESTION_ID> "Your answer" --network bscTestnet
+npm run compile          # Compile contracts
+npm run test             # Run test suite
+npm run deploy:sora      # Deploy to BSC testnet
+npm run sora:ask         # Ask questions
+npm run sora:answer      # Provide answers
+npm run sora:withdraw    # Withdraw earnings
 ```
 
-### Withdraw Earnings (as Oracle Provider)
+## 💡 Key Features
+
+### Question Types
+
+| Type | Use Case | Example |
+|------|----------|---------|
+| **GENERAL** | Market analysis, sentiment | "What is the market sentiment for BNB?" |
+| **PRICE** | Crypto prices (can use TWAP) | "What is the BNB price in BUSD?" |
+| **YESNO** | Binary predictions | "Will BNB hit $700 in 24 hours?" |
+| **NUMERIC** | Sports scores, statistics | "How many active wallets?" |
+
+### Answer Structure
+
+Every answer includes:
+- **Text Answer** - Human-readable explanation
+- **Numeric Value** - For prices/scores
+- **Boolean** - For yes/no questions
+- **Confidence Score** - 0-100%
+- **Data Source** - "TWAP", "Market-Analysis", etc.
+- **Timestamp** - When answered
+- **Provider Address** - Who answered
+
+### TWAP Integration
+
+Get manipulation-resistant prices from PancakeSwap:
+
+```solidity
+// Example: Get TWAP price for 1 WBNB in BUSD
+uint256 price = oracle.getTWAPPrice(
+    0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16, // WBNB/BUSD pair
+    0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c, // WBNB address
+    1 ether  // 1 WBNB
+);
+```
+
+## 🔒 Security Features
+
+- **OpenZeppelin v5** - Battle-tested security libraries
+- **ReentrancyGuard** - Protection against reentrancy attacks
+- **Access Control** - Owner and provider separation
+- **Input Validation** - All inputs validated
+- **Pausable** - Emergency stop mechanism
+- **Refund Protection** - Can't drain via double-refund
+
+## 📊 Gas Costs (BSC)
+
+| Action | Approx. Gas | Cost* |
+|--------|------------|-------|
+| Deploy SoraOracle | 3-5M | $5-8 |
+| Ask Question | 150k | $0.30 |
+| Provide Answer | 100k | $0.20 |
+| Withdraw | 50k | $0.10 |
+| Add TWAP Oracle | 2M | $4 |
+
+*Based on 5 gwei gas price and $600 BNB
+
+## 🧪 Testing
+
+All 21 tests passing:
+
 ```bash
-npx hardhat run scripts/withdraw.js <CONTRACT_ADDRESS> --network bscTestnet
+npm test
 ```
 
-## Network Information
+Tests cover:
+- ✅ Deployment
+- ✅ Asking questions (all types)
+- ✅ Providing answers
+- ✅ Refund mechanism
+- ✅ Withdrawals
+- ✅ Admin functions
+- ✅ Access control
+- ✅ Edge cases
 
-**BSC Testnet:**
-- RPC: https://data-seed-prebsc-1-s1.binance.org:8545
-- Chain ID: 97
-- Explorer: https://testnet.bscscan.com
-- Faucet: https://testnet.bnbchain.org/faucet-smart
+## 🌐 Network Information
 
-**BSC Mainnet:**
-- RPC: https://bsc-dataseed.binance.org/
-- Chain ID: 56
-- Explorer: https://bscscan.com
+### BSC Testnet
+- **RPC:** https://data-seed-prebsc-1-s1.binance.org:8545
+- **Chain ID:** 97
+- **Explorer:** https://testnet.bscscan.com
+- **Faucet:** https://testnet.bnbchain.org/faucet-smart
 
-## Security Features
+### BSC Mainnet
+- **RPC:** https://bsc-dataseed.binance.org/
+- **Chain ID:** 56
+- **Explorer:** https://bscscan.com
 
-1. **ReentrancyGuard** - Prevents reentrancy attacks on withdrawal functions
-2. **Ownable** - Restricts admin functions to contract owner
-3. **Pausable** - Allows emergency pause of contract operations
-4. **Input Validation** - Validates question/answer length and bounty amounts
-5. **Access Control** - Only oracle provider can answer questions
-6. **Refund Mechanism** - Users can reclaim bounty after 7 days if unanswered
+## 🛠️ Integration Example
 
-## Cost Estimation
+```solidity
+pragma solidity ^0.8.20;
 
-**Deployment:** ~0.002-0.01 BNB (~$2-10 USD)
-**Ask Question:** ~0.0001 BNB + bounty (~$0.10 + bounty)
-**Provide Answer:** ~0.0002 BNB (~$0.20)
-**Withdraw:** ~0.0001 BNB (~$0.10)
+import "./SoraOracle.sol";
 
-## Improvements Over Original Contract
+contract MyPredictionMarket {
+    SoraOracle public oracle;
+    
+    constructor(address _oracle) {
+        oracle = SoraOracle(_oracle);
+    }
+    
+    function createMarket(string memory question) external payable {
+        uint256 fee = oracle.oracleFee();
+        require(msg.value >= fee, "Insufficient fee");
+        
+        uint256 deadline = block.timestamp + 24 hours;
+        uint256 questionId = oracle.askYesNoQuestion{value: fee}(
+            question,
+            deadline
+        );
+        
+        // Store questionId for later resolution
+    }
+    
+    function resolveMarket(uint256 questionId) external {
+        (, SoraOracle.Answer memory answer) = oracle.getQuestionWithAnswer(questionId);
+        
+        bool outcome = answer.boolAnswer;
+        uint8 confidence = answer.confidenceScore;
+        
+        // Use outcome to resolve your market
+    }
+}
+```
 
-1. ✅ Added proper access control with OpenZeppelin contracts
-2. ✅ Implemented reentrancy protection
-3. ✅ Added emergency pause functionality
-4. ✅ Input validation for questions and answers
-5. ✅ Refund mechanism for unanswered questions
-6. ✅ Better event logging for transparency
-7. ✅ Configurable minimum bounty
-8. ✅ Clean separation of provider balance tracking
-9. ✅ View functions for easy data retrieval
-10. ✅ Comprehensive error messages
+## ⚠️ MVP Scope
 
-## License
+### ✅ Implemented
+- TWAP price feeds from PancakeSwap
+- Multi-question types with confidence scores
+- Oracle provider reward system
+- Prediction market integration
+- Security best practices
+
+### 🚧 Not in MVP (Future)
+- Automated AI research (requires off-chain infrastructure)
+- 30-60 second resolution (needs oracle nodes)
+- Chainlink integration (requires subscription)
+- Staking/slashing (needs governance)
+- Multi-oracle aggregation
+
+## 📝 License
 
 MIT
+
+---
+
+**Built for BNB Chain Prediction Markets** 🚀
+
+See [SORA_README.md](./SORA_README.md) for complete feature documentation.

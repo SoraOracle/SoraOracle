@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /**
  * @title PancakeTWAPOracle
  * @notice Time-Weighted Average Price oracle for PancakeSwap V2 pairs
- * @dev Provides manipulation-resistant price feeds for prediction markets
+ * @dev Provides manipulation-resistant price feeds using Uniswap V2 TWAP pattern
  */
 contract PancakeTWAPOracle is Ownable {
     struct Observation {
@@ -16,9 +16,9 @@ contract PancakeTWAPOracle is Ownable {
         uint256 price1Cumulative;
     }
 
-    IPancakePair public pair;
-    address public token0;
-    address public token1;
+    IPancakePair public immutable pair;
+    address public immutable token0;
+    address public immutable token1;
     
     Observation public observationOld;
     Observation public observationNew;
@@ -34,48 +34,92 @@ contract PancakeTWAPOracle is Ownable {
         token0 = pair.token0();
         token1 = pair.token1();
         
-        (uint112 reserve0, uint112 reserve1, uint32 blockTimestamp) = pair.getReserves();
-        require(reserve0 != 0 && reserve1 != 0, "No reserves");
+        (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) = currentCumulativePrices();
+        require(price0Cumulative > 0 || price1Cumulative > 0, "No data");
         
         observationOld = Observation({
             timestamp: blockTimestamp,
-            price0Cumulative: pair.price0CumulativeLast(),
-            price1Cumulative: pair.price1CumulativeLast()
+            price0Cumulative: price0Cumulative,
+            price1Cumulative: price1Cumulative
         });
         
         observationNew = observationOld;
     }
 
+    /**
+     * @notice Compute current cumulative prices
+     * @dev Follows Uniswap V2 oracle pattern - adds time-weighted price since last update
+     */
+    function currentCumulativePrices() public view returns (
+        uint256 price0Cumulative,
+        uint256 price1Cumulative,
+        uint32 blockTimestamp
+    ) {
+        (uint112 reserve0, uint112 reserve1, uint32 blockTimestampLast) = pair.getReserves();
+        
+        price0Cumulative = pair.price0CumulativeLast();
+        price1Cumulative = pair.price1CumulativeLast();
+        blockTimestamp = uint32(block.timestamp);
+        
+        // If time has elapsed since the last update, compute the time-weighted price
+        if (blockTimestampLast != blockTimestamp) {
+            uint32 timeElapsed;
+            unchecked {
+                timeElapsed = blockTimestamp - blockTimestampLast;
+            }
+            
+            // Add the accumulated price during the elapsed time
+            // price0 = reserve1 / reserve0, encoded as UQ112x112
+            // price1 = reserve0 / reserve1, encoded as UQ112x112
+            if (reserve0 != 0 && reserve1 != 0) {
+                unchecked {
+                    price0Cumulative += uint256(uint224(reserve1)) * Q112 / reserve0 * timeElapsed;
+                    price1Cumulative += uint256(uint224(reserve0)) * Q112 / reserve1 * timeElapsed;
+                }
+            }
+        }
+    }
+
     function update() external {
-        (uint112 reserve0, uint112 reserve1, uint32 blockTimestamp) = pair.getReserves();
-        uint32 timeElapsed = blockTimestamp - observationNew.timestamp;
+        (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) = currentCumulativePrices();
+        uint32 timeElapsed;
+        unchecked {
+            timeElapsed = blockTimestamp - observationNew.timestamp;
+        }
         
         require(timeElapsed >= MIN_PERIOD, "Period not elapsed");
-        require(reserve0 != 0 && reserve1 != 0, "No reserves");
         
         observationOld = observationNew;
         
         observationNew = Observation({
             timestamp: blockTimestamp,
-            price0Cumulative: pair.price0CumulativeLast(),
-            price1Cumulative: pair.price1CumulativeLast()
+            price0Cumulative: price0Cumulative,
+            price1Cumulative: price1Cumulative
         });
 
-        emit OracleUpdated(blockTimestamp, observationNew.price0Cumulative, observationNew.price1Cumulative);
+        emit OracleUpdated(blockTimestamp, price0Cumulative, price1Cumulative);
     }
 
     function consult(address token, uint256 amountIn) external view returns (uint256 amountOut) {
         require(token == token0 || token == token1, "Invalid token");
         
-        uint32 timeElapsed = observationNew.timestamp - observationOld.timestamp;
+        uint32 timeElapsed;
+        unchecked {
+            timeElapsed = observationNew.timestamp - observationOld.timestamp;
+        }
         require(timeElapsed >= MIN_PERIOD, "Insufficient data");
         
+        uint256 priceCumulativeDelta;
         if (token == token0) {
-            uint256 priceCumulativeDelta = observationNew.price0Cumulative - observationOld.price0Cumulative;
+            unchecked {
+                priceCumulativeDelta = observationNew.price0Cumulative - observationOld.price0Cumulative;
+            }
             uint224 priceAverage = uint224(priceCumulativeDelta / timeElapsed);
             amountOut = (amountIn * priceAverage) / Q112;
         } else {
-            uint256 priceCumulativeDelta = observationNew.price1Cumulative - observationOld.price1Cumulative;
+            unchecked {
+                priceCumulativeDelta = observationNew.price1Cumulative - observationOld.price1Cumulative;
+            }
             uint224 priceAverage = uint224(priceCumulativeDelta / timeElapsed);
             amountOut = (amountIn * priceAverage) / Q112;
         }
@@ -95,8 +139,10 @@ contract PancakeTWAPOracle is Ownable {
     }
 
     function canUpdate() external view returns (bool) {
-        (,, uint32 blockTimestamp) = pair.getReserves();
-        uint32 timeElapsed = blockTimestamp - observationNew.timestamp;
+        uint32 timeElapsed;
+        unchecked {
+            timeElapsed = uint32(block.timestamp) - observationNew.timestamp;
+        }
         return timeElapsed >= MIN_PERIOD;
     }
 }

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "./SoraOracle.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
@@ -9,7 +10,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  * @notice MVP prediction market that uses Sora Oracle for outcome resolution
  * @dev Supports binary (yes/no) prediction markets
  */
-contract SimplePredictionMarket is ReentrancyGuard {
+contract SimplePredictionMarket is Ownable, ReentrancyGuard {
     
     enum MarketStatus { OPEN, CLOSED, RESOLVED, CANCELED }
     enum Outcome { UNRESOLVED, YES, NO }
@@ -28,12 +29,14 @@ contract SimplePredictionMarket is ReentrancyGuard {
     struct Position {
         uint256 yesAmount;
         uint256 noAmount;
+        uint256 feesPaid;
         bool claimed;
     }
 
     SoraOracle public oracle;
     uint256 public marketCounter;
     uint256 public constant FEE_PERCENTAGE = 2; // 2% platform fee
+    uint256 public accumulatedFees;
     
     mapping(uint256 => Market) public markets;
     mapping(uint256 => mapping(address => Position)) public positions;
@@ -41,9 +44,11 @@ contract SimplePredictionMarket is ReentrancyGuard {
     event MarketCreated(uint256 indexed marketId, string question, uint256 resolutionTime);
     event PositionTaken(uint256 indexed marketId, address indexed user, bool isYes, uint256 amount);
     event MarketResolved(uint256 indexed marketId, Outcome outcome);
+    event MarketCanceled(uint256 indexed marketId);
     event WinningsClaimed(uint256 indexed marketId, address indexed user, uint256 amount);
+    event FeesWithdrawn(address indexed owner, uint256 amount);
 
-    constructor(address payable _oracle) {
+    constructor(address payable _oracle) Ownable(msg.sender) {
         require(_oracle != address(0), "Invalid oracle");
         oracle = SoraOracle(_oracle);
     }
@@ -107,13 +112,17 @@ contract SimplePredictionMarket is ReentrancyGuard {
         uint256 betAmount = msg.value - fee;
 
         market.totalFees += fee;
+        // Note: fees are NOT added to accumulatedFees yet - only when market resolves
+
+        Position storage position = positions[_marketId][msg.sender];
+        position.feesPaid += fee;
 
         if (_isYes) {
             market.yesPool += betAmount;
-            positions[_marketId][msg.sender].yesAmount += betAmount;
+            position.yesAmount += betAmount;
         } else {
             market.noPool += betAmount;
-            positions[_marketId][msg.sender].noAmount += betAmount;
+            position.noAmount += betAmount;
         }
 
         emit PositionTaken(_marketId, msg.sender, _isYes, betAmount);
@@ -134,6 +143,9 @@ contract SimplePredictionMarket is ReentrancyGuard {
 
         market.outcome = answer.boolAnswer ? Outcome.YES : Outcome.NO;
         market.status = MarketStatus.RESOLVED;
+
+        // Release platform fees now that market is resolved (won't be canceled)
+        accumulatedFees += market.totalFees;
 
         emit MarketResolved(_marketId, market.outcome);
     }
@@ -211,5 +223,63 @@ contract SimplePredictionMarket is ReentrancyGuard {
         returns (Position memory) 
     {
         return positions[_marketId][_user];
+    }
+
+    /**
+     * @notice Cancel a market if oracle hasn't answered
+     * @param _marketId Market ID
+     * @dev Allows users to reclaim bets if oracle fails to answer
+     */
+    function cancelMarket(uint256 _marketId) external nonReentrant {
+        Market storage market = markets[_marketId];
+        require(market.status == MarketStatus.OPEN, "Market not open");
+        require(block.timestamp > market.resolutionTime + 7 days, "Too early to cancel");
+
+        (, SoraOracle.Answer memory answer) = oracle.getQuestionWithAnswer(market.questionId);
+        require(answer.confidenceScore == 0, "Already answered");
+
+        market.status = MarketStatus.CANCELED;
+        emit MarketCanceled(_marketId);
+    }
+
+    /**
+     * @notice Claim refund from canceled market
+     * @param _marketId Market ID
+     * @dev Returns full stake including exact fees paid
+     * Note: Canceled market fees were never added to accumulatedFees, so no deduction needed
+     */
+    function claimRefund(uint256 _marketId) external nonReentrant {
+        Market storage market = markets[_marketId];
+        Position storage position = positions[_marketId][msg.sender];
+        
+        require(market.status == MarketStatus.CANCELED, "Market not canceled");
+        require(!position.claimed, "Already claimed");
+
+        uint256 netPosition = position.yesAmount + position.noAmount;
+        uint256 feesPaid = position.feesPaid;
+        uint256 fullRefund = netPosition + feesPaid;
+        
+        require(fullRefund > 0, "No position");
+
+        position.claimed = true;
+
+        (bool success, ) = msg.sender.call{value: fullRefund}("");
+        require(success, "Refund failed");
+    }
+
+    /**
+     * @notice Withdraw accumulated platform fees
+     * @dev Only owner can withdraw
+     */
+    function withdrawFees() external onlyOwner nonReentrant {
+        uint256 amount = accumulatedFees;
+        require(amount > 0, "No fees to withdraw");
+
+        accumulatedFees = 0;
+
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Withdrawal failed");
+
+        emit FeesWithdrawn(msg.sender, amount);
     }
 }
