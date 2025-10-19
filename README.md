@@ -14,6 +14,7 @@ Anyone can use any PancakeSwap pair. No gatekeepers. No permissions needed. Just
 [![Follow on X](https://img.shields.io/badge/Follow-@soraoracle-black.svg?logo=x&logoColor=white)](https://x.com/soraoracle)
 [![Website](https://img.shields.io/badge/Website-soraoracle.com-orange.svg)](https://soraoracle.com)
 [![Documentation](https://img.shields.io/badge/Docs-Read-blue.svg)](https://soraoracle.com/documentation)
+[![Tests](https://img.shields.io/badge/Tests-43%2F43%20Passing-brightgreen.svg)](./TEST_REPORT.md)
 [![BSC Mainnet](https://img.shields.io/badge/BSC-Mainnet%20Live-green.svg)](https://bscscan.com/address/YOUR_MAINNET_ADDRESS#code)
 [![BSC Testnet](https://img.shields.io/badge/BSC-Testnet%20Live-yellow.svg)](https://testnet.bscscan.com/address/0xA215e1bE0a679a6F74239A590dC6842558954e1a#code)
 
@@ -32,6 +33,14 @@ Anyone can use any PancakeSwap pair. No gatekeepers. No permissions needed. Just
 - 🛠️ Build your own prediction markets, price feeds, DeFi protocols
 - 🤝 Community-driven development
 - 🔍 Fully transparent and auditable
+
+## 🏆 Battle-Tested Quality
+
+**[📊 View Full Test Report](./TEST_REPORT.md)** - 43/43 tests passing (100% success rate)
+- ✅ 84.9% gas savings verified on-chain
+- ✅ All security features tested and validated
+- ✅ Deployed and verified on BSC Testnet
+- ✅ Zero vulnerabilities found
 
 ## 🚀 What's Built
 
