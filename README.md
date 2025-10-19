@@ -12,7 +12,8 @@ Anyone can use any PancakeSwap pair. No gatekeepers. No permissions needed. Just
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Follow on X](https://img.shields.io/badge/Follow-@soraoracle-black.svg?logo=x&logoColor=white)](https://x.com/soraoracle)
-[![Documentation](https://img.shields.io/badge/Docs-Read-blue.svg)](./docs/SDK_GUIDE.md)
+[![Website](https://img.shields.io/badge/Website-soraoracle.com-orange.svg)](https://soraoracle.com)
+[![Documentation](https://img.shields.io/badge/Docs-Read-blue.svg)](https://soraoracle.com/documentation)
 [![BSC Testnet](https://img.shields.io/badge/BSC-Testnet%20Live-yellow.svg)](https://testnet.bscscan.com/address/0xA215e1bE0a679a6F74239A590dC6842558954e1a#code)
 
 </div>
