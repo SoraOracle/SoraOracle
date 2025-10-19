@@ -41,3 +41,9 @@ build/
 # Temporary files
 *.tmp
 .cache/
+
+# Development platform files
+.replit
+replit.nix
+.upm/
+.config/

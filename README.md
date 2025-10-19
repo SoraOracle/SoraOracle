@@ -220,6 +220,28 @@ uint256 price = oracle.getTWAPPrice(
 
 *Based on 5 gwei gas price and $600 BNB
 
+## 🤝 Contributing
+
+We welcome contributions! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+### Quick Contribution Guide
+
+```bash
+# Fork and clone
+git clone https://github.com/yourusername/sora-oracle-sdk
+
+# Install and test
+npm install && npm test
+
+# Create feature branch
+git checkout -b feature/amazing-feature
+
+# Make changes and test
+npm test
+
+# Submit PR
+```
+
 ## 🧪 Testing
 
 All 21 tests passing:
