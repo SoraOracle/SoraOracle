@@ -55,26 +55,33 @@ This open-source SDK provides:
    - TWAP update utilities
    - Full test suite (21 tests passing)
 
-## 📁 Project Structure
+## 📁 Repository Structure
 
 ```
-contracts/
-├── SoraOracle.sol                  # Main oracle contract
-├── PancakeTWAPOracle.sol          # TWAP price feed oracle
-├── SimplePredictionMarket.sol     # Prediction market helper
-└── interfaces/
-    ├── IPancakePair.sol           # PancakeSwap pair interface
-    └── IPancakeFactory.sol        # PancakeSwap factory interface
-
-scripts/
-├── deploy-sora.js                 # Deploy Sora Oracle
-├── sora-ask.js                    # Ask questions
-├── sora-answer.js                 # Provide answers
-├── sora-withdraw.js               # Withdraw earnings
-└── update-twap.js                 # Update TWAP oracles
-
-test/
-└── SoraOracle.test.js             # Comprehensive test suite
+sora-oracle-sdk/
+├── contracts/              # Smart contracts
+│   ├── SoraOracle.sol
+│   ├── PancakeTWAPOracle.sol
+│   ├── SimplePredictionMarket.sol
+│   └── interfaces/
+├── scripts/               # Deployment & utilities
+│   ├── deploy-sora.js
+│   ├── auto-update-twap.js
+│   └── ...
+├── examples/              # Integration examples
+│   ├── prediction-markets/
+│   │   ├── basic-market.sol
+│   │   └── price-prediction-market.sol
+│   ├── integrations/
+│   │   ├── defi-lending.sol
+│   │   └── integrate-any-token.js
+│   └── utilities/
+│       └── price-alerts.js
+├── docs/                  # Documentation
+│   ├── SDK_GUIDE.md
+│   ├── BOOTSTRAP_GUIDE.md
+│   └── ...
+└── test/                  # Test suite (21 tests)
 ```
 
 ## 🎯 Quick Start
@@ -136,11 +143,12 @@ npm run sora:withdraw <ORACLE_ADDRESS>
 
 ## 📖 Documentation
 
-- **[SDK_GUIDE.md](./SDK_GUIDE.md)** - **START HERE** - How to integrate the SDK
-- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)** - **IMPORTANT** - Bootstrap mode explained
-- **[SORA_README.md](./SORA_README.md)** - Comprehensive feature guide
-- **[TWAP_GUIDE.md](./TWAP_GUIDE.md)** - TWAP vs Spot prices, auto-updater guide
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Deploy your own instance
+- **[SDK Guide](./docs/SDK_GUIDE.md)** - **START HERE** - How to integrate the SDK
+- **[Bootstrap Guide](./docs/BOOTSTRAP_GUIDE.md)** - **IMPORTANT** - Bootstrap mode explained
+- **[Feature Guide](./docs/SORA_README.md)** - Comprehensive feature documentation
+- **[TWAP Guide](./docs/TWAP_GUIDE.md)** - TWAP vs Spot prices, auto-updater
+- **[Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)** - Deploy your own instance
+- **[Examples](./examples/README.md)** - Prediction markets, DeFi integrations, utilities
 - **[Test Suite](./test/SoraOracle.test.js)** - 21 passing tests
 
 ## 🔧 Available Commands
