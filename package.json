@@ -7,6 +7,10 @@
     "compile": "hardhat compile",
     "deploy:testnet": "hardhat run scripts/deploy.js --network bscTestnet",
     "deploy:mainnet": "hardhat run scripts/deploy.js --network bscMainnet",
+    "deploy:sora": "hardhat run scripts/deploy-sora.js --network bscTestnet",
+    "sora:ask": "hardhat run scripts/sora-ask.js --network bscTestnet",
+    "sora:answer": "hardhat run scripts/sora-answer.js --network bscTestnet",
+    "sora:withdraw": "hardhat run scripts/sora-withdraw.js --network bscTestnet",
     "test": "hardhat test"
   },
   "keywords": ["oracle", "bnb", "bsc", "smart-contract", "solidity"],
