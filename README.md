@@ -6,7 +6,7 @@
 
 # Sora Oracle SDK - Permissionless & Open Source
 
-**A fully permissionless, open-source oracle SDK for BNB Chain**
+**Sora delivers Decentralized Data Integrity and Real-Time Outcome Resolution for prediction markets on BNB Chain. Experience tamper-proof settlements powered by AI-enhanced accuracy.**
 
 Anyone can use any PancakeSwap pair. No gatekeepers. No permissions needed. Just plug in and build.
 
