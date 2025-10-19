@@ -27,10 +27,11 @@ contract SimplePredictionMarket is Ownable, ReentrancyGuard {
     }
 
     struct Position {
-        uint256 yesAmount;
-        uint256 noAmount;
-        uint256 feesPaid;
-        bool claimed;
+        uint96 yesAmount;    // 12 bytes - max ~79B BNB (plenty)
+        uint96 noAmount;     // 12 bytes
+        uint48 feesPaid;     // 6 bytes - max ~281k BNB fees
+        bool claimed;        // 1 byte
+        // Total: 31 bytes (1 slot)
     }
 
     SoraOracle public oracle;
@@ -110,19 +111,22 @@ contract SimplePredictionMarket is Ownable, ReentrancyGuard {
 
         uint256 fee = (msg.value * FEE_PERCENTAGE) / 100;
         uint256 betAmount = msg.value - fee;
+        
+        require(fee <= type(uint48).max, "Fee overflow");
+        require(betAmount <= type(uint96).max, "Amount overflow");
 
         market.totalFees += fee;
         // Note: fees are NOT added to accumulatedFees yet - only when market resolves
 
         Position storage position = positions[_marketId][msg.sender];
-        position.feesPaid += fee;
+        position.feesPaid = uint48(uint256(position.feesPaid) + fee);
 
         if (_isYes) {
             market.yesPool += betAmount;
-            position.yesAmount += betAmount;
+            position.yesAmount = uint96(uint256(position.yesAmount) + betAmount);
         } else {
             market.noPool += betAmount;
-            position.noAmount += betAmount;
+            position.noAmount = uint96(uint256(position.noAmount) + betAmount);
         }
 
         emit PositionTaken(_marketId, msg.sender, _isYes, betAmount);

@@ -38,8 +38,10 @@ describe("Sora Oracle MVP", function () {
         })
       ).to.emit(oracle, "QuestionAsked");
 
-      const { question: q } = await oracle.questions(0);
-      expect(q).to.equal(question);
+      // Verify question hash is stored correctly
+      const questionHash = await oracle.questionHashes(0);
+      const expectedHash = ethers.keccak256(ethers.toUtf8Bytes(question));
+      expect(questionHash).to.equal(expectedHash);
     });
 
     it("Should allow users to ask price questions", async function () {
@@ -113,7 +115,8 @@ describe("Sora Oracle MVP", function () {
 
       const answer = await oracle.answers(0);
       expect(answer.confidenceScore).to.equal(85);
-      expect(answer.dataSource).to.equal("Market-Analysis");
+      expect(answer.boolAnswer).to.equal(false);
+      // dataSource is emitted in event only (not stored on-chain for gas savings)
     });
 
     it("Should not allow non-provider to answer", async function () {

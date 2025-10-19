@@ -17,28 +17,30 @@ contract SoraOracle is Ownable, ReentrancyGuard, Pausable {
     enum AnswerStatus { PENDING, ANSWERED, DISPUTED, FINALIZED }
 
     struct Question {
-        address requester;
-        QuestionType questionType;
-        string question;
-        uint256 bounty;
-        uint256 timestamp;
-        uint256 deadline;
-        AnswerStatus status;
-        bool refunded;
+        address requester;          // 20 bytes
+        uint88 bounty;              // 11 bytes (max ~309k BNB - plenty)
+        uint32 timestamp;           // 4 bytes (good until 2106)
+        uint32 deadline;            // 4 bytes
+        QuestionType questionType;  // 1 byte
+        AnswerStatus status;        // 1 byte
+        bool refunded;              // 1 byte
+        // Total: 32 bytes (1 slot) + hash in separate mapping
     }
 
     struct Answer {
-        string textAnswer;
-        uint256 numericAnswer;
-        bool boolAnswer;
-        uint8 confidenceScore;
-        string dataSource;
-        uint256 timestamp;
-        address provider;
+        address provider;           // 20 bytes
+        uint8 confidenceScore;      // 1 byte (0-100)
+        bool boolAnswer;            // 1 byte
+        // 10 bytes free in slot
+        uint64 numericAnswer;       // 8 bytes (for most price data)
+        uint32 timestamp;           // 4 bytes
+        // Slot 2: 12 bytes used, 20 free
+        // Text/dataSource in events only
     }
 
     mapping(uint256 => Question) public questions;
     mapping(uint256 => Answer) public answers;
+    mapping(uint256 => bytes32) public questionHashes; // Hash of question text
     mapping(address => PancakeTWAPOracle) public twapOracles;
     
     uint256 public questionCounter;
@@ -46,6 +48,7 @@ contract SoraOracle is Ownable, ReentrancyGuard, Pausable {
     address public oracleProvider;
     uint256 public providerBalance;
     uint256 public constant REFUND_PERIOD = 7 days;
+    uint256 public constant TWAP_DEPLOYMENT_FEE = 0.02 ether; // Covers ~2M gas deployment cost
 
     event QuestionAsked(
         uint256 indexed questionId,
@@ -122,31 +125,34 @@ contract SoraOracle is Ownable, ReentrancyGuard, Pausable {
         require(bytes(_question).length > 0, "Question empty");
         require(bytes(_question).length <= 500, "Question too long");
         require(_deadline > block.timestamp, "Invalid deadline");
+        require(_deadline <= type(uint32).max, "Deadline overflow");
+        require(msg.value <= type(uint88).max, "Bounty overflow");
 
         questionId = questionCounter++;
         
         questions[questionId] = Question({
             requester: msg.sender,
             questionType: _type,
-            question: _question,
-            bounty: msg.value,
-            timestamp: block.timestamp,
-            deadline: _deadline,
+            bounty: uint88(msg.value),
+            timestamp: uint32(block.timestamp),
+            deadline: uint32(_deadline),
             status: AnswerStatus.PENDING,
             refunded: false
         });
 
+        // Store question hash, emit full text in event
+        questionHashes[questionId] = keccak256(bytes(_question));
         emit QuestionAsked(questionId, msg.sender, _type, _question, msg.value, _deadline);
     }
 
     /**
      * @notice Provide an answer to a question
      * @param _questionId The question ID
-     * @param _textAnswer Text answer (for general questions)
-     * @param _numericAnswer Numeric answer (for price/numeric questions)
+     * @param _textAnswer Text answer (for general questions) - emitted in event only
+     * @param _numericAnswer Numeric answer (for price/numeric questions) - max uint64
      * @param _boolAnswer Boolean answer (for yes/no questions)
      * @param _confidenceScore Confidence score 0-100
-     * @param _dataSource Data source used (e.g., "TWAP", "Manual", "API")
+     * @param _dataSource Data source used (e.g., "TWAP", "Manual", "API") - emitted in event only
      */
     function provideAnswer(
         uint256 _questionId,
@@ -161,15 +167,14 @@ contract SoraOracle is Ownable, ReentrancyGuard, Pausable {
         require(!q.refunded, "Already refunded");
         require(_confidenceScore <= 100, "Invalid confidence");
         require(bytes(_dataSource).length > 0, "Data source required");
+        require(_numericAnswer <= type(uint64).max, "Numeric answer overflow");
 
         answers[_questionId] = Answer({
-            textAnswer: _textAnswer,
-            numericAnswer: _numericAnswer,
-            boolAnswer: _boolAnswer,
+            provider: msg.sender,
             confidenceScore: _confidenceScore,
-            dataSource: _dataSource,
-            timestamp: block.timestamp,
-            provider: msg.sender
+            boolAnswer: _boolAnswer,
+            numericAnswer: uint64(_numericAnswer),
+            timestamp: uint32(block.timestamp)
         });
 
         q.status = AnswerStatus.ANSWERED;
@@ -180,7 +185,7 @@ contract SoraOracle is Ownable, ReentrancyGuard, Pausable {
 
     /**
      * @notice Get price from TWAP oracle for a token pair
-     * @dev Auto-creates TWAP oracle if it doesn't exist (permissionless)
+     * @dev Oracle must exist (use addTWAPOracle first)
      * @param _pairAddress PancakeSwap pair address
      * @param _token Token to price
      * @param _amount Amount of tokens
@@ -189,23 +194,26 @@ contract SoraOracle is Ownable, ReentrancyGuard, Pausable {
         address _pairAddress,
         address _token,
         uint256 _amount
-    ) external returns (uint256) {
-        // Auto-create TWAP oracle if it doesn't exist (permissionless!)
-        if (address(twapOracles[_pairAddress]) == address(0)) {
-            _createTWAPOracle(_pairAddress);
-        }
-        
+    ) external view returns (uint256) {
+        require(address(twapOracles[_pairAddress]) != address(0), "Oracle not found - call addTWAPOracle first");
         return twapOracles[_pairAddress].consult(_token, _amount);
     }
 
     /**
      * @notice Add a TWAP oracle for a trading pair (permissionless)
-     * @dev Anyone can add any PancakeSwap pair - fully decentralized
+     * @dev Anyone can add any PancakeSwap pair - caller pays deployment cost
      * @param _pairAddress PancakeSwap pair address
      */
-    function addTWAPOracle(address _pairAddress) external {
+    function addTWAPOracle(address _pairAddress) external payable {
         require(address(twapOracles[_pairAddress]) == address(0), "Already exists");
+        require(msg.value >= TWAP_DEPLOYMENT_FEE, "Insufficient deployment fee");
         _createTWAPOracle(_pairAddress);
+        
+        // Refund excess
+        if (msg.value > TWAP_DEPLOYMENT_FEE) {
+            (bool success, ) = payable(msg.sender).call{value: msg.value - TWAP_DEPLOYMENT_FEE}("");
+            require(success, "Refund failed");
+        }
     }
 
     /**

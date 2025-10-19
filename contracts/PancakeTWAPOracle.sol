@@ -117,7 +117,7 @@ contract PancakeTWAPOracle is Ownable {
         
         // Bootstrap mode: return spot price if not enough data yet
         if (timeElapsed < MIN_PERIOD) {
-            return this.getCurrentPrice(token, amountIn);
+            return _getCurrentPrice(token, amountIn);
         }
         
         // Normal mode: return TWAP
@@ -150,6 +150,10 @@ contract PancakeTWAPOracle is Ownable {
     }
 
     function getCurrentPrice(address token, uint256 amountIn) external view returns (uint256 amountOut) {
+        return _getCurrentPrice(token, amountIn);
+    }
+
+    function _getCurrentPrice(address token, uint256 amountIn) internal view returns (uint256 amountOut) {
         require(token == token0 || token == token1, "Invalid token");
         
         (uint112 reserve0, uint112 reserve1,) = pair.getReserves();
