@@ -121,14 +121,15 @@ npx hardhat verify --network bscMainnet 0xYourMainnetAddress "0xOracleProviderAd
 
 ### Test Basic Functions
 ```bash
-# Check contract is accessible
-npm run mainnet:status
+# Check TWAP oracle prices
+npm run mainnet:prices
 
 # Ask a test question (costs 0.01 BNB)
-npm run mainnet:test-question
+# Edit scripts/sora-ask.js with your test question first
+npm run mainnet:ask
 
-# Check TWAP oracles are active
-npm run mainnet:check-twap
+# Verify contract state via BSCScan
+# Go to: https://bscscan.com/address/0xYourAddress#readContract
 ```
 
 ### Verify On-Chain
@@ -151,13 +152,12 @@ npm run mainnet:auto-update
 ```
 
 ### Monitor Events
-```bash
-# Watch for new questions
-npm run mainnet:watch-questions
+**Via BSCScan:**
+- Go to contract → "Events" tab
+- Filter by "QuestionAsked" to see new questions
+- Filter by "AnswerProvided" to see new answers
 
-# Watch for new answers
-npm run mainnet:watch-answers
-```
+**Or implement custom event listeners** using web3.js/ethers.js with the contract ABI
 
 ### Fund Oracle Provider
 ```bash
@@ -184,13 +184,10 @@ npm run mainnet:watch-answers
 
 ### Emergency Procedures
 If you need to pause the contract:
-```bash
-# Pause all operations
-npm run mainnet:pause
-
-# After fixing issue, unpause
-npm run mainnet:unpause
-```
+1. Go to BSCScan → your contract → "Write Contract"
+2. Connect wallet
+3. Call `pause()` function to stop operations
+4. After fixing issue, call `unpause()` to resume
 
 ---
 

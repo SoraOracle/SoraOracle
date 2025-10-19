@@ -28,22 +28,7 @@ npx hardhat verify --network bscMainnet 0xYourContractAddress "0xYourProviderAdd
 
 ### 2. Verify Contract State
 
-**Read Contract Values:**
-```bash
-npm run mainnet:status
-```
-
-**Expected output:**
-```
-✅ Contract verified at: 0xYourAddress
-✅ Oracle Provider: 0xProviderAddress
-✅ Oracle Fee: 0.01 BNB
-✅ Question Counter: 0
-✅ Contract is not paused
-✅ Owner: 0xYourAddress
-```
-
-**Manual verification via BSCScan:**
+**Verify via BSCScan:**
 1. Go to contract → "Read Contract"
 2. Check:
    - `oracleFee` = 10000000000000000 (0.01 BNB)
@@ -58,18 +43,14 @@ npm run mainnet:status
 
 **Ask a Test Question (costs 0.01 BNB):**
 ```bash
-npm run mainnet:test-question
+# Edit scripts/sora-ask.js to ask your test question, then:
+npm run mainnet:ask
 ```
-
-This will:
-- Ask a simple test question
-- Verify transaction succeeds
-- Return question ID
-- Check question appears in events
 
 **Answer the Test Question:**
 ```bash
-npm run mainnet:answer -- --questionId 1 --answer "Test successful"
+# Edit scripts/sora-answer.js with question ID and answer, then:
+npm run mainnet:answer
 ```
 
 **Withdraw Provider Rewards:**
@@ -81,36 +62,21 @@ npm run mainnet:withdraw
 
 ### 4. Verify TWAP Oracles
 
-**Check deployed TWAP oracles:**
+**Check TWAP prices:**
 ```bash
-npm run mainnet:check-twap
+npm run mainnet:prices
 ```
 
-**Expected output:**
-```
-📊 TWAP Oracle Status:
+This will show:
+- Current TWAP and spot prices for all configured pairs
+- Whether oracles can be consulted (after 5-min bootstrap)
+- Last update time
 
-WBNB/BUSD (0x58F8...):
-  ✅ Oracle deployed
-  ✅ Can consult: true
-  📊 TWAP price: 612.45 BUSD
-  📊 Spot price: 613.12 BUSD
-  ⏱️  Last update: 2 minutes ago
+**Note:** First 5 minutes after deployment, oracles are in bootstrap mode. This is normal.
 
-WBNB/USDT (0x16b9...):
-  ✅ Oracle deployed
-  ✅ Can consult: true
-  ...
-```
-
-**If canConsult = false:**
-- Oracle is in bootstrap mode (first 5 minutes)
-- Wait 5 minutes and check again
-- This is normal for newly deployed oracles
-
-**Update TWAP manually:**
+**Update TWAP oracles:**
 ```bash
-npm run mainnet:update-twap
+npm run mainnet:auto-update
 ```
 
 ---
@@ -140,53 +106,29 @@ pm2 logs sora-updater
 
 ### Set Up Question Monitoring
 
-**Watch for new questions:**
+**Monitor for new questions:**
 
-```bash
-# Start question watcher
-npm run mainnet:watch-questions
+You can monitor QuestionAsked events via BSCScan:
+1. Go to your contract on BSCScan
+2. Click "Events" tab
+3. Filter by "QuestionAsked" event
 
-# Or with PM2
-pm2 start "npm run mainnet:watch-questions" --name sora-watcher
-pm2 save
-```
-
-**Expected output:**
-```
-👀 Watching for new questions on mainnet...
-
-📝 New Question #1:
-   Requester: 0xUser...
-   Type: PRICE
-   Bounty: 0.01 BNB
-   Deadline: 2025-10-20 12:00 UTC
-   Question: "What is the current WBNB/BUSD price?"
-
-⚡ Auto-answer available (PRICE question with TWAP oracle)
-```
+Or implement your own event listener using the contract ABI.
 
 ---
 
 ### Fund Oracle Provider Wallet
 
-**Check provider balance:**
-```bash
-npm run mainnet:provider-balance
-```
+**Check provider balance via BSCScan:**
+- Visit: https://bscscan.com/address/0xYourProviderAddress
+- Ensure balance > 0.05 BNB
 
 **Recommended balances:**
 - Minimum: 0.05 BNB (for gas)
 - Recommended: 0.2 BNB (sustainable operations)
 - Ideal: 0.5 BNB (no downtime risk)
 
-**Set up low-balance alerts:**
-```bash
-# Edit .env
-MIN_PROVIDER_BALANCE=0.1
-
-# Restart watcher to enable alerts
-pm2 restart sora-watcher
-```
+**Monitor balance:** Check BSCScan regularly to ensure provider has sufficient BNB for gas.
 
 ---
 
@@ -194,54 +136,24 @@ pm2 restart sora-watcher
 
 ### Track Contract Metrics
 
-**Daily metrics to monitor:**
+**Monitor via BSCScan:**
 
-1. **Question Volume:**
-   ```bash
-   npm run mainnet:stats -- --period 24h
-   ```
+1. **Question Volume:** Check "QuestionAsked" events on BSCScan
+2. **Response Rate:** Compare "QuestionAsked" vs "AnswerProvided" event counts
+3. **Provider Earnings:** Check provider wallet balance growth
+4. **Gas Costs:** View transaction history on BSCScan for gas usage
 
-2. **Response Rate:**
-   - Answered questions / Total questions
-   - Target: >95%
-
-3. **Average Response Time:**
-   - Time from question to answer
-   - Target: <1 hour
-
-4. **Provider Earnings:**
-   ```bash
-   npm run mainnet:earnings
-   ```
-
-5. **Gas Costs:**
-   - Track daily gas expenditure
-   - Monitor for unusual spikes
+**Recommended:** Build custom monitoring dashboard using BSCScan API or web3 event listeners.
 
 ---
 
-### Set Up Alerts
+### Set Up Alerts (Optional)
 
-**Recommended alerts:**
-
-```javascript
-// Example: Slack/Discord webhook integration
-{
-  "new_question": "Webhook when question asked",
-  "low_balance": "Provider balance < 0.1 BNB",
-  "high_gas": "Gas price > 20 Gwei",
-  "unanswered_deadline": "Question nearing deadline",
-  "contract_paused": "Emergency pause activated"
-}
-```
-
-**Implementation:**
-- See `/scripts/monitoring/` for webhook examples
-- Configure in `.env`:
-  ```bash
-  WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK
-  ENABLE_ALERTS=true
-  ```
+You can implement custom alerts using:
+- BSCScan email notifications (available in your BSCScan account)
+- Third-party services like Tenderly or Blocknative
+- Custom event listeners with web3.js or ethers.js
+- Webhook integrations to Slack/Discord
 
 ---
 
@@ -249,27 +161,18 @@ pm2 restart sora-watcher
 
 ### Test Emergency Pause
 
-**Pause contract (testnet recommended first):**
-```bash
-npm run mainnet:pause
-```
+**Pause contract via BSCScan:**
+1. Go to contract → "Write Contract" → "Connect Wallet"
+2. Find `pause()` function
+3. Click "Write" and confirm transaction
 
 **Verify paused state:**
-```bash
-npm run mainnet:status
-# Should show: "Contract is paused"
-```
-
-**Try to ask question (should fail):**
-```bash
-npm run mainnet:test-question
-# Expected: Transaction reverted with "Pausable: paused"
-```
+- Go to "Read Contract"
+- Check `paused()` function returns `true`
 
 **Unpause:**
-```bash
-npm run mainnet:unpause
-```
+- Go to "Write Contract"
+- Call `unpause()` function
 
 ---
 
@@ -277,15 +180,12 @@ npm run mainnet:unpause
 
 **If using multisig for security:**
 
-```bash
-# Transfer to Gnosis Safe or other multisig
-npm run mainnet:transfer-ownership -- --newOwner 0xMultisigAddress
-```
+1. Deploy and test your multisig wallet (Gnosis Safe recommended)
+2. Go to contract on BSCScan → "Write Contract"
+3. Call `transferOwnership(newOwner)` with multisig address
+4. Confirm transaction
 
-**⚠️ WARNING:** 
-- This is permanent! Double-check address.
-- Multisig must be deployed and tested first.
-- Consider testing on testnet first.
+**⚠️ WARNING:** This is permanent! Verify the multisig address is correct.
 
 ---
 
@@ -364,19 +264,18 @@ Add deployment information:
 
 ### Add More TWAP Oracles
 
-**Popular pairs to consider:**
-```bash
-# BTC tracking
-npm run mainnet:add-twap -- --pair 0xBTCB_WBNB_PAIR
-
-# ETH tracking  
-npm run mainnet:add-twap -- --pair 0xETH_WBNB_PAIR
-
-# Stablecoins
-npm run mainnet:add-twap -- --pair 0xUSDC_BUSD_PAIR
-```
+**To add new pairs:**
+1. Go to contract on BSCScan → "Write Contract"
+2. Call `addTWAPOracle(pairAddress)` with 0.02 BNB value
+3. Get pair addresses from PancakeSwap
+4. Confirm transaction
 
 **Cost:** 0.02 BNB per new TWAP oracle
+
+**Popular pairs to consider:**
+- BTCB/WBNB
+- ETH/WBNB  
+- USDC/BUSD
 
 ### Support New Markets
 
@@ -392,31 +291,24 @@ As projects build on Sora Oracle:
 
 ### "Transaction failed: insufficient funds"
 **Provider wallet needs BNB:**
-```bash
-# Check balance
-npm run mainnet:provider-balance
-
-# Fund provider wallet with 0.2 BNB
-```
+- Check balance on BSCScan: https://bscscan.com/address/0xProviderAddress
+- Send 0.2 BNB to provider wallet
 
 ### "TWAP oracle not updating"
-**Check auto-updater is running:**
+**Ensure auto-updater is running:**
 ```bash
+# Check if running (if using PM2)
 pm2 list
-pm2 logs sora-updater
 
-# Restart if needed
-pm2 restart sora-updater
+# Or run manually
+npm run mainnet:auto-update
 ```
 
 ### "Questions going unanswered"
-**Check question watcher:**
-```bash
-pm2 logs sora-watcher
-
-# Manually check pending questions
-npm run mainnet:pending-questions
-```
+**Check for pending questions:**
+- Go to BSCScan → Events → Filter "QuestionAsked"
+- Compare with "AnswerProvided" events
+- Answer pending questions manually via BSCScan or scripts
 
 ### "High gas costs"
 **BSC gas prices fluctuate:**

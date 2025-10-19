@@ -40,7 +40,7 @@ nano .env
 
 # Private key for contract deployment (KEEP SECRET!)
 # Get from MetaMask: Account Details → Export Private Key
-PRIVATE_KEY=your_private_key_here_without_0x_prefix
+PRIVATE_KEY=0xYourPrivateKeyHere
 
 # Oracle provider address (receives fees, answers questions)
 # Can be same as deployer address or a separate wallet
@@ -245,7 +245,7 @@ npx hardhat test
    - Click account icon → Account Details
    - Click "Export Private Key"
    - Enter password
-   - Copy key (remove 0x prefix for .env)
+   - Copy entire key including 0x prefix
 
 ### Recommended Wallet Balances
 
@@ -358,9 +358,9 @@ npm install dotenv
 ```
 
 ### "Invalid private key"
-- Remove `0x` prefix from private key in .env
+- Ensure private key includes `0x` prefix in .env
 - Ensure no spaces or quotes around key
-- Verify key is 64 characters (hex)
+- Verify key is 66 characters total (0x + 64 hex chars)
 
 ### "Insufficient funds"
 - Check wallet balance matches network (testnet vs mainnet)

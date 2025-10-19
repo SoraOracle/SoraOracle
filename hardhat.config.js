@@ -1,7 +1,10 @@
 require("@nomicfoundation/hardhat-toolbox");
 require("dotenv").config();
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY || "0x0000000000000000000000000000000000000000000000000000000000000000";
+// Ensure private key has 0x prefix
+const PRIVATE_KEY = process.env.PRIVATE_KEY?.startsWith('0x') 
+  ? process.env.PRIVATE_KEY 
+  : `0x${process.env.PRIVATE_KEY || "0000000000000000000000000000000000000000000000000000000000000000"}`;
 const BSCSCAN_API_KEY = process.env.BSCSCAN_API_KEY || "";
 
 module.exports = {
