@@ -1,0 +1,52 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║              🔍 MANUAL VERIFICATION - QUICK REFERENCE               ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+Due to BSCScan API V2 migration, automatic verification is currently broken.
+Manual verification takes just 2 minutes!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 VERIFICATION URL (click to start):
+https://testnet.bscscan.com/verifyContract?a=0xA215e1bE0a679a6F74239A590dC6842558954e1a
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📝 FORM FIELDS (copy/paste these):
+
+1. Compiler Type:
+   Solidity (Single file)
+
+2. Compiler Version:
+   v0.8.20+commit.a1b79de6
+
+3. License:
+   MIT License (MIT)
+
+4. Optimization:
+   ✅ Yes
+   Runs: 200
+
+5. Source Code:
+   → Copy ENTIRE contents of: SoraOracle_flattened.sol
+   (844 lines - make sure you get all of it!)
+
+6. Constructor Arguments (ABI-encoded):
+   00000000000000000000000029ecd8fa7d7249e791b2563f83de4c124e639b90
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ AFTER VERIFICATION
+
+Refresh your contract page:
+https://testnet.bscscan.com/address/0xA215e1bE0a679a6F74239A590dC6842558954e1a
+
+You'll see:
+✅ Green "Verified" checkmark
+✅ Full source code visible
+✅ Read/Write Contract tabs
+✅ All your gas optimizations displayed!
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+See MANUAL_VERIFICATION_GUIDE.md for detailed step-by-step instructions!
