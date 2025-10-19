@@ -329,10 +329,25 @@ contract MyPredictionMarket {
 
 ## 📝 License
 
-MIT
+MIT License - see [LICENSE](./LICENSE) for details.
+
+Use it, fork it, modify it, sell it - whatever you want!
+
+## 🔗 Resources
+
+- **[BNB Chain](https://www.bnbchain.org/)** - Blockchain platform
+- **[PancakeSwap](https://pancakeswap.finance/)** - DEX for liquidity  
+- **[Hardhat](https://hardhat.org/)** - Development framework
+- **[OpenZeppelin](https://www.openzeppelin.com/)** - Security libraries
+
+## 🌟 Community
+
+- **GitHub**: Submit issues and PRs
+- **Examples**: See [examples/](./examples/) directory
+- **Documentation**: Check [docs/](./docs/) for comprehensive guides
 
 ---
 
-**Built for BNB Chain Prediction Markets** 🚀
+**Built by the community, for the community** 🌐
 
-See [SORA_README.md](./SORA_README.md) for complete feature documentation.
+No gatekeepers. No permissions. Just code.
