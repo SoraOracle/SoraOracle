@@ -15,6 +15,7 @@ Anyone can use any PancakeSwap pair. No gatekeepers. No permissions needed. Just
 [![Website](https://img.shields.io/badge/Website-soraoracle.com-orange.svg)](https://soraoracle.com)
 [![Documentation](https://img.shields.io/badge/Docs-Read-blue.svg)](https://soraoracle.com/documentation)
 [![Tests](https://img.shields.io/badge/Tests-43%2F43%20Passing-brightgreen.svg)](./TEST_REPORT.md)
+[![Mainnet Tested](https://img.shields.io/badge/Mainnet-Tested%20%26%20Approved-success.svg)](./MAINNET_TEST_REPORT.md)
 [![BSC Mainnet](https://img.shields.io/badge/BSC-Mainnet%20Live-green.svg)](https://bscscan.com/address/0x5058AC254e560E54BfcabBe1bde4375E7C914d35#code)
 [![BSC Testnet](https://img.shields.io/badge/BSC-Testnet%20Live-yellow.svg)](https://testnet.bscscan.com/address/0xA215e1bE0a679a6F74239A590dC6842558954e1a#code)
 
@@ -36,11 +37,16 @@ Anyone can use any PancakeSwap pair. No gatekeepers. No permissions needed. Just
 
 ## 🏆 Battle-Tested Quality
 
-**[📊 View Full Test Report](./TEST_REPORT.md)** - 43/43 tests passing (100% success rate)
+**[📊 Testnet Test Report](./TEST_REPORT.md)** - 43/43 tests passing (100% success rate)
 - ✅ 84.9% gas savings verified on-chain
 - ✅ All security features tested and validated
-- ✅ Deployed and verified on BSC Mainnet & Testnet
 - ✅ Zero vulnerabilities found
+
+**[🚀 Mainnet Test Report](./MAINNET_TEST_REPORT.md)** - Full production testing on BSC Mainnet
+- ✅ All core functions tested with real BNB
+- ✅ Question asking, answering, and withdrawal verified
+- ✅ Contract verified on BSCScan
+- ✅ Production-ready and approved
 
 ## 🚀 What's Built
 
