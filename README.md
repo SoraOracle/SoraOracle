@@ -125,20 +125,23 @@ Shows both manipulation-resistant TWAP prices (for settlements) and spot prices 
 ### 5. Ask Questions
 
 ```bash
-npm run sora:ask <ORACLE_ADDRESS>
+npm run sora:ask
 ```
+
+Follow the prompts to ask questions with different types.
 
 ### 6. Provide Answers (Oracle Provider)
 
 ```bash
-npm run sora:answer <ORACLE_ADDRESS> <QUESTION_ID> <TYPE>
-# Types: general, price, yesno
+npm run sora:answer
 ```
+
+Follow the prompts to provide answers with confidence scores.
 
 ### 7. Withdraw Earnings
 
 ```bash
-npm run sora:withdraw <ORACLE_ADDRESS>
+npm run sora:withdraw
 ```
 
 ## 📖 Documentation
@@ -149,7 +152,7 @@ npm run sora:withdraw <ORACLE_ADDRESS>
 - **[TWAP Guide](./docs/TWAP_GUIDE.md)** - TWAP vs Spot prices, auto-updater
 - **[Deployment Guide](./docs/DEPLOYMENT_GUIDE.md)** - Deploy your own instance
 - **[Examples](./examples/README.md)** - Prediction markets, DeFi integrations, utilities
-- **[Test Suite](./test/SoraOracle.test.js)** - 21 passing tests
+- **[Test Suite](./test/SoraOracle.test.js)** - 43 passing tests
 
 ## 🔧 Available Commands
 

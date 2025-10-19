@@ -52,39 +52,42 @@ Save this address!
 
 ## Step 4: Ask Your First Question
 
-Update `.env`:
-```bash
-SORA_ORACLE_ADDRESS=0x... # address from step 3
-```
-
-Then ask a question:
+Run the interactive ask script:
 
 ```bash
-npx hardhat run scripts/ask-question.js --network bscTestnet
+npx hardhat run scripts/sora-ask.js --network bscTestnet 0xYOUR_ORACLE_ADDRESS
 ```
+
+Or use the npm command:
+
+```bash
+npm run sora:ask
+```
+
+This will ask 3 example questions automatically.
 
 ---
 
 ## Step 5: Provide an Answer (Oracle Provider)
 
 ```bash
-npx hardhat run scripts/answer-question.js --network bscTestnet
+npx hardhat run scripts/sora-answer.js --network bscTestnet
 ```
 
 ---
 
-## Step 6: Get TWAP Price
+## Step 6: Update TWAP Prices
 
-Deploy a TWAP oracle for any PancakeSwap pair:
-
-```bash
-npx hardhat run scripts/deploy-twap.js --network bscTestnet
-```
-
-Update the price:
+Update prices for configured pairs:
 
 ```bash
 npx hardhat run scripts/update-twap.js --network bscTestnet
+```
+
+Or start auto-updating every 5 minutes:
+
+```bash
+npm run sora:auto-update
 ```
 
 ---
