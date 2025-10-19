@@ -100,6 +100,13 @@ contract PancakeTWAPOracle is Ownable {
         emit OracleUpdated(blockTimestamp, price0Cumulative, price1Cumulative);
     }
 
+    /**
+     * @notice Get TWAP price - falls back to spot if bootstrapping
+     * @dev Permissionless: returns spot price for first 5 min after oracle creation
+     * @param token Token to price  
+     * @param amountIn Amount of input token
+     * @return amountOut Expected output based on TWAP (or spot during bootstrap)
+     */
     function consult(address token, uint256 amountIn) external view returns (uint256 amountOut) {
         require(token == token0 || token == token1, "Invalid token");
         
@@ -107,8 +114,13 @@ contract PancakeTWAPOracle is Ownable {
         unchecked {
             timeElapsed = observationNew.timestamp - observationOld.timestamp;
         }
-        require(timeElapsed >= MIN_PERIOD, "Insufficient data");
         
+        // Bootstrap mode: return spot price if not enough data yet
+        if (timeElapsed < MIN_PERIOD) {
+            return this.getCurrentPrice(token, amountIn);
+        }
+        
+        // Normal mode: return TWAP
         uint256 priceCumulativeDelta;
         if (token == token0) {
             unchecked {
@@ -123,6 +135,18 @@ contract PancakeTWAPOracle is Ownable {
             uint224 priceAverage = uint224(priceCumulativeDelta / timeElapsed);
             amountOut = (amountIn * priceAverage) / Q112;
         }
+    }
+    
+    /**
+     * @notice Check if oracle has enough data for true TWAP (vs spot fallback)
+     * @return bool True if MIN_PERIOD elapsed (using TWAP), false if using spot
+     */
+    function canConsult() external view returns (bool) {
+        uint32 timeElapsed;
+        unchecked {
+            timeElapsed = observationNew.timestamp - observationOld.timestamp;
+        }
+        return timeElapsed >= MIN_PERIOD;
     }
 
     function getCurrentPrice(address token, uint256 amountIn) external view returns (uint256 amountOut) {

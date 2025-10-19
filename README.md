@@ -1,10 +1,30 @@
-# Sora Oracle - BNB Chain Prediction Market Oracle
+# Sora Oracle SDK - Permissionless & Open Source
 
-A sophisticated oracle system for decentralized prediction markets on BNB Chain, featuring TWAP price feeds, confidence scoring, and multi-source data validation.
+**A fully permissionless, open-source oracle SDK for BNB Chain**
 
-## 🚀 What's Built (MVP)
+Anyone can use any PancakeSwap pair. No gatekeepers. No permissions needed. Just plug in and build.
 
-This MVP provides a production-ready oracle system with:
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Permissionless](https://img.shields.io/badge/Access-Permissionless-green.svg)]()
+[![Open Source](https://img.shields.io/badge/Source-Open-blue.svg)]()
+
+## 🌐 What Makes This Different
+
+### Fully Permissionless
+- ✅ **Anyone** can query **any** PancakeSwap pair - no whitelist
+- ✅ **Anyone** can create TWAP oracles for new tokens
+- ✅ **Anyone** can build prediction markets on top
+- ✅ **No approval needed** - just start using it
+
+### Open Source SDK
+- 📖 MIT License - fork it, modify it, use it commercially
+- 🛠️ Build your own prediction markets, price feeds, DeFi protocols
+- 🤝 Community-driven development
+- 🔍 Fully transparent and auditable
+
+## 🚀 What's Built
+
+This open-source SDK provides:
 
 ### ✅ Core Features Implemented
 
@@ -16,12 +36,12 @@ This MVP provides a production-ready oracle system with:
    - 7-day refund period for unanswered questions
    - Emergency pause functionality
 
-2. **PancakeTWAPOracle** - Price feed integration:
-   - Time-weighted average prices from PancakeSwap V2
-   - Manipulation-resistant pricing
-   - 5-minute update period (auto-updater runs every 5 min)
-   - Spot price function for display purposes
-   - Supports any PancakeSwap trading pair
+2. **PancakeTWAPOracle** - Permissionless price feeds:
+   - **Works with ANY PancakeSwap V2 pair** - no whitelist!
+   - Auto-creates TWAP oracle on first query
+   - Manipulation-resistant (5-min TWAP)
+   - Spot price for display (real-time)
+   - Anyone can add their token
 
 3. **SimplePredictionMarket** - Example integration:
    - Binary (yes/no) prediction markets
@@ -116,9 +136,11 @@ npm run sora:withdraw <ORACLE_ADDRESS>
 
 ## 📖 Documentation
 
+- **[SDK_GUIDE.md](./SDK_GUIDE.md)** - **START HERE** - How to integrate the SDK
+- **[BOOTSTRAP_GUIDE.md](./BOOTSTRAP_GUIDE.md)** - **IMPORTANT** - Bootstrap mode explained
 - **[SORA_README.md](./SORA_README.md)** - Comprehensive feature guide
 - **[TWAP_GUIDE.md](./TWAP_GUIDE.md)** - TWAP vs Spot prices, auto-updater guide
-- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Deployment instructions
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Deploy your own instance
 - **[Test Suite](./test/SoraOracle.test.js)** - 21 passing tests
 
 ## 🔧 Available Commands

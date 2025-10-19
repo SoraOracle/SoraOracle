@@ -180,6 +180,7 @@ contract SoraOracle is Ownable, ReentrancyGuard, Pausable {
 
     /**
      * @notice Get price from TWAP oracle for a token pair
+     * @dev Auto-creates TWAP oracle if it doesn't exist (permissionless)
      * @param _pairAddress PancakeSwap pair address
      * @param _token Token to price
      * @param _amount Amount of tokens
@@ -188,19 +189,31 @@ contract SoraOracle is Ownable, ReentrancyGuard, Pausable {
         address _pairAddress,
         address _token,
         uint256 _amount
-    ) external view returns (uint256) {
-        PancakeTWAPOracle twapOracle = twapOracles[_pairAddress];
-        require(address(twapOracle) != address(0), "TWAP oracle not set");
-        return twapOracle.consult(_token, _amount);
+    ) external returns (uint256) {
+        // Auto-create TWAP oracle if it doesn't exist (permissionless!)
+        if (address(twapOracles[_pairAddress]) == address(0)) {
+            _createTWAPOracle(_pairAddress);
+        }
+        
+        return twapOracles[_pairAddress].consult(_token, _amount);
     }
 
     /**
-     * @notice Add a TWAP oracle for a trading pair
+     * @notice Add a TWAP oracle for a trading pair (permissionless)
+     * @dev Anyone can add any PancakeSwap pair - fully decentralized
      * @param _pairAddress PancakeSwap pair address
      */
-    function addTWAPOracle(address _pairAddress) external onlyOwner {
-        require(_pairAddress != address(0), "Invalid pair");
+    function addTWAPOracle(address _pairAddress) external {
         require(address(twapOracles[_pairAddress]) == address(0), "Already exists");
+        _createTWAPOracle(_pairAddress);
+    }
+
+    /**
+     * @notice Internal function to create TWAP oracle
+     * @param _pairAddress PancakeSwap pair address
+     */
+    function _createTWAPOracle(address _pairAddress) internal {
+        require(_pairAddress != address(0), "Invalid pair");
         
         PancakeTWAPOracle newOracle = new PancakeTWAPOracle(_pairAddress);
         twapOracles[_pairAddress] = newOracle;
