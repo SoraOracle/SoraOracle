@@ -23,7 +23,7 @@ contract PancakeTWAPOracle is Ownable {
     Observation public observationOld;
     Observation public observationNew;
     
-    uint32 public constant MIN_PERIOD = 30 minutes;
+    uint32 public constant MIN_PERIOD = 5 minutes;
     uint224 constant Q112 = 2**112;
 
     event OracleUpdated(uint32 timestamp, uint256 price0Cumulative, uint256 price1Cumulative);

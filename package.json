@@ -11,6 +11,8 @@
     "sora:ask": "hardhat run scripts/sora-ask.js --network bscTestnet",
     "sora:answer": "hardhat run scripts/sora-answer.js --network bscTestnet",
     "sora:withdraw": "hardhat run scripts/sora-withdraw.js --network bscTestnet",
+    "sora:prices": "hardhat run scripts/get-prices.js --network bscTestnet",
+    "sora:auto-update": "hardhat run scripts/auto-update-twap.js --network bscTestnet",
     "test": "hardhat test"
   },
   "keywords": ["oracle", "bnb", "bsc", "smart-contract", "solidity"],

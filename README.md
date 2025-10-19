@@ -19,7 +19,8 @@ This MVP provides a production-ready oracle system with:
 2. **PancakeTWAPOracle** - Price feed integration:
    - Time-weighted average prices from PancakeSwap V2
    - Manipulation-resistant pricing
-   - 30-minute minimum update period
+   - 5-minute update period (auto-updater runs every 5 min)
+   - Spot price function for display purposes
    - Supports any PancakeSwap trading pair
 
 3. **SimplePredictionMarket** - Example integration:
@@ -77,20 +78,37 @@ npm run deploy:sora
 
 This deploys SoraOracle and sets up TWAP oracles for major pairs (WBNB/BUSD, WBNB/USDT, CAKE/WBNB).
 
-### 3. Ask Questions
+### 3. Start Auto-Updater (Updates TWAP every 5 min)
+
+```bash
+# Add SORA_ORACLE_ADDRESS to .env first
+npm run sora:auto-update
+```
+
+The auto-updater will continuously update TWAP prices every 5 minutes for all configured pairs.
+
+### 4. Check Prices (TWAP + Spot)
+
+```bash
+npm run sora:prices
+```
+
+Shows both manipulation-resistant TWAP prices (for settlements) and spot prices (for display).
+
+### 5. Ask Questions
 
 ```bash
 npm run sora:ask <ORACLE_ADDRESS>
 ```
 
-### 4. Provide Answers (Oracle Provider)
+### 6. Provide Answers (Oracle Provider)
 
 ```bash
 npm run sora:answer <ORACLE_ADDRESS> <QUESTION_ID> <TYPE>
 # Types: general, price, yesno
 ```
 
-### 5. Withdraw Earnings
+### 7. Withdraw Earnings
 
 ```bash
 npm run sora:withdraw <ORACLE_ADDRESS>
@@ -99,6 +117,7 @@ npm run sora:withdraw <ORACLE_ADDRESS>
 ## 📖 Documentation
 
 - **[SORA_README.md](./SORA_README.md)** - Comprehensive feature guide
+- **[TWAP_GUIDE.md](./TWAP_GUIDE.md)** - TWAP vs Spot prices, auto-updater guide
 - **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Deployment instructions
 - **[Test Suite](./test/SoraOracle.test.js)** - 21 passing tests
 
@@ -108,6 +127,8 @@ npm run sora:withdraw <ORACLE_ADDRESS>
 npm run compile          # Compile contracts
 npm run test             # Run test suite
 npm run deploy:sora      # Deploy to BSC testnet
+npm run sora:auto-update # Start TWAP auto-updater (every 5 min)
+npm run sora:prices      # Check TWAP & spot prices
 npm run sora:ask         # Ask questions
 npm run sora:answer      # Provide answers
 npm run sora:withdraw    # Withdraw earnings
