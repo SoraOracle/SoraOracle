@@ -1,179 +1,272 @@
-# BSC Oracle Contract - Deployment Guide
+# Sora Oracle - Deployment Guide
 
-## Step 1: Set Up Your Wallet
+## Prerequisites
 
-You'll need a wallet with a private key to deploy the contract.
+1. **Node.js** - v18 or higher
+2. **Hardhat** - Installed via npm
+3. **BNB** - For deployment (testnet or mainnet)
+4. **Private Key** - For deploying account
 
-### Option A: Use MetaMask (Recommended)
-1. Install MetaMask browser extension
-2. Create or import a wallet
-3. Go to Account Details → Export Private Key
-4. **Keep this private key secure!**
+## Setup
 
-### Option B: Create a New Wallet
-```bash
-npx hardhat console
-# In the console:
-const wallet = ethers.Wallet.createRandom()
-console.log("Address:", wallet.address)
-console.log("Private Key:", wallet.privateKey)
-```
-
-## Step 2: Configure Environment
-
-Create a `.env` file in the project root:
+### 1. Install Dependencies
 
 ```bash
-cp .env.example .env
+npm install
 ```
 
-Edit `.env` and add your credentials:
+### 2. Configure Environment
+
+Create a `.env` file in the root directory:
+
 ```env
-PRIVATE_KEY=your_64_character_private_key_here
-BSCSCAN_API_KEY=optional_for_verification
-ORACLE_PROVIDER_ADDRESS=your_wallet_address_or_leave_blank
+# Required for deployment
+PRIVATE_KEY=your_private_key_here
+
+# Optional: Set oracle provider (defaults to deployer)
+ORACLE_PROVIDER_ADDRESS=0x...
+
+# Optional: BSCScan API key for contract verification
+BSCSCAN_API_KEY=your_api_key_here
 ```
 
-**Important:** 
-- Remove the `0x` prefix from your private key
-- If you don't specify ORACLE_PROVIDER_ADDRESS, it will use your deployer address
+⚠️ **Never commit your `.env` file!**
 
-## Step 3: Get Testnet BNB
+### 3. Fund Your Account
 
-1. Visit the BNB Chain Testnet Faucet:
-   **https://testnet.bnbchain.org/faucet-smart**
+#### BSC Testnet
+- Get free BNB from: https://testnet.bnbchain.org/faucet-smart
+- You need ~0.1 BNB for deployment
 
-2. Enter your wallet address
-3. Complete the captcha
-4. You'll receive 0.1-0.5 testnet BNB (free!)
+#### BSC Mainnet  
+- Purchase BNB from an exchange
+- Transfer to your deploying account
+- You need ~0.5-1 BNB for deployment + initial operations
 
-**Verify you received the BNB:**
-Check your address on: https://testnet.bscscan.com/address/YOUR_ADDRESS
+## Deployment
 
-## Step 4: Deploy to Testnet
-
-Run the deployment script:
+### Deploy to BSC Testnet
 
 ```bash
-npm run deploy:testnet
+npm run deploy:sora
 ```
+
+This will:
+1. Deploy SoraOracle contract
+2. Set up TWAP oracles for major pairs (WBNB/BUSD, WBNB/USDT, CAKE/WBNB)
+3. Display contract addresses
+4. Show verification commands
 
 **Expected Output:**
+
 ```
-Deploying ImprovedOracle to BSC Testnet...
+🚀 Deploying Sora Oracle MVP to BSC...
 
 Deploying with account: 0x1234...5678
 Account balance: 0.5 BNB
 
-Oracle Provider Address: 0x1234...5678
+Oracle Provider: 0x1234...5678
+📝 Deploying SoraOracle...
+✅ SoraOracle deployed to: 0xABCD...EF01
 
-✅ ImprovedOracle deployed to: 0xABCD...EF01
+📊 Setting up TWAP oracles for trading pairs...
+✅ WBNB/BUSD TWAP oracle added
+✅ WBNB/USDT TWAP oracle added
+✅ CAKE/WBNB TWAP oracle added
 
-📝 Next steps:
-1. Get free testnet BNB from: https://testnet.bnbchain.org/faucet-smart
-2. View your contract on BscScan: https://testnet.bscscan.com/address/0xABCD...EF01
-3. Verify your contract with: npx hardhat verify --network bscTestnet 0xABCD...EF01 0x1234...5678
+============================================================
+🎉 Sora Oracle MVP Deployment Complete!
+============================================================
+
+📋 Contract Addresses:
+SoraOracle: 0xABCD...EF01
 ```
 
-**Save your contract address!** You'll need it for all interactions.
+### Deploy to BSC Mainnet
 
-## Step 5: Verify Contract (Optional but Recommended)
-
-Contract verification makes your source code public on BscScan:
+1. Update `hardhat.config.js` to use mainnet
+2. Make sure you have sufficient BNB
+3. Run:
 
 ```bash
-npx hardhat verify --network bscTestnet <CONTRACT_ADDRESS> <ORACLE_PROVIDER_ADDRESS>
+npx hardhat run scripts/deploy-sora.js --network bscMainnet
 ```
 
-Replace `<CONTRACT_ADDRESS>` with your deployed contract address.
+## Post-Deployment
 
-## Step 6: Test Your Oracle
-
-### Ask a Question
+### 1. Verify Contract on BscScan
 
 ```bash
-npx hardhat run scripts/interact.js <CONTRACT_ADDRESS> --network bscTestnet
+npx hardhat verify --network bscTestnet <ORACLE_ADDRESS> <ORACLE_PROVIDER_ADDRESS>
 ```
 
-This will:
-- Ask a sample question
-- Pay a 0.01 BNB bounty
-- Display the question details
+Example:
+```bash
+npx hardhat verify --network bscTestnet 0xABCD...EF01 0x1234...5678
+```
 
-### Provide an Answer (as Oracle Provider)
+### 2. Test the Oracle
+
+#### Ask a Question
 
 ```bash
-npx hardhat run scripts/answer.js <CONTRACT_ADDRESS> <QUESTION_ID> "Your answer here" --network bscTestnet
+npx hardhat run scripts/sora-ask.js <ORACLE_ADDRESS> --network bscTestnet
 ```
 
-### Withdraw Earnings
+This will submit 3 example questions:
+- General market sentiment question
+- Price question (TWAP-compatible)
+- Yes/No prediction question
+
+#### Provide Answers (As Oracle Provider)
 
 ```bash
-npx hardhat run scripts/withdraw.js <CONTRACT_ADDRESS> --network bscTestnet
+# Answer question #0 (general)
+npx hardhat run scripts/sora-answer.js <ORACLE_ADDRESS> 0 general --network bscTestnet
+
+# Answer question #1 (price)
+npx hardhat run scripts/sora-answer.js <ORACLE_ADDRESS> 1 price --network bscTestnet
+
+# Answer question #2 (yes/no)
+npx hardhat run scripts/sora-answer.js <ORACLE_ADDRESS> 2 yesno --network bscTestnet
 ```
 
-## Common Issues & Solutions
+#### Withdraw Earnings
 
-### Issue: "Insufficient funds"
-- **Solution:** Get more testnet BNB from the faucet
+```bash
+npx hardhat run scripts/sora-withdraw.js <ORACLE_ADDRESS> --network bscTestnet
+```
 
-### Issue: "Invalid private key"
-- **Solution:** Make sure you copied the full key without the `0x` prefix
+### 3. Add More TWAP Oracles
 
-### Issue: "Transaction underpriced"
-- **Solution:** Increase gas price in `hardhat.config.js` (change `gasPrice: 20000000000` to higher)
+You can add TWAP oracles for any PancakeSwap V2 pair:
 
-### Issue: "Only oracle provider can call this"
-- **Solution:** You're trying to answer/withdraw with a different wallet. Use the oracle provider wallet.
+```javascript
+const oracle = await ethers.getContractAt("SoraOracle", ORACLE_ADDRESS);
+const pairAddress = "0x..."; // PancakeSwap pair address
 
-## Deploy to Mainnet
+const tx = await oracle.addTWAPOracle(pairAddress);
+await tx.wait();
+```
 
-**⚠️ WARNING: Mainnet uses REAL BNB with real value!**
+Find pair addresses:
+- PancakeSwap Factory: `0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73`
+- Call `getPair(token0, token1)` to get pair address
 
-1. **Test thoroughly on testnet first!**
-2. Get real BNB (buy from an exchange)
-3. Deploy:
-   ```bash
-   npm run deploy:mainnet
-   ```
+## Common Pair Addresses (BSC Mainnet)
 
-**Deployment Cost:** ~0.002-0.01 BNB (~$2-10 USD)
+| Pair | Address |
+|------|---------|
+| WBNB/BUSD | `0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16` |
+| WBNB/USDT | `0x16b9a82891338f9bA80E2D6970FddA79D1eb0daE` |
+| CAKE/WBNB | `0x0eD7e52944161450477ee417DE9Cd3a859b14fD0` |
+| ETH/WBNB | `0x74E4716E431f45807DCF19f284c7aA99F18a4fbc` |
+| BTC/WBNB | `0x61EB789d75A95CAa3fF50ed7E47b96c132fEc082` |
 
-## Security Best Practices
+## Using in Your DApp
 
-✅ **DO:**
-- Test everything on testnet first
-- Keep your private key secure
-- Use a hardware wallet for mainnet
-- Start with small amounts
-- Verify contracts on BscScan
+### 1. Install Oracle Package
 
-❌ **DON'T:**
-- Share your private key
-- Commit `.env` to git
-- Deploy to mainnet without testing
-- Use the same wallet for dev and production
+```bash
+npm install @openzeppelin/contracts
+```
 
-## Network Information
+### 2. Import and Use
 
-### BSC Testnet
-- **RPC URL:** https://data-seed-prebsc-1-s1.binance.org:8545
-- **Chain ID:** 97
-- **Explorer:** https://testnet.bscscan.com
-- **Faucet:** https://testnet.bnbchain.org/faucet-smart
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-### BSC Mainnet
-- **RPC URL:** https://bsc-dataseed.binance.org/
-- **Chain ID:** 56
-- **Explorer:** https://bscscan.com
+import "./SoraOracle.sol";
 
-## Need Help?
+contract YourContract {
+    SoraOracle public oracle;
+    
+    constructor(address _oracle) {
+        oracle = SoraOracle(_oracle);
+    }
+    
+    function askQuestion(string memory question) external payable {
+        uint256 fee = oracle.oracleFee();
+        require(msg.value >= fee, "Insufficient fee");
+        
+        uint256 deadline = block.timestamp + 24 hours;
+        oracle.askYesNoQuestion{value: fee}(question, deadline);
+    }
+}
+```
 
-- Check the README.md for feature documentation
-- Visit BNB Chain docs: https://docs.bnbchain.org
-- View your transactions on BscScan
-- Check contract source code in `contracts/ImprovedOracle.sol`
+### 3. Query TWAP Prices
+
+```solidity
+// Get WBNB price in BUSD
+address pairAddress = 0x58F876857a02D6762E0101bb5C46A8c1ED44Dc16;
+address WBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
+uint256 amount = 1 ether; // 1 WBNB
+
+uint256 busdAmount = oracle.getTWAPPrice(pairAddress, WBNB, amount);
+// Returns: amount of BUSD for 1 WBNB
+```
+
+## Troubleshooting
+
+### "Insufficient fee" Error
+
+Make sure you're sending at least 0.01 BNB with each question:
+
+```javascript
+await oracle.askOracle(question, deadline, {
+    value: ethers.parseEther("0.01")
+});
+```
+
+### "TWAP oracle not set" Error
+
+You need to add a TWAP oracle for that pair first:
+
+```javascript
+await oracle.addTWAPOracle(pairAddress);
+```
+
+### "Period not elapsed" Error
+
+TWAP oracles need at least 30 minutes between updates. Wait and try again.
+
+### Gas Estimation Failed
+
+- Check you have enough BNB in your account
+- Verify contract addresses are correct
+- Make sure network is set correctly
+
+## Gas Costs (Approximate)
+
+| Action | Gas | Cost (BNB)* |
+|--------|-----|------------|
+| Deploy SoraOracle | 3-5M | $5-8 |
+| Ask Question | 150k | $0.30 |
+| Provide Answer | 100k | $0.20 |
+| Withdraw | 50k | $0.10 |
+| Add TWAP Oracle | 2M | $4 |
+
+*Based on 5 gwei gas price and $600 BNB
+
+## Security Checklist
+
+- [ ] Never commit private keys to Git
+- [ ] Use `.env` for sensitive data
+- [ ] Test thoroughly on testnet first
+- [ ] Verify contracts on BscScan
+- [ ] Set appropriate oracle provider
+- [ ] Test refund mechanism
+- [ ] Test emergency pause
+- [ ] Monitor for suspicious activity
+
+## Support
+
+- **Documentation:** See SORA_README.md
+- **Issues:** Check contract events on BscScan
+- **Questions:** Review the code and tests
 
 ---
 
-🎉 **You're all set!** Your oracle contract is ready to deploy on BSC testnet.
+**Built for BNB Chain Prediction Markets** 🚀
