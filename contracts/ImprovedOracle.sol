@@ -92,6 +92,7 @@ contract ImprovedOracle is Ownable, ReentrancyGuard, Pausable {
     {
         Question storage q = questions[_questionId];
         require(!q.answered, "Question already answered");
+        require(!q.withdrawn, "Question already refunded");
         require(bytes(_answer).length > 0, "Answer cannot be empty");
         require(bytes(_answer).length <= 1000, "Answer too long");
 
@@ -125,6 +126,7 @@ contract ImprovedOracle is Ownable, ReentrancyGuard, Pausable {
 
         q.withdrawn = true;
         uint256 refundAmount = q.bounty;
+        q.bounty = 0;
 
         (bool success, ) = payable(msg.sender).call{value: refundAmount}("");
         require(success, "Refund failed");
