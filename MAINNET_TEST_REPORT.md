@@ -144,6 +144,8 @@ Complete end-to-end testing of Sora Oracle on BSC Mainnet demonstrates full prod
 
 ## Gas Cost Analysis
 
+### Verified Mainnet Gas Costs
+
 | Operation | Gas Used | Cost (BNB) | Cost (USD) |
 |-----------|----------|------------|------------|
 | Deploy Oracle Contract | 2,847,123 | 0.171 | $103.00 |
@@ -158,6 +160,23 @@ Complete end-to-end testing of Sora Oracle on BSC Mainnet demonstrates full prod
   - Testing (ask + answer + withdraw): 0.015 BNB
 
 **Production Usage Cost (per Q&A cycle):** 0.01 BNB base fee + ~0.005 BNB gas = ~0.015 BNB (~$9)
+
+### Gas Optimization Features
+
+The following optimizations were implemented and are active on mainnet:
+
+**Storage Optimizations:**
+- Hash-based question storage (1 slot) vs full text storage (7+ slots)
+- Compact struct packing for answers (2 slots) vs traditional (6+ slots)
+- Event-driven architecture for data retrieval instead of on-chain storage
+
+**Result:** These optimizations reduce gas costs compared to traditional oracle implementations that store full question text on-chain and use non-optimized storage layouts. Testnet testing showed 84.9% savings vs unoptimized implementations, and these same optimizations are active on mainnet.
+
+**Mainnet Performance:**
+- Question asking: ~124k gas (includes 0.01 BNB bounty transfer + storage)
+- Answer provision: ~110k gas (includes bounty transfer to provider balance)
+- Withdrawals: ~33k gas (simple balance transfer)
+- TWAP price reads: View-only, no gas cost for queries
 
 ---
 
@@ -202,7 +221,7 @@ Complete end-to-end testing of Sora Oracle on BSC Mainnet demonstrates full prod
 - **Initialization:** Bootstrap mode during first 5 minutes
 - **Price Accuracy:** Matches PancakeSwap cumulative prices
 - **Update Frequency:** Enforced 5-minute minimum interval
-- **Gas Efficiency:** ~50,000 gas per update (vs. ~350,000 for Chainlink)
+- **Gas Efficiency:** View function for price reads (no gas cost), ~50,000 gas for manual updates
 - **Manipulation Resistance:** Time-weighted averaging prevents flash loan attacks
 
 ### Contract State Management
@@ -222,7 +241,7 @@ Complete end-to-end testing of Sora Oracle on BSC Mainnet demonstrates full prod
 |----------|--------|-------|
 | Smart Contract Security | ✅ Pass | Audited design patterns, OpenZeppelin libs |
 | Function Testing | ✅ Pass | All core functions working on mainnet |
-| Gas Optimization | ✅ Pass | 84.9% savings vs. traditional oracles |
+| Gas Optimization | ✅ Pass | Storage packing & event-driven architecture active |
 | TWAP Accuracy | ✅ Pass | Prices match PancakeSwap data |
 | Access Control | ✅ Pass | Role-based permissions enforced |
 | Emergency Controls | ✅ Pass | Pause mechanism available |
