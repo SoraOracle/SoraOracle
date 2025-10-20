@@ -64,8 +64,8 @@ Complete end-to-end testing of Sora Oracle on BSC Mainnet demonstrates full prod
 
 ### 3. Question Asking ✅
 
-**Transaction:** [0x5cb1e9f3a2d4b7c8e1f9a6d3b5c2e8f1a4b7d9c6e3f8a1b5c2d7e4f9a6b3c8d1](https://bscscan.com/tx/0x5cb1e9f3a2d4b7c8e1f9a6d3b5c2e8f1a4b7d9c6e3f8a1b5c2d7e4f9a6b3c8d1)  
-**Block:** 65175924  
+**Transaction:** [0xe3a28222264ff717cd115acb926f8d983100b4bf728a75354ba4b2da2c67f92d](https://bscscan.com/tx/0xe3a28222264ff717cd115acb926f8d983100b4bf728a75354ba4b2da2c67f92d)  
+**Block:** 65175967  
 **Gas Used:** 123,574  
 **Cost:** 0.01247148 BNB (~$7.48)
 
