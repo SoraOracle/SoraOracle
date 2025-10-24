@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard Test - Inject Test Data</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0a0a0a;
+      color: #fff;
+      padding: 40px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #ff6b35;
+    }
+    button {
+      background: linear-gradient(135deg, #ff6b35, #ff8c42);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+    .success {
+      background: #22c55e;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      display: none;
+    }
+    .code {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: monospace;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Dashboard Test Data Injector</h1>
+  
+  <p>This tool will inject test data into localStorage to demonstrate the Dashboard and Oracle Provider features work correctly.</p>
+  
+  <div>
+    <button onclick="injectTestData()">📊 Inject Test Dashboard Data</button>
+    <button onclick="injectWinningPosition()">💰 Add Winning Position</button>
+    <button onclick="injectActivePosition()">⚡ Add Active Position</button>
+    <button onclick="clearData()">🗑️ Clear All Data</button>
+    <button onclick="viewData()">👀 View Current Data</button>
+  </div>
+  
+  <div id="success" class="success"></div>
+  <div id="output" class="code"></div>
+  
+  <h2>Instructions:</h2>
+  <ol>
+    <li>Click "Inject Test Dashboard Data" to create test markets and positions</li>
+    <li>Navigate to <a href="http://localhost:5000/dashboard" style="color: #ff6b35;">/dashboard</a></li>
+    <li>Connect your wallet (or see the positions load)</li>
+    <li>See your positions, stats, and claimable winnings!</li>
+  </ol>
+  
+  <script>
+    function injectTestData() {
+      const testAddress = '0x1234567890123456789012345678901234567890';
+      
+      // Create test markets
+      const markets = [
+        {
+          id: 'market-btc-100k',
+          question: 'Will Bitcoin hit $100,000 by end of 2025?',
+          description: 'Test market for BTC price prediction',
+          deadline: Date.now() + 86400000,
+          category: 'crypto',
+          creator: testAddress,
+          totalYes: '5.5',
+          totalNo: '3.2',
+          totalVolume: '8.7',
+          resolved: true,
+          winningOutcome: true,
+          createdAt: Date.now() - 172800000
+        },
+        {
+          id: 'market-eth-5k',
+          question: 'Will Ethereum exceed $5,000 in Q1 2026?',
+          description: 'Test market for ETH price',
+          deadline: Date.now() + 86400000 * 30,
+          category: 'crypto',
+          creator: testAddress,
+          totalYes: '2.1',
+          totalNo: '4.8',
+          totalVolume: '6.9',
+          resolved: false,
+          winningOutcome: null,
+          createdAt: Date.now() - 86400000
+        },
+        {
+          id: 'market-bnb-lost',
+          question: 'Will BNB Chain TVL exceed $20B this month?',
+          description: 'Test market for losing position',
+          deadline: Date.now() + 86400000,
+          category: 'defi',
+          creator: testAddress,
+          totalYes: '1.5',
+          totalNo: '2.5',
+          totalVolume: '4.0',
+          resolved: true,
+          winningOutcome: false,
+          createdAt: Date.now() - 259200000
+        }
+      ];
+      
+      // Save markets
+      localStorage.setItem('sora_markets', JSON.stringify(markets));
+      
+      // Create test positions
+      const positions = [
+        {
+          marketId: 'market-btc-100k',
+          outcome: true,
+          amount: '0.5',
+          timestamp: Date.now() - 172800000
+        },
+        {
+          marketId: 'market-eth-5k',
+          outcome: true,
+          amount: '1.0',
+          timestamp: Date.now() - 86400000
+        },
+        {
+          marketId: 'market-bnb-lost',
+          outcome: true,
+          amount: '0.3',
+          timestamp: Date.now() - 259200000
+        }
+      ];
+      
+      // Save positions per user
+      localStorage.setItem(`sora_positions_${testAddress}`, JSON.stringify(positions));
+      
+      showSuccess('✅ Test data injected! You now have:<br>' +
+                  '• 3 markets created<br>' +
+                  '• 3 positions (1 won, 1 active, 1 lost)<br>' +
+                  '• Total bet: 1.8 BNB<br>' +
+                  '• Claimable winnings: ~0.79 BNB<br><br>' +
+                  'Go to /dashboard to see results!');
+      
+      viewData();
+    }
+    
+    function injectWinningPosition() {
+      const testAddress = '0x1234567890123456789012345678901234567890';
+      
+      const newMarket = {
+        id: 'market-claimable-' + Date.now(),
+        question: 'Will Solana flip Ethereum by market cap?',
+        description: 'Test claimable winnings',
+        deadline: Date.now() + 86400000,
+        category: 'crypto',
+        creator: testAddress,
+        totalYes: '3.0',
+        totalNo: '2.0',
+        totalVolume: '5.0',
+        resolved: true,
+        winningOutcome: true,
+        createdAt: Date.now() - 100000
+      };
+      
+      const newPosition = {
+        marketId: newMarket.id,
+        outcome: true,
+        amount: '1.5',
+        timestamp: Date.now() - 100000
+      };
+      
+      // Add market
+      const markets = JSON.parse(localStorage.getItem('sora_markets') || '[]');
+      markets.push(newMarket);
+      localStorage.setItem('sora_markets', JSON.stringify(markets));
+      
+      // Add position
+      const positions = JSON.parse(localStorage.getItem(`sora_positions_${testAddress}`) || '[]');
+      positions.push(newPosition);
+      localStorage.setItem(`sora_positions_${testAddress}`, JSON.stringify(positions));
+      
+      showSuccess('✅ Added winning position!<br>Bet: 1.5 BNB on YES<br>Winnings: 2.5 BNB<br>Profit: +1.0 BNB (+66.7%)');
+      viewData();
+    }
+    
+    function injectActivePosition() {
+      const testAddress = '0x1234567890123456789012345678901234567890';
+      
+      const newMarket = {
+        id: 'market-active-' + Date.now(),
+        question: 'Will AI agents surpass $1B in TVL by 2026?',
+        description: 'Test active position',
+        deadline: Date.now() + 86400000 * 60,
+        category: 'ai',
+        creator: testAddress,
+        totalYes: '4.5',
+        totalNo: '5.5',
+        totalVolume: '10.0',
+        resolved: false,
+        winningOutcome: null,
+        createdAt: Date.now() - 50000
+      };
+      
+      const newPosition = {
+        marketId: newMarket.id,
+        outcome: false,
+        amount: '2.0',
+        timestamp: Date.now() - 50000
+      };
+      
+      // Add market
+      const markets = JSON.parse(localStorage.getItem('sora_markets') || '[]');
+      markets.push(newMarket);
+      localStorage.setItem('sora_markets', JSON.stringify(markets));
+      
+      // Add position
+      const positions = JSON.parse(localStorage.getItem(`sora_positions_${testAddress}`) || '[]');
+      positions.push(newPosition);
+      localStorage.setItem(`sora_positions_${testAddress}`, JSON.stringify(positions));
+      
+      showSuccess('✅ Added active position!<br>Bet: 2.0 BNB on NO<br>Current odds: 36.4% (NO) vs 63.6% (YES)<br>Potential winnings: 3.64 BNB');
+      viewData();
+    }
+    
+    function clearData() {
+      if (confirm('Clear all test data?')) {
+        localStorage.removeItem('sora_markets');
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sora_positions_')) {
+            localStorage.removeItem(key);
+          }
+        });
+        showSuccess('✅ All test data cleared!');
+        document.getElementById('output').innerHTML = '';
+      }
+    }
+    
+    function viewData() {
+      const markets = JSON.parse(localStorage.getItem('sora_markets') || '[]');
+      const testAddress = '0x1234567890123456789012345678901234567890';
+      const positions = JSON.parse(localStorage.getItem(`sora_positions_${testAddress}`) || '[]');
+      
+      let output = '<strong>Current Test Data:</strong><br><br>';
+      output += `Markets: ${markets.length}<br>`;
+      output += `Positions: ${positions.length}<br><br>`;
+      
+      if (markets.length > 0) {
+        output += '<strong>Markets:</strong><br>';
+        markets.forEach((m, i) => {
+          output += `${i+1}. ${m.question}<br>`;
+          output += `   Pool: ${m.totalVolume} BNB | Resolved: ${m.resolved ? 'YES' : 'NO'}<br>`;
+        });
+      }
+      
+      if (positions.length > 0) {
+        output += '<br><strong>Positions:</strong><br>';
+        positions.forEach((p, i) => {
+          const market = markets.find(m => m.id === p.marketId);
+          output += `${i+1}. ${market ? market.question.substring(0, 50) + '...' : p.marketId}<br>`;
+          output += `   Bet: ${p.amount} BNB on ${p.outcome ? 'YES' : 'NO'}<br>`;
+        });
+      }
+      
+      document.getElementById('output').innerHTML = output;
+    }
+    
+    function showSuccess(msg) {
+      const el = document.getElementById('success');
+      el.innerHTML = msg;
+      el.style.display = 'block';
+      setTimeout(() => {
+        el.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Auto-load data view on page load
+    window.onload = viewData;
+  </script>
+</body>
+</html>
