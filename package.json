@@ -1,0 +1,44 @@
+{
+  "name": "bsc-oracle-contract",
+  "version": "1.0.0",
+  "description": "Improved Oracle Smart Contract for BNB Chain",
+  "main": "index.js",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:testnet": "hardhat run scripts/deploy-sora.js --network bscTestnet",
+    "deploy:mainnet": "hardhat run scripts/deploy-mainnet.js --network bscMainnet",
+    "check:mainnet": "hardhat run scripts/check-mainnet-config.js --network bscMainnet",
+    "sora:ask": "hardhat run scripts/sora-ask.js --network bscTestnet",
+    "sora:answer": "hardhat run scripts/sora-answer.js --network bscTestnet",
+    "sora:withdraw": "hardhat run scripts/sora-withdraw.js --network bscTestnet",
+    "sora:prices": "hardhat run scripts/get-prices.js --network bscTestnet",
+    "sora:auto-update": "hardhat run scripts/auto-update-twap.js --network bscTestnet",
+    "mainnet:ask": "hardhat run scripts/sora-ask.js --network bscMainnet",
+    "mainnet:answer": "hardhat run scripts/sora-answer.js --network bscMainnet",
+    "mainnet:withdraw": "hardhat run scripts/sora-withdraw.js --network bscMainnet",
+    "mainnet:prices": "hardhat run scripts/get-prices.js --network bscMainnet",
+    "mainnet:auto-update": "hardhat run scripts/auto-update-twap.js --network bscMainnet",
+    "ai:test": "node scripts/ai-oracle-settler.js",
+    "ai:settle": "node scripts/ai-oracle-settler.js",
+    "ai:monitor": "node scripts/ai-market-monitor.js",
+    "ai:monitor:continuous": "node scripts/ai-market-monitor.js --continuous"
+  },
+  "keywords": [
+    "oracle",
+    "bnb",
+    "bsc",
+    "smart-contract",
+    "solidity"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "dotenv": "^16.4.7",
+    "hardhat": "^2.22.18",
+    "openai": "^6.6.0",
+    "recharts": "^3.3.0"
+  }
+}

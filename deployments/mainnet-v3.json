@@ -1,0 +1,21 @@
+{
+  "network": "bscMainnet",
+  "chainId": 56,
+  "deployedAt": "2025-10-24T01:14:20.160Z",
+  "deployer": "0x290f6cB6457A87d64cb309Fe66F9d64a4df0addE",
+  "contracts": {
+    "SoraOracle": "0x4124227dEf2A0c9BBa315dF13CD7B546f5839516",
+    "PancakeTWAPOracle": "0x0000000000000000000000000000000000000000",
+    "SimplePredictionMarket": "0x6Bd664D0641D8C18C869AD18f61143BB4EDe790c",
+    "BatchOracleOperations": "0x3a15beA1BEdc7F4497Df59cDC22D0aDC6FF3e54b",
+    "OracleReputationTracker": "0xb51D9aa15Ac607a7C11Bb7F938759F5d8B0304c8",
+    "DisputeResolution": "0x688804Da579e0B8f872F2147e0Fd78524caDf3A4",
+    "AutomatedMarketResolver": "0x62AF37D0A34dc56e201C5E68E00B348C39A0F5CB",
+    "BatchPayoutDistributor": "0x093C88ec42d8901c757Ea91639581931B8589969",
+    "MultiOutcomeMarket": "0x44A091e2e47A1ab038255107e02017ae18CcF9BF",
+    "ReferralRewards": "0xD37feA7CDb346e504b9272e3bFA8a9D5A61eB7d0",
+    "MarketFactory": "0xF91bf4c820B016BE770DCf8c04734FB8f1331022",
+    "LiquidityIncentives": "0x48219e60E61703d1E1A2AC6eBdA2872bB51a4F42"
+  },
+  "pancakeFactory": "0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73"
+}
