@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useProfile } from '../contexts/ProfileContext';
 import { ProfileModal } from './ProfileModal';
+import SearchBar from './SearchBar';
 import './Header.css';
 
 interface HeaderProps {
@@ -39,8 +40,11 @@ function Header({ wallet }: HeaderProps) {
           <Link to="/" className="nav-link">Markets</Link>
           <Link to="/create" className="nav-link">Create Market</Link>
           <Link to="/dashboard" className="nav-link">Dashboard</Link>
+          <Link to="/analytics" className="nav-link">Analytics</Link>
           <Link to="/oracle" className="nav-link">Oracle Provider</Link>
         </nav>
+
+        <SearchBar />
 
         <div className="wallet-section">
           {!isCorrectChain && address && (

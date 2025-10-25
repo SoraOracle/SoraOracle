@@ -9,6 +9,7 @@ import MarketDetailPage from './pages/MarketDetailPage';
 import CreateMarketPage from './pages/CreateMarketPage';
 import DashboardPage from './pages/DashboardPage';
 import OracleProviderPage from './pages/OracleProviderPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import './styles/App.css';
 
 function App() {
@@ -40,6 +41,10 @@ function App() {
             <Route 
               path="/oracle" 
               element={<OracleProviderPage oracleClient={oracleClient} />} 
+            />
+            <Route 
+              path="/analytics" 
+              element={<AnalyticsPage />} 
             />
           </Routes>
         </main>
