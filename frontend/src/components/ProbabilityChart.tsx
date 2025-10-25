@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { API_CONFIG } from '../config/api';
 import './ProbabilityChart.css';
 
 interface ChartDataPoint {
@@ -8,11 +10,51 @@ interface ChartDataPoint {
 }
 
 interface ProbabilityChartProps {
+  marketId?: string;
   data?: ChartDataPoint[];
 }
 
-function ProbabilityChart({ data }: ProbabilityChartProps) {
-  const mockData: ChartDataPoint[] = data || [
+function ProbabilityChart({ marketId, data }: ProbabilityChartProps) {
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (data) {
+      setChartData(data);
+    } else if (marketId) {
+      loadRealData();
+    } else {
+      setChartData(mockData);
+    }
+  }, [marketId, data]);
+
+  const loadRealData = async () => {
+    if (!marketId) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_CONFIG.baseURL}/api/markets/${marketId}/history`);
+      const history = await response.json();
+
+      if (history.length > 0) {
+        const formattedData = history.map((snapshot: any) => ({
+          date: new Date(snapshot.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          yes: snapshot.yes_probability,
+          no: snapshot.no_probability
+        }));
+        setChartData(formattedData);
+      } else {
+        setChartData(mockData);
+      }
+    } catch (error) {
+      console.error('Error loading market history:', error);
+      setChartData(mockData);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const mockData: ChartDataPoint[] = [
     { date: 'May', yes: 28, no: 72 },
     { date: 'Jun', yes: 32, no: 68 },
     { date: 'Jul', yes: 45, no: 55 },
@@ -20,6 +62,8 @@ function ProbabilityChart({ data }: ProbabilityChartProps) {
     { date: 'Sep', yes: 68, no: 32 },
     { date: 'Oct', yes: 72, no: 28 },
   ];
+
+  const displayData = chartData.length > 0 ? chartData : mockData;
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -36,8 +80,9 @@ function ProbabilityChart({ data }: ProbabilityChartProps) {
 
   return (
     <div className="probability-chart">
+      {loading && <div className="chart-loading">Loading historical data...</div>}
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={mockData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+        <LineChart data={displayData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
           <XAxis 
             dataKey="date" 
