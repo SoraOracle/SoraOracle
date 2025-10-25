@@ -37,7 +37,11 @@ contract PredictionMarketV5 is Ownable, ReentrancyGuard {
     TokenFactory public immutable tokenFactory;
     address public immutable x402Facilitator;
     address public immutable usdcToken;
-    uint256 public constant MARKET_CREATION_FEE = 50000; // 0.05 USDC (6 decimals)
+    
+    // x402 Pricing Tiers (USDC, 6 decimals)
+    uint256 public constant MARKET_CREATION_FEE = 50000;   // $0.05 USDC
+    uint256 public constant PLACE_BET_FEE = 10000;         // $0.01 USDC
+    uint256 public constant RESOLVE_MARKET_FEE = 100000;   // $0.10 USDC
 
     uint256 public marketCount;
     mapping(uint256 => Market) public markets;
@@ -87,40 +91,47 @@ contract PredictionMarketV5 is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Create a new prediction market with token minting and x402 payment verification
+     * @notice Create a new prediction market with OPTIONAL token minting and x402 payment verification
      * @param marketQuestion Human-readable question
      * @param oracleFeed Address of oracle feed for resolution
      * @param resolutionTime Unix timestamp when market can be resolved
-     * @param tokenSupply Initial supply for market token
+     * @param useToken Whether to deploy a market token (OPTIONAL)
+     * @param tokenSupply Initial supply for market token (ignored if useToken = false)
      * @param paymentProof x402 payment verification data
      */
     function createMarket(
         string memory marketQuestion,
         address oracleFeed,
         uint256 resolutionTime,
+        bool useToken,
         uint256 tokenSupply,
         X402PaymentProof memory paymentProof
     ) external nonReentrant returns (uint256 marketId) {
         require(bytes(marketQuestion).length > 0, "Question required");
         require(oracleFeed != address(0), "Oracle required");
         require(resolutionTime > block.timestamp, "Invalid resolution time");
-        require(tokenSupply > 0 && tokenSupply <= 1e36, "Invalid supply");
 
-        // Verify x402 payment
-        _verifyPayment(paymentProof);
+        // Verify x402 payment for market creation
+        _verifyPayment(paymentProof, MARKET_CREATION_FEE);
 
-        // Generate unique market name for token
+        // Generate unique market ID
         marketId = ++marketCount;
-        string memory marketName = string(
-            abi.encodePacked("Market-", _uint2str(marketId))
-        );
 
-        // Deploy market token via factory
-        address marketToken = tokenFactory.createToken(
-            marketName,
-            tokenSupply,
-            oracleFeed
-        );
+        // Deploy market token ONLY if requested
+        address marketToken = address(0);
+        if (useToken) {
+            require(tokenSupply > 0 && tokenSupply <= 1e36, "Invalid supply");
+            
+            string memory marketName = string(
+                abi.encodePacked("Market-", _uint2str(marketId))
+            );
+
+            marketToken = tokenFactory.createToken(
+                marketName,
+                tokenSupply,
+                oracleFeed
+            );
+        }
 
         // Create market
         markets[marketId] = Market({
@@ -153,14 +164,17 @@ contract PredictionMarketV5 is Ownable, ReentrancyGuard {
 
     /**
      * @notice Verify x402 payment proof with facilitator
-     * @dev In production, this would call the x402 facilitator contract
+     * @dev Enforces differentiated pricing per operation
+     * @param proof Payment proof from user
+     * @param requiredAmount Required payment amount for this operation
      */
     function _verifyPayment(
-        X402PaymentProof memory proof
+        X402PaymentProof memory proof,
+        uint256 requiredAmount
     ) internal {
         require(proof.from == msg.sender, "Invalid payer");
         require(proof.token == usdcToken, "Invalid token");
-        require(proof.amount >= MARKET_CREATION_FEE, "Insufficient payment");
+        require(proof.amount >= requiredAmount, "Insufficient payment");
         require(!usedNonces[proof.nonce], "Nonce already used");
 
         // Mark nonce as used (prevent replay attacks)
@@ -168,23 +182,30 @@ contract PredictionMarketV5 is Ownable, ReentrancyGuard {
 
         // In production, verify signature with facilitator
         // For now, we trust the signature is valid
-        // TODO: Implement signature verification
+        // TODO: Implement signature verification with x402 facilitator
 
         emit PaymentVerified(proof.from, proof.amount, proof.nonce);
     }
 
     /**
-     * @notice Take a position on a market
+     * @notice Take a position on a market with x402 payment
+     * @param marketId Market to bet on
+     * @param position true = YES, false = NO
+     * @param paymentProof x402 payment proof ($0.01 USDC)
      */
     function takePosition(
         uint256 marketId,
-        bool position
+        bool position,
+        X402PaymentProof memory paymentProof
     ) external payable nonReentrant {
         Market storage market = markets[marketId];
         require(market.id != 0, "Market not found");
         require(!market.resolved, "Market resolved");
         require(block.timestamp < market.resolutionTime, "Market closed");
         require(msg.value > 0, "Amount required");
+
+        // Verify x402 payment for bet
+        _verifyPayment(paymentProof, PLACE_BET_FEE);
 
         if (position) {
             market.totalYesPool += msg.value;
@@ -196,17 +217,24 @@ contract PredictionMarketV5 is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Resolve market based on oracle feed
-     * @dev Can only be called after resolution time
+     * @notice Resolve market based on oracle feed with x402 payment
+     * @dev Can be called by anyone after resolution time (pays $0.10 for AI research)
+     * @param marketId Market to resolve
+     * @param outcome Resolution outcome (true = YES, false = NO)
+     * @param paymentProof x402 payment proof ($0.10 USDC)
      */
     function resolveMarket(
         uint256 marketId,
-        bool outcome
-    ) external onlyOwner {
+        bool outcome,
+        X402PaymentProof memory paymentProof
+    ) external nonReentrant {
         Market storage market = markets[marketId];
         require(market.id != 0, "Market not found");
         require(!market.resolved, "Already resolved");
         require(block.timestamp >= market.resolutionTime, "Too early");
+
+        // Verify x402 payment for resolution
+        _verifyPayment(paymentProof, RESOLVE_MARKET_FEE);
 
         market.resolved = true;
         market.outcome = outcome;
