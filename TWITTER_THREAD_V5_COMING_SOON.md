@@ -1,319 +1,379 @@
-# Sora Oracle V5.0 - Coming Soon Thread
+# Sora Oracle V5.0 - AI Research Agent Coming Soon
 
-## Thread: V5.0 drops soon. Here's what's changing 🧵
-
----
-
-**Tweet 1/12** 👀
-V5.0 is coming to @BNBCHAIN and it's going to change how you think about prediction markets.
-
-Token minting? Optional.
-Every operation? Micropayment.
-Market resolution? AI-powered.
-
-Here's what's dropping soon 🧵👇
+## Thread: V5.0 brings AI that resolves your bets automatically 🧵
 
 ---
 
-**Tweet 2/12** 🤔
-**The Current Problem:**
+**Tweet 1/12** 🤖
+V5.0 is dropping on @BNBCHAIN with something we've never seen in prediction markets:
 
-Right now, every market forces you to mint a token.
+An AI Research Agent that pays for its own data, aggregates multiple sources, and resolves bets automatically with confidence scoring.
 
-But "Will it rain tomorrow?" doesn't need an ERC-20.
-"BTC-100K" absolutely does.
-
-V5.0 fixes this. Finally.
+This changes everything 🧵👇
 
 ---
 
-**Tweet 3/12** ⚡
-**Coming: Optional Token Factory**
+**Tweet 2/12** 🎯
+**The Problem:**
 
-```typescript
-// Simple prediction
-createMarket({
-  question: "Will it rain?",
-  useTokenFactory: false  // No token needed
-});
+Who decides if "BTC hits $100K" is true?
 
-// Viral market
-createMarket({
-  question: "BTC-100K?",
-  useTokenFactory: true,  // Mint BTC100K
-  tokenSupply: 1000000000
-});
-```
+You? Too slow.
+Oracle? One source.
+Community vote? Manipulation risk.
 
-You choose. Not us.
+V5.0's AI queries 4+ trusted sources, pays for the data itself, and gives you multi-source consensus.
 
 ---
 
-**Tweet 4/12** 💰
-**Coming: x402 Micropayments**
+**Tweet 3/12** 🔍
+**Coming: Multi-Source Consensus**
 
-V5.0 will charge real money for every action:
-• Create market: $0.05 USDC
-• Place bet: $0.01 USDC  
-• Resolve market: $0.10 USDC
+V5.0's AI Research Agent will query:
+• CoinGecko ($0.02/call)
+• CryptoCompare ($0.03/call)
+• NewsAPI ($0.02/call)
+• Twitter API ($0.05/call)
 
-Spam? Gone.
-Quality? High.
-Cost? Less than coffee.
-
----
-
-**Tweet 5/12** 🛡️
-**Why Micropayments Work:**
-
-Free markets = spam hell
-Our approach = economic filter
-
-Want to create 1000 fake markets? That's $50.
-Want to launch "BTC-100K"? That's 5 cents.
-
-Simple economics. Better outcomes.
+Each source votes.
+AI aggregates.
+You get confidence-scored truth.
 
 ---
 
-**Tweet 6/12** 🤖
-**Coming: AI Research Agent**
+**Tweet 4/12** 📊
+**How It Works:**
 
-V5.0's AI will pay for its own data sources:
-• CoinGecko: $0.02/call
-• NewsAPI: $0.02/call
-• Twitter API: $0.05/call
-• CryptoCompare: $0.03/call
+Question: "Will BTC hit $100K by Dec 31?"
 
-Multi-source consensus.
-Confidence scoring.
+AI Research Agent:
+1. Queries CoinGecko → $99,847 (NO - 95%)
+2. Queries CryptoCompare → $99,921 (NO - 92%)
+3. Queries NewsAPI → "BTC falls short" (NO - 88%)
+
+Final: NO (91.7% confidence)
+Total cost: $0.06
+
 Automated accuracy.
 
 ---
 
-**Tweet 7/12** 📊
-**How AI Resolution Will Work:**
+**Tweet 5/12** 💰
+**The Agent Pays for Its Own Research**
 
-1. You ask: "Will BTC hit $100K?"
-2. AI queries 3+ data sources (pays with x402)
-3. Aggregates results with confidence scores
-4. Returns: YES (85% confidence)
-5. Total cost: ~$0.06
+This is wild:
 
-Human oversight. AI efficiency.
+The AI uses x402 micropayments to access data sources.
+No API keys.
+No rate limits.
+No centralized control.
 
----
+Just: "I need CoinGecko data" → $0.02 → instant access.
 
-**Tweet 8/12** 💡
-**Cost Preview:**
-
-**Simple Market:**
-• Create: $0.05
-• 10 bets × $0.01: $0.10
-• Resolution: $0.10
-**Total: $0.25**
-
-**Viral Token Market:**
-• Create: $0.05
-• Deploy token: ~$2 gas
-• 100 bets × $0.01: $1.00
-• AI resolution: $0.16
-**Total: $1.21 + gas**
-
-Cheaper than lunch. Better than gambling.
+Decentralized research. Automated payment.
 
 ---
 
-**Tweet 9/12** 🏗️
-**The New Architecture:**
+**Tweet 6/12** 🛡️
+**Why Multi-Source Consensus Matters:**
+
+Single oracle = single point of failure
+Community vote = manipulation risk
+Manual research = slow + expensive
+
+Multi-source AI:
+✅ 4+ independent sources
+✅ Confidence scoring (70%-99%)
+✅ Automated in seconds
+✅ Cost: ~$0.06-$0.15
+
+Better than any human could do manually.
+
+---
+
+**Tweet 7/12** ⚡
+**Real Example:**
+
+"Will ETH reach $10K?"
+
+OLD WAY:
+• Wait for oracle update (manual)
+• Trust single price feed
+• No confidence score
+• Settlement delayed
+
+V5.0 AI WAY:
+• Query 4 sources instantly
+• Aggregate consensus (87% YES)
+• Auto-resolve with proof
+• Settlement: <60 seconds
+
+---
+
+**Tweet 8/12** 🧠
+**Confidence Scoring:**
+
+The AI doesn't just give you YES/NO.
+
+It gives you:
+• Outcome: YES
+• Confidence: 87.3%
+• Sources queried: 4
+• Consensus level: Strong
+• Reasoning: "3/4 sources confirm..."
+
+You see the work. You verify. You trust.
+
+---
+
+**Tweet 9/12** 🎯
+**But Wait, There's More:**
+
+V5.0 also includes:
+
+**Optional Token Factory**
+Don't need a token? Don't mint one.
+Want viral "BTC-100K" token? Deploy it.
+
+**x402 on Everything**
+Create: $0.05 | Bet: $0.01 | Resolve: $0.10
+Economic spam filter.
+
+One platform. Maximum flexibility.
+
+---
+
+**Tweet 10/12** 💡
+**AI Resolution Cost Breakdown:**
+
+**Simple Market (Manual):**
+• Research time: 10-30 min
+• Cost: Your time
+• Accuracy: Human error risk
+
+**AI Market (Automated):**
+• Research time: 5-15 seconds
+• Cost: $0.06-$0.15 (x402 micropayments)
+• Accuracy: 85-95% confidence from multiple sources
+
+10x faster. Verifiable. Automated.
+
+---
+
+**Tweet 11/12** 🏗️
+**The Architecture:**
 
 ```
-User creates market
+Market created
     ↓
-x402 payment verification ($0.05)
+Bets placed
     ↓
-[Optional] Deploy ERC-20 token
+Resolution time triggers
     ↓
-Trading begins (each bet = $0.01)
+AI Research Agent activates
     ↓
-[Optional] AI researches outcome
+Queries 4+ sources (pays with x402)
     ↓
-Market resolves
+Aggregates consensus (confidence score)
+    ↓
+Submits outcome + proof
+    ↓
+Market auto-resolves
+    ↓
+Winners paid instantly
 ```
 
-Every step = micropayment.
-Every micropayment = quality signal.
-
----
-
-**Tweet 10/12** 🎯
-**What This Unlocks:**
-
-**Traditional Markets:**
-Weather, sports, daily events - no token overhead
-
-**Viral Token Markets:**  
-BTC-100K, ETH-10K - full ERC-20 for community hype
-
-**AI-Verified:**
-Complex questions get multi-source research
-
-One platform. Three modes. Infinite possibilities.
-
----
-
-**Tweet 11/12** 💻
-**Developer Preview:**
-
-```typescript
-const sdk = new PredictionMarketSDK({
-  provider,
-  signer,
-  x402Config: { ... },
-  tokenFactoryAddress // Optional!
-});
-```
-
-One SDK.
-Two market types.
-Your choice every time.
-
-Clean. Simple. Powerful.
+Zero human intervention. Maximum accuracy.
 
 ---
 
 **Tweet 12/12** ⏰
-**Timeline:**
+**When?**
 
-V4.0: ✅ LIVE (Limit orders + Analytics)
-V5.0: 🔜 COMING SOON (Optional tokens + AI + x402)
+V3.0: ✅ LIVE on mainnet
+V4.0: ✅ LIVE (Limit orders)
+V5.0: 🤖 COMING SOON (AI Research Agent)
 
 Testnet within 2 weeks.
-Mainnet after validation.
+First markets with AI resolution.
 
-Follow @SoraOracle so you don't miss it.
+This is what programmable truth looks like.
 
-RT if you're ready for programmable, flexible prediction markets 🚀
-
----
-
-## Hype Amplifiers
-
-**Add as follow-up tweets:**
-
-"V5.0 = the flexibility prediction markets always needed but never had"
-
-"Every feature is optional. Every operation is paid. Every market is your choice. This is how it should be."
-
-"When V5.0 drops, the barrier to launching a viral market is literally $0.05. Think about that."
+Follow @SoraOracle for launch announcement 🚀
 
 ---
 
-## Alternative Opening (More Aggressive)
+## Hype Amplifiers - AI Focus
+
+**Follow-up tweets:**
+
+"Imagine betting on 'BTC-100K' and having an AI agent query 4 price feeds, aggregate the data, score confidence, and settle your bet in 30 seconds. That's V5.0."
+
+"Every prediction market needed this but nobody built it: an AI that pays for its own research using micropayments and gives you multi-source consensus. We did."
+
+"The AI Research Agent is the unlock. Instant settlement. Multi-source truth. Confidence scoring. All automated. This is the future."
+
+---
+
+## Alternative Opening (More AI-Focused)
 
 **Tweet 1/12 - ALT** 🔥
-We're about to make prediction markets as flexible as they should be.
+What if your prediction market didn't need YOU to verify outcomes?
 
-V5.0 drops soon.
+V5.0's AI Research Agent launches soon on @BNBCHAIN:
 
-If you're not paying attention to what we're building on @BNBCHAIN, you're missing the shift.
+Multi-source consensus.
+Automated accuracy.
+Confidence-scored truth.
 
-Here's what's coming 🧵👇
-
----
-
-## Visual Content Ideas (Coming Soon Theme)
-
-**Tweet 3:** Mockup with "Coming Soon" overlay on code
-**Tweet 4:** Pricing table with "V5.0" header and countdown
-**Tweet 7:** AI flow diagram with "Preview" watermark  
-**Tweet 9:** Architecture diagram with "Launching Soon" badge
-**Tweet 12:** Countdown timer graphic
+The first AI that pays for its own research 🧵👇
 
 ---
 
-## Hashtags
+## Visual Content Ideas (AI-Focused)
 
-#BNBChain #DeFi #x402 #PredictionMarkets #ComingSoon #AI #Micropayments #Web3
+**Tweet 3:** Diagram showing AI querying 4 sources simultaneously
+**Tweet 4:** Flow chart with confidence scores from each source
+**Tweet 5:** Animation of x402 payment → data access
+**Tweet 8:** Confidence score breakdown (pie chart)
+**Tweet 11:** Full architecture with AI agent highlighted
 
 ---
 
-## FOMO Builders
+## Key AI Messages to Hammer Home
+
+✅ **Multi-source consensus** - Not just one oracle
+✅ **Automated accuracy** - 85-95% confidence typical
+✅ **Pays for itself** - x402 micropayments for data access
+✅ **Confidence scoring** - See the reasoning, not just the answer
+✅ **Instant settlement** - Seconds, not hours
+
+---
+
+## Hashtags (AI-Focused)
+
+#AI #PredictionMarkets #BNBChain #x402 #Automation #MultiSource #Consensus #Web3 #DeFi
+
+---
+
+## FOMO Builders - AI Agent Focus
 
 **Before Thread:**
-- Daily countdown: "V5.0 in [X] days"
-- Feature teasers: "Day 1: Optional tokens 👀"
-- Code snippet reveals
+"Sneak peek: Our AI agent can query CoinGecko, NewsAPI, and Twitter simultaneously. Cost? $0.06. Time? 10 seconds. Accuracy? 90%+ confidence."
 
 **During Thread:**
-- Pin this thread
-- QT with sneak peek video
-- Share architecture diagrams
-- Tease testnet signup
+"The AI Research Agent is the feature everyone will copy in 6 months. We're shipping it in 2 weeks."
 
 **After Thread:**
-- "48 hours to testnet"
-- Early access waitlist
-- Developer preview docs
-- Partnership reveals
+"48 hours until AI-powered prediction markets go live on testnet. Be ready."
 
 ---
 
-## Community Engagement
+## Community Engagement - AI Focus
 
 **Questions to Seed:**
-"Would you rather have a simple market or mint a token? Why?"
 
-"What's a prediction you'd make for $0.05?"
+"Would you trust an AI that shows you its sources and confidence score to settle your bet?"
 
-"Traditional parimutuel or tokenized positions? Poll below 👇"
+"Current resolution: Days. AI resolution: Seconds. What markets would you create?"
 
-**Responses:**
-- Engage every reply in first hour
-- Share to Telegram with "What are YOU building?"
-- Create Discord channel: #v5-ideas
+"Which matters more: Speed or accuracy? (Our AI gives you both)"
+
+**Poll:**
+"How should prediction markets be resolved?"
+- Single oracle feed (traditional)
+- Community vote (DAO)
+- AI multi-source consensus (V5.0)
+- Manual verification (slow)
 
 ---
 
-## Call-to-Actions
+## Call-to-Actions - AI Agent Focus
 
 **Soft CTA:**
-"Want early testnet access? Drop your wallet below 👇"
+"Want to see the AI Research Agent in action? Testnet drops in 2 weeks. Follow for updates 🔔"
 
 **Medium CTA:**  
-"RT to be first to know when V5.0 testnet launches 🔔"
+"RT if you want prediction markets that resolve themselves with multi-source AI consensus 🤖"
 
 **Aggressive CTA:**
-"Devs: V5.0 testnet in 2 weeks. First 100 markets featured. Get ready."
+"Devs: First 50 markets on V5.0 testnet get free AI resolution. No cost. Full multi-source consensus. Drop your wallet below."
 
 ---
 
-## Key Messages to Emphasize
+## Reply Template - AI Questions
 
-✅ **Flexibility** - Optional token factory  
-✅ **Quality** - Micropayments prevent spam  
-✅ **Intelligence** - AI-powered resolution  
-✅ **Choice** - Developer controls everything  
-✅ **Coming Soon** - Build anticipation
+**Q: How accurate is the AI?**
+"Typically 85-95% confidence when aggregating 3-4 sources. You see all sources + reasoning, so you can verify yourself. Full transparency."
 
----
+**Q: What if sources disagree?**
+"That's the point of consensus. If CoinGecko says YES (90%) but NewsAPI says NO (85%), the AI weights the confidence scores. You see the breakdown."
 
-## Reply Template for Questions
+**Q: Can I override the AI?**
+"V5.0 supports AI-assisted resolution with human final say. Or full automation if you trust the confidence threshold. Your choice."
 
-**Q: When exactly?**
-"Testnet within 2 weeks, mainnet shortly after. Follow @SoraOracle for exact date announcement! 🎯"
+**Q: What sources does it use?**
+"CoinGecko, CryptoCompare, NewsAPI, Twitter API, and more. Each market type uses relevant sources. Crypto markets = price feeds. News markets = news APIs."
 
-**Q: Will it work with existing markets?**
-"V5.0 is a new architecture. V3/V4 markets continue on mainnet. V5 adds flexibility without breaking existing."
-
-**Q: Can I test early?**
-"Join our Telegram for early testnet access announcements. Link in bio! 🚀"
-
-**Q: Why micropayments?**
-"$0.05 is just enough to prevent spam, low enough that anyone can participate. Perfect economic filter."
+**Q: How fast is resolution?**
+"5-15 seconds to query sources + aggregate consensus. Then on-chain submission. Total: <60 seconds from trigger to settlement."
 
 ---
 
-**USE THIS THREAD TO BUILD HYPE FOR V5.0 LAUNCH! 🚀**
+## Demo Ideas for Launch
 
-This creates FOMO while explaining the value clearly.
+**Video 1: Live AI Resolution**
+- Create market: "BTC > $95K right now?"
+- Trigger AI agent
+- Show 4 sources being queried
+- Display confidence scores
+- Auto-resolution
+- Winners paid
+
+**Video 2: Source Breakdown**
+- Show AI querying each source
+- Display raw responses
+- Confidence calculation explained
+- Final consensus revealed
+
+**Video 3: Speed Comparison**
+- Split screen
+- Left: Manual research (timer)
+- Right: AI agent (timer)
+- AI wins by 10x
+
+---
+
+## Technical Deep-Dive Follow-Up Thread Ideas
+
+**Thread 2: "How the AI Research Agent Actually Works"**
+- x402 payment flow
+- Source selection algorithm
+- Confidence scoring math
+- Consensus aggregation
+- On-chain proof submission
+
+**Thread 3: "Why Multi-Source Consensus Beats Single Oracles"**
+- Manipulation resistance
+- Redundancy benefits
+- Speed advantages
+- Cost comparison
+- Real-world examples
+
+---
+
+## Partnership Angles
+
+"Our AI Research Agent is powered by:
+- @CoinGecko for crypto prices
+- @newsapi for breaking news
+- @TwitterAPI for social sentiment
+- @CryptoCompare for market data
+
+Multi-source truth. Automated accuracy."
+
+---
+
+**USE THIS AI-FOCUSED THREAD TO HIGHLIGHT THE RESEARCH AGENT! 🤖**
+
+The AI agent is now the hero feature with x402 and optional tokens as supporting players.
