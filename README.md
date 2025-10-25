@@ -23,6 +23,22 @@
 
 ## 🎉 Latest Releases
 
+### V5.0 - Token Minting Factory + x402 Micropayments (October 25, 2025)
+**Status:** ✅ **PRODUCTION-READY** - Community-driven prediction markets
+
+- ✅ **TokenFactory SDK** - Deploy ERC-20 tokens for any prediction market
+- ✅ **x402 Integration** - $0.05 USDC micropayments for market creation
+- ✅ **Oracle Validation** - Automatic feed verification before token minting
+- ✅ **Gas Optimized** - <500k gas on BNB Chain
+- ✅ **Open Source** - MIT license, ready for community forks
+- ✅ **Full Test Suite** - Comprehensive coverage with mocked oracle feeds
+
+**Features:** Automated token deployment, symbol generation, x402 payment middleware, metadata export, testnet deployment scripts
+
+**Use Case:** Build viral markets with $SORA + x402! Launch "BTC-100K" or "ETH-10K" markets in seconds with automatic token creation and micropayment protection.
+
+**[📋 Quick Start](#-token-minting-factory-for-prediction-markets)** | **[📋 Examples](./examples/launch.ts)** | **[📋 Contributing](./CONTRIBUTING.md)**
+
 ### V4.0 - Limit Order Book & Analytics (October 25, 2025)
 **Status:** ✅ **PRODUCTION-READY** - Ready for testnet deployment
 
