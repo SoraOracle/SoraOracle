@@ -115,13 +115,14 @@ export class X402Client {
 
   /**
    * Verify payment proof (for server-side validation)
+   * NOTE: Uses same message format as createPayment (NO timestamp)
    */
   async verifyPayment(proof: X402PaymentProof): Promise<boolean> {
     try {
-      // Reconstruct message
+      // Reconstruct message (MUST match createPayment format)
       const message = ethers.solidityPackedKeccak256(
-        ['string', 'string', 'string', 'string', 'string', 'uint256'],
-        [proof.nonce, proof.amount, proof.token, proof.from, proof.to, proof.timestamp]
+        ['bytes32', 'uint256', 'address', 'address', 'address'],
+        [proof.nonce, proof.amount, proof.token, proof.from, proof.to]
       );
 
       // Recover signer

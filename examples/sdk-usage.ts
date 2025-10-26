@@ -39,6 +39,7 @@ async function main() {
     oracleClient,
     x402Config: {
       facilitatorUrl: process.env.X402_FACILITATOR_URL!,
+      facilitatorAddress: process.env.X402_FACILITATOR_ADDRESS!, // REQUIRED: Contract address
       usdcAddress: process.env.USDC_ADDRESS!,
       network: 'testnet'
     },

@@ -175,16 +175,66 @@ contract PredictionMarketV5 is Ownable, ReentrancyGuard {
         require(proof.from == msg.sender, "Invalid payer");
         require(proof.token == usdcToken, "Invalid token");
         require(proof.amount >= requiredAmount, "Insufficient payment");
+        require(proof.facilitator == x402Facilitator, "Invalid facilitator");
         require(!usedNonces[proof.nonce], "Nonce already used");
+
+        // Reconstruct the signed message (MUST match X402Client.createPayment format)
+        bytes32 message = keccak256(
+            abi.encodePacked(
+                proof.nonce,
+                proof.amount,
+                proof.token,
+                proof.from,
+                proof.facilitator
+            )
+        );
+
+        // Add Ethereum Signed Message prefix
+        bytes32 ethSignedMessageHash = keccak256(
+            abi.encodePacked("\x19Ethereum Signed Message:\n32", message)
+        );
+
+        // Recover signer from signature
+        address recoveredSigner = _recoverSigner(ethSignedMessageHash, proof.signature);
+
+        // Verify signer matches claimed payer
+        require(recoveredSigner == proof.from, "Invalid signature");
 
         // Mark nonce as used (prevent replay attacks)
         usedNonces[proof.nonce] = true;
 
-        // In production, verify signature with facilitator
-        // For now, we trust the signature is valid
-        // TODO: Implement signature verification with x402 facilitator
-
         emit PaymentVerified(proof.from, proof.amount, proof.nonce);
+    }
+
+    /**
+     * @notice Recover signer address from signature
+     * @dev Standard ECDSA signature recovery
+     */
+    function _recoverSigner(
+        bytes32 ethSignedMessageHash,
+        bytes memory signature
+    ) internal pure returns (address) {
+        require(signature.length == 65, "Invalid signature length");
+
+        bytes32 r;
+        bytes32 s;
+        uint8 v;
+
+        // Split signature into r, s, v components
+        assembly {
+            r := mload(add(signature, 32))
+            s := mload(add(signature, 64))
+            v := byte(0, mload(add(signature, 96)))
+        }
+
+        // Handle legacy v values (27/28)
+        if (v < 27) {
+            v += 27;
+        }
+
+        require(v == 27 || v == 28, "Invalid signature v value");
+
+        return ecrecover(ethSignedMessageHash, v, r, s);
     }
 
     /**

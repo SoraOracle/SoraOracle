@@ -14,7 +14,7 @@ export interface SDKConfig {
   oracleClient: OracleClient;
   x402Config: {
     facilitatorUrl: string;
-    facilitatorAddress?: string;  // x402 facilitator contract address
+    facilitatorAddress: string;  // REQUIRED: x402 facilitator contract address
     usdcAddress: string;
     network: 'mainnet' | 'testnet';
   };
@@ -60,10 +60,15 @@ export class PredictionMarketSDK {
     this.signer = config.signer;
     this.oracleClient = config.oracleClient;
 
+    // Validate facilitatorAddress is a valid Ethereum address
+    if (!ethers.isAddress(config.x402Config.facilitatorAddress)) {
+      throw new Error('Invalid facilitatorAddress: must be a valid Ethereum address');
+    }
+
     // Initialize x402 payment client
     this.x402Client = new X402Client({
       facilitatorUrl: config.x402Config.facilitatorUrl,
-      facilitatorAddress: config.x402Config.facilitatorAddress || config.x402Config.facilitatorUrl,
+      facilitatorAddress: config.x402Config.facilitatorAddress,
       usdcAddress: config.x402Config.usdcAddress,
       network: config.x402Config.network,
       signer: config.signer
