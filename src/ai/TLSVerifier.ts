@@ -106,7 +106,7 @@ export class TLSVerifier {
   }
 
   /**
-   * Fetch TLS certificate from a domain
+   * Fetch TLS certificate from a domain with REAL CA validation
    */
   private static getCertificate(hostname: string, port: string = '443'): Promise<any> {
     return new Promise((resolve, reject) => {
@@ -114,16 +114,24 @@ export class TLSVerifier {
         host: hostname,
         port: parseInt(port),
         method: 'GET',
-        rejectUnauthorized: false, // We want to check the cert ourselves
+        rejectUnauthorized: true,  // ✅ VALIDATE certificate authority chain
         agent: false
       };
 
       const req = https.request(options, (res) => {
+        // If we get here, the certificate was validated by Node.js
+        // This means:
+        // 1. Certificate is signed by trusted CA
+        // 2. Certificate chain is valid
+        // 3. Certificate is not expired
+        // 4. Domain matches certificate
+        
         const cert = (res.socket as any).getPeerCertificate();
         
         if (!cert || Object.keys(cert).length === 0) {
           reject(new Error('No certificate found'));
         } else {
+          // Certificate was validated by Node.js crypto - can trust it
           resolve(cert);
         }
         
@@ -131,7 +139,21 @@ export class TLSVerifier {
         req.destroy();
       });
 
-      req.on('error', reject);
+      req.on('error', (err: any) => {
+        // Certificate validation failures come through here
+        if (err.code === 'CERT_HAS_EXPIRED') {
+          reject(new Error('Certificate has expired'));
+        } else if (err.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
+          reject(new Error('Certificate not signed by trusted CA'));
+        } else if (err.code === 'SELF_SIGNED_CERT_IN_CHAIN') {
+          reject(new Error('Self-signed certificate detected'));
+        } else if (err.code === 'DEPTH_ZERO_SELF_SIGNED_CERT') {
+          reject(new Error('Self-signed certificate (no CA validation)'));
+        } else {
+          reject(err);
+        }
+      });
+
       req.end();
     });
   }
