@@ -85,7 +85,7 @@ async function main() {
 
   const oilResult = await agent.researchMarket(
     'Will crude oil prices exceed $100/barrel by Q4 2025?',
-    { maxCost: 0.40, allowDiscovery: true, autoRegister: true }
+    { maxCost: 0.40, allowDiscovery: true, minSources: 10 }
   );
 
   console.log('📋 RESULT:');
@@ -138,7 +138,7 @@ async function main() {
 
   const electionResult = await agent.researchMarket(
     'Will Democrats win the next presidential election?',
-    { maxCost: 0.40, allowDiscovery: true, autoRegister: true }
+    { maxCost: 0.40, allowDiscovery: true, minSources: 10 }
   );
 
   console.log('📋 RESULT:');
@@ -209,11 +209,12 @@ async function main() {
   const oilAPIs = finalSources.filter(s => s.categories.includes('energy'));
   console.log(`\n   Oil Price APIs (discovered this session):`);
   oilAPIs.forEach(api => {
-    const stats = agent.getAPIStats(api.name);
+    const stats = agent.getSourceReputation(api.name);
     if (stats) {
       console.log(`      ${api.name}:`);
-      console.log(`         Success rate: ${(stats.successCount / (stats.successCount + stats.failureCount) * 100).toFixed(0)}%`);
-      console.log(`         Avg confidence: ${(stats.avgConfidence * 100).toFixed(1)}%`);
+      console.log(`         Success rate: ${(stats.successRate * 100).toFixed(0)}%`);
+      console.log(`         Total queries: ${stats.totalQueries}`);
+      console.log(`         Avg response time: ${stats.avgResponseTime.toFixed(0)}ms`);
     }
   });
 
