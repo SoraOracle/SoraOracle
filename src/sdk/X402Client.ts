@@ -10,6 +10,7 @@ export interface X402PaymentConfig {
   facilitatorUrl: string;
   facilitatorAddress: string;  // x402 facilitator contract address
   usdcAddress: string;
+  recipientAddress: string;    // Service provider address (who receives payment)
   network: 'mainnet' | 'testnet';
   signer: ethers.Signer;
 }
@@ -65,10 +66,10 @@ export class X402Client {
     // Get signer address
     const from = await this.config.signer.getAddress();
 
-    // Create payment message (NO timestamp in contract version)
+    // Create payment message (recipient = service provider, NOT facilitator)
     const message = ethers.solidityPackedKeccak256(
       ['bytes32', 'uint256', 'address', 'address', 'address'],
-      [nonce, amountInUSDC, this.config.usdcAddress, from, this.config.facilitatorAddress]
+      [nonce, amountInUSDC, this.config.usdcAddress, from, this.config.recipientAddress]
     );
 
     // Sign payment proof
@@ -79,7 +80,7 @@ export class X402Client {
       amount: amountInUSDC,
       token: this.config.usdcAddress,
       from,
-      to: this.config.facilitatorAddress,  // MUST be facilitator address
+      to: this.config.recipientAddress,  // Service provider receives payment
       signature,
       timestamp: Date.now()  // For client-side tracking only
     };

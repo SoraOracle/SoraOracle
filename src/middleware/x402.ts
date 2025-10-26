@@ -5,10 +5,12 @@ import { NonceStore, getNonceStore } from '../utils/nonceStore';
 export interface X402Config {
   facilitatorAddress: string;  // Smart contract address
   usdcAddress: string;
+  recipientAddress: string;    // Service provider address (who receives payment)
   priceInUSDC: number; // e.g., 0.05 for $0.05
   network: 'testnet' | 'mainnet';
   rpcUrl?: string; // Optional custom RPC
   enableLogging?: boolean; // Detailed logging for debugging
+  privateKey?: string; // For calling settlePayment (optional, can use read-only verification)
 }
 
 export interface X402PaymentProof {
@@ -153,12 +155,13 @@ export class X402Middleware {
     const paymentDetails = {
       amount: this.config.priceInUSDC.toString(),
       token: this.config.usdcAddress,
+      recipient: this.config.recipientAddress,  // CRITICAL: Service provider receives payment
       facilitator: this.config.facilitatorAddress,
       network: this.config.network,
       chainId,
       instructions: {
         step1: 'Generate a payment proof using X402Client',
-        step2: 'Sign the message with your wallet',
+        step2: 'Sign the message with your wallet (sign for recipient, NOT facilitator)',
         step3: 'Include the proof in X-402-Payment header',
         step4: 'Retry the request'
       },
@@ -168,8 +171,8 @@ export class X402Middleware {
           nonce: '0x...',
           amount: (this.config.priceInUSDC * 1e6).toString(),
           token: this.config.usdcAddress,
-          from: '0x...',
-          to: this.config.facilitatorAddress,
+          from: '0x... (your address)',
+          to: this.config.recipientAddress,  // CRITICAL: Pay to recipient, NOT facilitator
           signature: '0x...',
           timestamp: Date.now()
         }, null, 2)
@@ -179,7 +182,7 @@ export class X402Middleware {
     res.status(402).json({
       error: 'Payment Required',
       payment: paymentDetails,
-      message: `This endpoint requires a payment of $${this.config.priceInUSDC} USDC`
+      message: `This endpoint requires a payment of $${this.config.priceInUSDC} USDC to ${this.config.recipientAddress.substring(0, 10)}...`
     });
   }
 
@@ -219,14 +222,22 @@ export class X402Middleware {
         // 5. Verify with on-chain facilitator
         const isValid = await this.verifyWithFacilitator(proof);
 
-        if (isValid) {
-          // Confirm nonce after successful verification
-          nonceStore.confirmNonce(proof.nonce);
-          return true;
-        } else {
+        if (!isValid) {
           nonceStore.releaseNonce(proof.nonce);
           return false;
         }
+
+        // 6. CRITICAL: Settle payment on-chain (actually move USDC)
+        const settled = await this.settlePaymentOnChain(proof);
+
+        if (!settled) {
+          nonceStore.releaseNonce(proof.nonce);
+          throw new Error('Payment settlement failed');
+        }
+
+        // Confirm nonce after successful settlement
+        nonceStore.confirmNonce(proof.nonce);
+        return true;
       } catch (error) {
         // Release nonce on any error
         nonceStore.releaseNonce(proof.nonce);
@@ -257,9 +268,9 @@ export class X402Middleware {
       throw new Error('Invalid payment token - must be USDC');
     }
 
-    // Verify recipient is facilitator
-    if (proof.to.toLowerCase() !== this.config.facilitatorAddress.toLowerCase()) {
-      throw new Error('Invalid payment recipient - must be facilitator');
+    // Verify recipient is service provider
+    if (proof.to.toLowerCase() !== this.config.recipientAddress.toLowerCase()) {
+      throw new Error('Invalid payment recipient - must be service provider');
     }
 
     // Verify timestamp is recent (within 5 minutes)
@@ -324,6 +335,67 @@ export class X402Middleware {
         return true;
       }
       
+      return false;
+    }
+  }
+
+  /**
+   * CRITICAL: Settle payment on-chain (actually move USDC)
+   * This is called AFTER verification to transfer funds from payer to recipient
+   */
+  private async settlePaymentOnChain(proof: X402PaymentProof): Promise<boolean> {
+    try {
+      // In development, skip on-chain settlement
+      if (process.env.NODE_ENV === 'development') {
+        this.log('⚠️ Skipping on-chain settlement in development mode');
+        return true;
+      }
+
+      // Check if private key configured for settlement
+      if (!this.config.privateKey) {
+        const errorMsg = 'No private key configured for settlement - payments cannot be processed';
+        this.log('❌ ' + errorMsg);
+        this.log('   Configure SETTLEMENT_PRIVATE_KEY environment variable');
+        throw new Error(errorMsg);
+      }
+
+      this.log('💰 Settling payment on-chain...', {
+        from: proof.from,
+        to: proof.to,
+        amount: this.formatUSDC(proof.amount)
+      });
+
+      // Create wallet for settlement
+      const wallet = new ethers.Wallet(this.config.privateKey, this.provider);
+      const facilitatorWithSigner = this.facilitatorContract.connect(wallet);
+
+      // Call settlePayment (this moves USDC from payer to recipient)
+      const tx = await facilitatorWithSigner.settlePayment(
+        proof.nonce,
+        proof.amount,
+        proof.token,
+        proof.from,
+        proof.to,
+        proof.signature
+      );
+
+      this.log('📝 Settlement transaction sent:', { hash: tx.hash });
+
+      // Wait for confirmation
+      const receipt = await tx.wait();
+
+      this.log('✅ Payment settled on-chain', {
+        block: receipt?.blockNumber,
+        gasUsed: receipt?.gasUsed.toString()
+      });
+
+      return true;
+    } catch (error) {
+      this.log('❌ On-chain settlement error', { 
+        error: error instanceof Error ? error.message : 'Unknown'
+      });
+      
+      // If settlement fails, the request should fail too
       return false;
     }
   }
@@ -405,9 +477,11 @@ export function setupX402(app: any) {
   const x402 = new X402Middleware({
     facilitatorAddress: process.env.X402_FACILITATOR_ADDRESS!,
     usdcAddress: process.env.USDC_ADDRESS || '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+    recipientAddress: process.env.SERVICE_PROVIDER_ADDRESS!,  // Service provider receives payment
     priceInUSDC: 0.05,
     network: process.env.NETWORK === 'mainnet' ? 'mainnet' : 'testnet',
-    enableLogging: true
+    enableLogging: true,
+    privateKey: process.env.SETTLEMENT_PRIVATE_KEY  // Optional: for automatic on-chain settlement
   });
 
   // Start monitoring events

@@ -23,7 +23,10 @@
     "ai:settle": "node scripts/ai-oracle-settler.js",
     "ai:monitor": "node scripts/ai-market-monitor.js",
     "ai:monitor:continuous": "node scripts/ai-market-monitor.js --continuous",
-    "x402:demo": "tsx examples/x402-express-demo.ts"
+    "x402:demo": "tsx examples/x402-express-demo.ts",
+    "x402:integration": "tsx examples/bnb-x402-agent-integration.ts",
+    "x402:test": "tsx scripts/test-x402-bnb-integration.ts",
+    "deploy:x402": "hardhat run scripts/deploy-x402-facilitator.ts"
   },
   "keywords": [
     "oracle",
