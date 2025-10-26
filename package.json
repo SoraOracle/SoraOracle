@@ -22,7 +22,8 @@
     "ai:test": "node scripts/ai-oracle-settler.js",
     "ai:settle": "node scripts/ai-oracle-settler.js",
     "ai:monitor": "node scripts/ai-market-monitor.js",
-    "ai:monitor:continuous": "node scripts/ai-market-monitor.js --continuous"
+    "ai:monitor:continuous": "node scripts/ai-market-monitor.js --continuous",
+    "x402:demo": "tsx examples/x402-express-demo.ts"
   },
   "keywords": [
     "oracle",
