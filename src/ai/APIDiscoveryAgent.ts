@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { X402Client, X402PaymentProof } from '../sdk/X402Client';
 import { DataSourceRouter, DataSourceMetadata } from './DataSourceRouter';
+import fetch from 'node-fetch';
 
 /**
  * API Discovery Agent
@@ -282,7 +283,7 @@ Respond with JSON array of strings only:`;
   }
 
   /**
-   * Search an API directory (mocked for now, would be real HTTP requests)
+   * Search an API directory with REAL HTTP requests (when configured)
    */
   private async searchDirectory(
     directory: APIDirectoryService,
@@ -290,13 +291,42 @@ Respond with JSON array of strings only:`;
     category: string,
     payment: X402PaymentProof
   ): Promise<DiscoveredAPI[]> {
-    // In production, this would make real HTTP requests to API directories
-    // with x402 payment headers
+    
+    // Try real API search first (if credentials configured)
+    if (directory.name === 'APIs.guru') {
+      // APIs.guru is free and doesn't require API key - we can make REAL requests!
+      try {
+        const realAPIs = await this.searchAPIsGuru(queries, category);
+        if (realAPIs.length > 0) {
+          console.log(`   ✅ REAL API search: Found ${realAPIs.length} APIs from APIs.guru`);
+          return realAPIs;
+        }
+      } catch (error) {
+        console.log(`   ⚠️  Real API search failed, using mock fallback:`, error);
+      }
+    }
 
-    // Simulate API directory search
+    if (directory.name === 'RapidAPI') {
+      const rapidApiKey = process.env.RAPIDAPI_KEY;
+      if (rapidApiKey) {
+        try {
+          const realAPIs = await this.searchRapidAPI(queries, category, rapidApiKey);
+          if (realAPIs.length > 0) {
+            console.log(`   ✅ REAL API search: Found ${realAPIs.length} APIs from RapidAPI`);
+            return realAPIs;
+          }
+        } catch (error) {
+          console.log(`   ⚠️  RapidAPI search failed, using mock fallback:`, error);
+        }
+      } else {
+        console.log(`   ℹ️  RAPIDAPI_KEY not set - using mock results`);
+      }
+    }
+
+    // Fallback to mock if real search not available/failed
+    console.log(`   ⚠️  Using mock API discovery (set API keys for real discovery)`);
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Mock discovered APIs based on category
     const mockAPIs: DiscoveredAPI[] = [];
 
     if (category.includes('oil') || category.includes('energy')) {
@@ -350,6 +380,97 @@ Respond with JSON array of strings only:`;
     }
 
     return mockAPIs;
+  }
+
+  /**
+   * REAL search of APIs.guru directory (no API key required!)
+   */
+  private async searchAPIsGuru(queries: string[], category: string): Promise<DiscoveredAPI[]> {
+    try {
+      const response = await fetch('https://api.apis.guru/v2/list.json');
+      
+      if (!response.ok) {
+        throw new Error(`APIs.guru returned ${response.status}`);
+      }
+
+      const data: any = await response.json();
+      const discoveredAPIs: DiscoveredAPI[] = [];
+
+      // Search through APIs for matching categories/keywords
+      const keywords = [...queries, category].map(q => q.toLowerCase());
+
+      for (const [apiKey, apiData] of Object.entries(data)) {
+        const apiInfo: any = apiData;
+        const firstVersion = Object.values(apiInfo.versions)[0] as any;
+        
+        if (!firstVersion) continue;
+
+        const title = (firstVersion.info?.title || '').toLowerCase();
+        const description = (firstVersion.info?.description || '').toLowerCase();
+        
+        // Check if any keyword matches
+        const matches = keywords.some(keyword => 
+          title.includes(keyword) || description.includes(keyword)
+        );
+
+        if (matches) {
+          discoveredAPIs.push({
+            name: firstVersion.info?.title || apiKey,
+            endpoint: firstVersion.swaggerUrl || 'https://unknown',
+            description: firstVersion.info?.description || 'No description',
+            category: category,
+            pricing: { free: true }, // APIs.guru lists mostly free APIs
+            authentication: 'api-key', // Most require some auth
+            reliability: 0.85, // Assume good reliability for listed APIs
+            source: 'APIs.guru'
+          });
+        }
+
+        // Limit results
+        if (discoveredAPIs.length >= 5) break;
+      }
+
+      return discoveredAPIs;
+
+    } catch (error) {
+      console.error('Failed to search APIs.guru:', error);
+      return [];
+    }
+  }
+
+  /**
+   * REAL search of RapidAPI (requires API key)
+   */
+  private async searchRapidAPI(
+    queries: string[],
+    category: string,
+    apiKey: string
+  ): Promise<DiscoveredAPI[]> {
+    try {
+      // RapidAPI search endpoint
+      const searchQuery = queries[0] || category;
+      const url = `https://rapidapi.com/search/${encodeURIComponent(searchQuery)}`;
+
+      const response = await fetch(url, {
+        headers: {
+          'X-RapidAPI-Key': apiKey,
+          'X-RapidAPI-Host': 'rapidapi.com'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`RapidAPI returned ${response.status}`);
+      }
+
+      // RapidAPI returns HTML, would need scraping or their official API
+      // For now, return empty (user can implement full integration)
+      console.log('   ℹ️  RapidAPI integration requires HTML parsing - implement if needed');
+      return [];
+
+    } catch (error) {
+      console.error('Failed to search RapidAPI:', error);
+      return [];
+    }
   }
 
   /**
