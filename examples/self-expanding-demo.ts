@@ -41,10 +41,11 @@ async function main() {
   );
 
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('🌟 SELF-EXPANDING RESEARCH AGENT - ULTIMATE DEMO');
+  console.log('🌟 PERMISSIONLESS SELF-EXPANDING ORACLE - ULTIMATE DEMO');
   console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-  console.log('This demo shows the agent DISCOVERING new APIs when needed!\n');
+  console.log('This demo shows trustless oracle data WITHOUT sign-ups!');
+  console.log('✨ Statistical consensus + Cryptographic verification\n');
 
   // Show initial state
   console.log('📊 Initial State:');
@@ -68,8 +69,10 @@ async function main() {
   console.log('📋 RESULT:');
   console.log(`   Discovery performed: ${cryptoResult.discoveryPerformed ? 'YES' : 'NO'}`);
   console.log(`   APIs used: ${cryptoResult.sources.join(', ')}`);
-  console.log(`   New APIs added: ${cryptoResult.newSourcesAdded}`);
+  console.log(`   Consensus strength: ${(cryptoResult.consensusStrength * 100).toFixed(1)}%`);
+  console.log(`   Outliers excluded: ${cryptoResult.outliers.length}`);
   console.log(`   Answer: ${cryptoResult.outcome ? 'YES' : 'NO'} (${(cryptoResult.confidence * 100).toFixed(1)}%)`);
+  console.log(`   Proof: ipfs://${cryptoResult.proofHash}`);
   console.log(`   Cost: $${cryptoResult.totalCost.toFixed(4)}\n`);
 
   // ═══════════════════════════════════════════════════════════════════
@@ -78,7 +81,7 @@ async function main() {
   console.log('═'.repeat(70));
   console.log('SCENARIO 2: Unknown Category (Energy/Oil Prices)');
   console.log('═'.repeat(70));
-  console.log('Expected: NO existing APIs → DISCOVER new ones from RapidAPI!\n');
+  console.log('Expected: DISCOVER 10+ APIs → Query all in parallel → Statistical consensus\n');
 
   const oilResult = await agent.researchMarket(
     'Will crude oil prices exceed $100/barrel by Q4 2025?',
@@ -93,17 +96,13 @@ async function main() {
     console.log(`      APIs discovered: ${oilResult.discoveryResult.apisDiscovered.length}`);
     console.log(`      APIs registered: ${oilResult.discoveryResult.apisRegistered.join(', ')}`);
     console.log(`      Discovery cost: $${oilResult.discoveryResult.totalCost.toFixed(4)}`);
-    
-    oilResult.discoveryResult.apisDiscovered.forEach(api => {
-      console.log(`\n      📡 ${api.name}:`);
-      console.log(`         Description: ${api.description}`);
-      console.log(`         Endpoint: ${api.endpoint}`);
-      console.log(`         Category: ${api.category}`);
-      console.log(`         Cost/call: $${api.pricing.costPerCall || 'free'}`);
-      console.log(`         Reliability: ${(api.reliability * 100).toFixed(0)}%`);
-      console.log(`         Source: ${api.source}`);
-    });
   }
+
+  console.log(`\n   📊 STATISTICAL CONSENSUS:`);
+  console.log(`      Data points: ${oilResult.dataPoints.length}`);
+  console.log(`      Outliers excluded: ${oilResult.outliers.join(', ') || 'none'}`);
+  console.log(`      Consensus strength: ${(oilResult.consensusStrength * 100).toFixed(1)}%`);
+  console.log(`      Cryptographic proof: ipfs://${oilResult.proofHash}`);
 
   console.log(`\n   Final answer: ${oilResult.outcome ? 'YES' : 'NO'} (${(oilResult.confidence * 100).toFixed(1)}%)`);
   console.log(`   Total cost: $${oilResult.totalCost.toFixed(4)}`);
@@ -180,16 +179,20 @@ async function main() {
   console.log(`   TOTAL: $${totalCost.toFixed(4)}\n`);
 
   console.log(`🚀 WHAT THIS MEANS:`);
-  console.log(`   • Ask about crypto → Uses CoinGecko (pre-installed)`);
-  console.log(`   • Ask about oil → Discovers OilPriceAPI (first time cost)`);
-  console.log(`   • Ask about oil again → Uses OilPriceAPI (no discovery)`);
-  console.log(`   • Ask about elections → Discovers PollingDataAPI`);
-  console.log(`   • Ask about ANYTHING → System learns and expands!\n`);
+  console.log(`   • No sign-ups required (APIs don't even know they're used)`);
+  console.log(`   • Statistical consensus (8/10 agree = trustworthy)`);
+  console.log(`   • Cryptographic proofs (TLS + SHA-256 + IPFS)`);
+  console.log(`   • Automatic reputation (track which APIs are reliable)`);
+  console.log(`   • Self-healing (blacklist bad actors automatically)`);
+  console.log(`   • Attack-resistant (need to corrupt 6/10 independent APIs)\n`);
 
   console.log(`💡 THE MAGIC:`);
-  console.log(`   Discovery cost: ~$0.05-0.15 (one-time per category)`);
-  console.log(`   Future questions: ~$0.02-0.05 (uses learned APIs)`);
-  console.log(`   ROI: Discovery pays for itself after 2-3 questions\n`);
+  console.log(`   Trust model: Statistical consensus (not sign-ups/stakes)`);
+  console.log(`   Discovery: ~$0.07 (search directories)`);
+  console.log(`   Queries: ~$0.30 (10 APIs in parallel)`);
+  console.log(`   Total first time: ~$0.37`);
+  console.log(`   Future questions: ~$0.03-0.05 (no discovery needed)`);
+  console.log(`   ROI: 90% cost savings after first question!\n`);
 
   console.log(`🌍 UNLIMITED POTENTIAL:`);
   console.log(`   The agent can now handle UNLIMITED question types:`);
@@ -215,8 +218,10 @@ async function main() {
   });
 
   console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-  console.log(`✨ This is the future of prediction markets:`);
-  console.log(`   Ask ANY question → System discovers APIs → Learns for next time`);
+  console.log(`✨ This is the future of trustless oracles:`);
+  console.log(`   No sign-ups → Statistical consensus → Cryptographic proofs`);
+  console.log(`   Query 10 APIs → Cross-validate → Detect outliers → Trust math`);
+  console.log(`   Permissionless + Trustless + Self-Expanding = Game-changing!`);
   console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 
   // Show how to add custom API directories
