@@ -20,10 +20,7 @@ This project is **open source** (MIT License) and built for educational, researc
 
 ### **BNB Chain Compatibility**
 
-Sora Oracle implements the x402 protocol on BNB Chain using **EIP-2612 Permit** signatures,
-following the approach pioneered by [PENG! Observer](https://www.peng.observer/disclaimer).
-
-**Reference Facilitator:** `0x4d8cDa8A110924390F8c8292025f4F61D290906f` (BNB Chain Mainnet)
+Sora Oracle implements the x402 protocol on BNB Chain using **EIP-2612 Permit** signatures.
 
 The x402 protocol enables **gasless micropayments** through cryptographic signatures,
 eliminating the need for users to hold BNB for transaction fees when interacting with
@@ -273,13 +270,9 @@ to allow time for fixes before public disclosure.
 
 Sora Oracle builds upon:
 - **x402 Protocol** (Coinbase) - Gasless payment infrastructure
-- **PENG! Observer** - First x402 implementation on BNB Chain
 - **OpenZeppelin** - Battle-tested smart contract libraries
 - **OpenAI GPT-4** - AI-powered oracle settlement
 - **BNB Chain** - Fast, low-cost blockchain infrastructure
-
-Special thanks to the PENG! team for pioneering x402 on BNB Chain and demonstrating
-the viability of EIP-2612 Permit-based gasless payments.
 
 ---
 

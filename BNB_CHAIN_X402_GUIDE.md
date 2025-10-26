@@ -17,13 +17,6 @@ We're using a **custom x402 implementation on BNB Chain** instead of the officia
 3. ✅ **Lower Costs** - BSC gas fees cheaper than Base
 4. ✅ **Full Control** - Customize for our specific use case
 5. ✅ **One Chain** - Simpler architecture (no dual-chain complexity)
-6. ✅ **Proven Technology** - [PENG! Observer](https://www.peng.observer/disclaimer) pioneered x402 on BNB Chain
-
-### **Acknowledgment:**
-This implementation follows the approach pioneered by **PENG! Observer**, the first successful
-x402 deployment on BNB Chain using EIP-2612 Permit signatures.
-
-**Reference Facilitator:** `0x4d8cDa8A110924390F8c8292025f4F61D290906f` (BNB Chain Mainnet)
 
 ---
 
