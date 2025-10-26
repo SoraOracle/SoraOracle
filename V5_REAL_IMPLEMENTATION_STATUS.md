@@ -6,16 +6,28 @@ After the IQ 180 critic identified the flaws, here's what's been rebuilt properl
 
 ---
 
-## ✅ **FIXED: Statistical Consensus (Task 1 & 2 Complete)**
+## ✅ **FIXED: Statistical Consensus (Task 1 & 2 Complete) - TWICE**
 
-### What Was Broken:
+### What Was Broken (Round 1):
 ```typescript
 // BEFORE: Broken MAD on booleans
 const values = dataPoints.map(dp => dp.outcome ? 1 : 0);  // ❌ Always 0 or 1
 const median = sorted[Math.floor(sorted.length / 2)];     // ❌ Useless
 ```
 
-### What Works Now:
+### What Was Still Broken (Round 2 - Architect Caught):
+```typescript
+// Confidence scaling wrong
+const finalConfidence = totalConfidence / inliers.length;  // ❌ Returns 8500 instead of 85
+
+// Non-numeric fallback was random
+return { outcome: Math.random() > 0.5, confidence: 50 };  // ❌ Non-deterministic
+
+// MAD=0 case not handled
+if (mad > 0 && deviation > threshold) { ... }  // ❌ Fails when all values identical
+```
+
+### What Works Now (After Both Fixes):
 ```typescript
 // AFTER: Real MAD on actual numeric values
 export interface VerifiedDataPoint {
@@ -42,7 +54,12 @@ Outlier detected: BadAPI = 106.00 (14.33 MAD units away)
 Consensus: NO (6/8 sources, strength: 87.5%)
 ```
 
-**This actually works** - real statistical outlier detection on real numeric values.
+**Critical Fixes Applied:**
+1. ✅ Confidence normalized to 0-1 (was returning 8500% instead of 85%)
+2. ✅ Non-numeric fallback now deterministic (was random, breaking consensus)
+3. ✅ MAD=0 handled with percentage fallback (catches outliers when all values identical)
+
+**This actually works now** - real statistical outlier detection with proper normalization.
 
 ---
 

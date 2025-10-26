@@ -380,12 +380,29 @@ export class SelfExpandingResearchAgent {
 
     numericPoints.forEach((dp, i) => {
       const deviation = Math.abs(values[i] - median);
-      const madScore = mad > 0 ? deviation / mad : 0;
       
-      // Modified MAD threshold (standard is 2.0 to 3.0)
-      if (mad > 0 && madScore > this.OUTLIER_THRESHOLD) {
+      // ✅ FIX: Handle MAD=0 case (when all values are identical)
+      let isOutlier = false;
+      
+      if (mad > 0) {
+        // Standard MAD-based detection
+        const madScore = deviation / mad;
+        if (madScore > this.OUTLIER_THRESHOLD) {
+          isOutlier = true;
+          console.log(`   Outlier detected: ${dp.source} = ${values[i].toFixed(2)} (${madScore.toFixed(2)} MAD units away)`);
+        }
+      } else {
+        // Fallback when MAD=0 (all values identical): use absolute threshold
+        // If value differs from median by more than 10%, flag as outlier
+        const percentDiff = median > 0 ? (deviation / median) : (deviation > 0 ? 1 : 0);
+        if (percentDiff > 0.10) {  // 10% threshold
+          isOutlier = true;
+          console.log(`   Outlier detected (MAD=0 fallback): ${dp.source} = ${values[i].toFixed(2)} (${(percentDiff * 100).toFixed(1)}% diff from consensus)`);
+        }
+      }
+      
+      if (isOutlier) {
         outliers.push(dp.source);
-        console.log(`   Outlier detected: ${dp.source} = ${values[i].toFixed(2)} (${madScore.toFixed(2)} MAD units away)`);
       } else {
         inliers.push(dp);
       }
@@ -406,12 +423,15 @@ export class SelfExpandingResearchAgent {
     let totalConfidence = 0;
 
     inliers.forEach(dp => {
+      // ✅ FIX: Normalize confidence to 0-1 range (was 0-100)
+      const normalizedConfidence = dp.confidence / 100;
+      
       if (dp.outcome) {
-        yesVotes += dp.confidence;
+        yesVotes += normalizedConfidence;
       } else {
-        noVotes += dp.confidence;
+        noVotes += normalizedConfidence;
       }
-      totalConfidence += dp.confidence;
+      totalConfidence += normalizedConfidence;
     });
 
     const finalOutcome = yesVotes > noVotes;
@@ -455,7 +475,9 @@ export class SelfExpandingResearchAgent {
     });
 
     const finalOutcome = yesCount > noCount;
-    const finalConfidence = totalConfidence / dataPoints.length;
+    // ✅ FIX: Normalize confidence to 0-1
+    const avgConfidence = dataPoints.reduce((sum, dp) => sum + dp.confidence, 0) / dataPoints.length;
+    const finalConfidence = avgConfidence / 100;  // Convert 0-100 to 0-1
     const strength = Math.max(yesCount, noCount) / dataPoints.length;
 
     return {
@@ -620,10 +642,12 @@ export class SelfExpandingResearchAgent {
   ): { outcome: boolean; confidence: number } {
     
     if (numericValue === null) {
-      // Fallback for non-numeric responses
+      // ✅ FIX: Deterministic fallback instead of random
+      // Mark as unusable with very low confidence
+      console.log(`   Warning: ${sourceName} returned non-numeric data, treating as unreliable`);
       return {
-        outcome: Math.random() > 0.5,
-        confidence: 50  // Low confidence for unparseable data
+        outcome: false,  // Deterministic: default to NO
+        confidence: 10   // Very low confidence (will be weighted down in consensus)
       };
     }
     
