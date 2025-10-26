@@ -26,7 +26,9 @@
     "x402:demo": "tsx examples/x402-express-demo.ts",
     "x402:integration": "tsx examples/bnb-x402-agent-integration.ts",
     "x402:test": "tsx scripts/test-x402-bnb-integration.ts",
-    "deploy:x402": "hardhat run scripts/deploy-x402-facilitator.ts"
+    "deploy:x402": "hardhat run scripts/deploy-x402-facilitator.ts",
+    "gateway:start": "tsx gateway/server.ts",
+    "gateway:demo": "tsx examples/gateway-agent-demo.ts"
   },
   "keywords": [
     "oracle",
