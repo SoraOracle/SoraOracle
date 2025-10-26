@@ -35,19 +35,19 @@ Agent gets data → gateway keeps profit
                      │ (BNB Chain transaction)
                      ↓
 ┌──────────────────────────────────────────────────────────┐
-│  x402 GATEWAY (Your Service)                            │
+│  x402 GATEWAY (Sora Oracle)                             │
 │  - Receives x402 payment                                │
 │  - Verifies on-chain                                    │
 │  - Settles USDC payment                                 │
 └────────────────────┬─────────────────────────────────────┘
                      │
-                     │ Calls API with your key
+                     │ Calls API with Sora's key
                      │ (Traditional HTTP/API key)
                      ↓
 ┌──────────────────────────────────────────────────────────┐
 │  EXTERNAL API (CoinGecko, etc.)                         │
 │  - Returns Bitcoin price                                │
-│  - Bills you monthly for usage                          │
+│  - Bills Sora Oracle monthly for usage                  │
 └────────────────────┬─────────────────────────────────────┘
                      │
                      │ Returns data
@@ -65,9 +65,9 @@ Agent gets data → gateway keeps profit
 
 ### **Revenue Model:**
 ```
-Agent pays you:      $0.03 USDC per call
-You pay CoinGecko:   $0.02 USD per call (or free tier)
-Your profit:         $0.01 per call
+Agent pays Sora Oracle:      $0.03 USDC per call
+Sora Oracle pays CoinGecko:  $0.02 USD per call (or free tier)
+Sora Oracle profit:          $0.01 per call
 
 Monthly (1000 calls):
 Revenue:  $30.00 USDC
@@ -77,8 +77,8 @@ Margin:   33%
 ```
 
 ### **Pricing Tiers:**
-| API | Agent Pays | You Pay External | Your Profit | Margin |
-|-----|-----------|------------------|-------------|--------|
+| API | Agent Pays Sora | Sora Pays External | Sora Profit | Margin |
+|-----|-----------------|-----------------------|-------------|--------|
 | CoinGecko | $0.03 | $0.00 (free) | $0.03 | 100% |
 | OpenWeather | $0.02 | $0.00 (free) | $0.02 | 100% |
 | NewsAPI | $0.03 | $0.02 | $0.01 | 33% |
