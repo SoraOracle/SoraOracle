@@ -69,7 +69,7 @@ class SelfExpandingResearchAgent {
 - Tests and validates discovered APIs
 
 **`src/ai/DataSourceRouter.ts`** (337 lines)
-- GPT-4 powered intelligent routing
+- Agent-powered intelligent routing
 - Category detection and API selection
 - Manages data source registry
 
@@ -95,7 +95,7 @@ class SelfExpandingResearchAgent {
 
 **`INTELLIGENT_ROUTING_ARCHITECTURE.md`** (500+ lines)
 - Intelligent routing explanation
-- GPT-4 integration details
+- Agent integration details
 - Category detection
 
 ### 4. Examples & Demos
@@ -118,7 +118,7 @@ class SelfExpandingResearchAgent {
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ PHASE 1: AI DISCOVERY (Automated)                          │
-│ → GPT-4 discovers 10+ APIs for category                    │
+│ → Agent discovers 10+ APIs for category                    │
 │ → Cost: $0.07 | Time: 3 seconds                           │
 └────────────┬────────────────────────────────────────────────┘
              │
@@ -378,7 +378,7 @@ await sdk.resolveMarket({
 ### V5.1 - Enhancements
 - [ ] Real IPFS integration (currently mocked)
 - [ ] Real TLS certificate verification
-- [ ] GPT-4 powered response parsing (intelligent)
+- [ ] Agent-powered response parsing (intelligent)
 - [ ] Temporal consistency checks (flag suspicious data)
 - [ ] Cross-chain oracle data aggregation
 
