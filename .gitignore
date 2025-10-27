@@ -2,56 +2,43 @@
 node_modules/
 package-lock.json
 
-# Hardhat
-cache/
+# Build outputs
+dist/
+build/
 artifacts/
-typechain/
+cache/
 typechain-types/
 
-# Environment
+# Environment files
 .env
 .env.local
-.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
-# OS
-.DS_Store
-Thumbs.db
+# Temporary files
+output/
+attached_assets/
+*.tmp
 
-# Logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Deployment artifacts
+deployment-*.json
 
 # Test coverage
 coverage/
-coverage.json
+.nyc_output/
+*.html
 
-# Build
-dist/
-build/
-
-# Temporary files
-*.tmp
-.cache/
-
-# Development platform files
-.replit
-replit.nix
-.upm/
-.config/
-show-status.js
-attached_assets/
-
-# Internal files (not for SDK users)
-replit.md
-
-# Assets folder is INCLUDED for GitHub (banner, logo)
-# !assets/
+# Flattened contracts
+*-flattened.sol
