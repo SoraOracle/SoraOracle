@@ -2,9 +2,25 @@
 
 **Production-ready permissionless oracle SDK with HTTP 402 micropayments on BNB Chain**
 
+<div align="center">
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue.svg)](https://soliditylang.org/)
-[![BNB Chain](https://img.shields.io/badge/🚀_BNB-Chain-orange.svg)](https://www.bnbchain.org/)
+[![BNB Chain](https://img.shields.io/badge/Chain-BNB_Mainnet-orange.svg)](https://www.bnbchain.org/)
+[![npm](https://img.shields.io/badge/npm-@sora--oracle/sdk-red.svg)](https://www.npmjs.com/package/@sora-oracle/sdk)
+
+**[🌐 Website](https://sora-oracle.xyz)** • **[𝕏 Twitter](https://x.com/SoraOracle)** • **[📖 Docs](./SORA_ORACLE_TECHNICAL_SPECIFICATION.md)** • **[🔍 Contract](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12)**
+
+</div>
+
+---
+
+## 🚀 Live on BNB Chain Mainnet
+
+**S402Facilitator Contract:**  
+[`0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12`](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12)
+
+✅ **Verified on BSCScan** • ✅ **Production Ready** • ✅ **Fully Functional**
 
 ---
 
@@ -19,7 +35,7 @@ Sora Oracle is a **fully permissionless oracle SDK** that lets you create predic
 ✅ **Multi-Wallet Parallelization** - 10x faster than sequential transactions  
 ✅ **23 Smart Contracts** - Production-ready market types (binary, multi-outcome, AMM, orderbook, conditional)  
 ✅ **TypeScript SDK** - React hooks for zero-boilerplate integration  
-✅ **Honest Branding** - We use s402 (not x402) and are transparent about our tech  
+✅ **Mainnet Deployed** - Live on BNB Chain with verified contract  
 
 ---
 
@@ -39,7 +55,7 @@ import { SoraOracleSDK } from '@sora-oracle/sdk';
 const sdk = new SoraOracleSDK({
   chainId: 56, // BNB Chain Mainnet
   rpcUrl: 'https://bsc-dataseed.binance.org/',
-  privateKey: process.env.PRIVATE_KEY
+  s402FacilitatorAddress: '0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12'
 });
 
 // Create a prediction market
@@ -58,24 +74,98 @@ console.log(`Market created: ${market.id}`);
 
 ---
 
-## 📖 Documentation
+## 📦 Repository Structure
 
-### Core Concepts
+```
+sora-oracle-sdk/
+│
+├── 📄 README.md                              # You are here
+├── 📄 QUICK_START.md                         # 5-minute guide
+├── 📄 CONTRIBUTING.md                        # Contribution guide
+├── 📄 LICENSE                                # MIT License
+├── 📄 package.json                           # v5.0.0
+│
+├── 📁 contracts/                             # 23 Smart Contracts
+│   ├── S402Facilitator.sol                   # ⭐ s402 payment settlement (DEPLOYED)
+│   ├── SoraOracle.sol                        # Core oracle with bounties
+│   ├── SimplePredictionMarket.sol            # Binary (yes/no) markets
+│   ├── MultiOutcomeMarket.sol                # 2-10 outcome markets
+│   ├── OrderBookMarket.sol                   # Limit order book trading
+│   ├── AMMPredictionMarket.sol               # AMM-style liquidity pools
+│   ├── ConditionalMarket.sol                 # Markets with linked outcomes
+│   ├── RangeBettingMarket.sol                # Bet on price ranges
+│   ├── TimeSeriesMarket.sol                  # Statistical predictions
+│   ├── PancakeTWAPOracle.sol                 # Manipulation-resistant TWAP
+│   ├── BatchOracleOperations.sol             # Batch 20 questions (30% gas savings)
+│   ├── OracleReputationTracker.sol           # Provider performance tracking
+│   ├── DisputeResolution.sol                 # Stake-based challenges
+│   ├── AutomatedMarketResolver.sol           # AI-powered settlement
+│   ├── BatchPayoutDistributor.sol            # Efficient winner payouts
+│   ├── MarketFactory.sol                     # Market registry
+│   ├── ReferralRewards.sol                   # Viral growth (5% rewards)
+│   ├── LiquidityIncentives.sol               # Bootstrap new markets
+│   ├── AggregatedOracle.sol                  # Multi-source consensus
+│   ├── ScheduledFeeds.sol                    # Automated updates
+│   ├── CrossChainBridge.sol                  # Multi-chain data
+│   ├── DAOGovernance.sol                     # Community voting
+│   ├── OracleStaking.sol                     # Reputation staking
+│   └── SlashingMechanism.sol                 # Penalty system
+│
+├── 📁 src/sdk/                               # TypeScript SDK
+│   ├── MultiWalletS402Pool.ts                # ⭐ 10x parallel speedup
+│   ├── S402Client.ts                         # s402 payment client
+│   ├── s402-config.ts                        # Mainnet configuration
+│   ├── SoraOracleClient.ts                   # Oracle interactions
+│   ├── PredictionMarketClient.ts             # Market interactions
+│   └── MultiOutcomeMarketClient.ts           # Multi-outcome markets
+│
+├── 📁 src/ai/                                # Permissionless Oracle
+│   ├── SelfExpandingResearchAgent.ts         # ⭐ AI-powered API discovery
+│   ├── APIDiscoveryAgent.ts                  # Automatic API finding
+│   ├── DataSourceRouter.ts                   # Intelligent routing
+│   ├── TLSVerifier.ts                        # Certificate verification
+│   └── IPFSClient.ts                         # Decentralized storage
+│
+├── 📁 server/                                # Backend Examples
+│   ├── s402-middleware.js                    # ⭐ Payment verification
+│   ├── index.js                              # Blockchain indexer
+│   └── storage.ts                            # Database layer
+│
+├── 📁 frontend/                              # React UI Example
+│   ├── src/
+│   │   ├── components/                       # React components
+│   │   ├── pages/                            # App pages
+│   │   ├── config.ts                         # Contract addresses
+│   │   └── App.tsx                           # Main app
+│   └── package.json
+│
+├── 📁 scripts/                               # Deployment & Utils
+│   ├── deploy-s402-mainnet.js                # ⭐ Mainnet deployment
+│   ├── ai-oracle-settler.js                  # AI-powered settlement
+│   ├── fund-workers.js                       # Fund worker wallets
+│   ├── check-worker-balances.js              # Monitor balances
+│   └── [15+ more utility scripts]
+│
+├── 📁 test/                                  # Test Suite
+│   ├── S402Facilitator.test.js
+│   ├── MultiOutcomeMarket.test.js
+│   └── [comprehensive test coverage]
+│
+├── 📁 examples/                              # SDK Usage Examples
+│   ├── sdk-usage.ts                          # Basic SDK usage
+│   ├── multi-wallet-demo.ts                  # Parallel payments
+│   └── self-expanding-demo.ts                # Permissionless oracle
+│
+└── 📁 docs/                                  # Documentation
+    ├── SORA_ORACLE_TECHNICAL_SPECIFICATION.md    # ⭐ Complete architecture
+    ├── V5_PERMISSIONLESS_ORACLE_COMPLETE.md      # ⭐ Self-expanding agent
+    ├── X402_VS_S402_COMPARISON.md                # ⭐ s402 protocol explained
+    ├── USDC_USDT_BNB_CHAIN_IMPLEMENTATION.md     # s402 implementation
+    ├── EIP_PAYMENT_STANDARDS_COMPARISON.md       # EIP-2612 vs EIP-3009
+    └── EIP3009_LOOPHOLE_ANALYSIS.md              # Why EIP-3009 doesn't work
+```
 
-- **[SORA_ORACLE_TECHNICAL_SPECIFICATION.md](./SORA_ORACLE_TECHNICAL_SPECIFICATION.md)** - Complete architecture and design
-- **[V5_PERMISSIONLESS_ORACLE_COMPLETE.md](./V5_PERMISSIONLESS_ORACLE_COMPLETE.md)** - How the permissionless oracle works
-- **[USDC_USDT_BNB_CHAIN_IMPLEMENTATION.md](./USDC_USDT_BNB_CHAIN_IMPLEMENTATION.md)** - s402 payment implementation
-
-### Comparison & Analysis
-
-- **[X402_VS_S402_COMPARISON.md](./X402_VS_S402_COMPARISON.md)** - Why we built s402 instead of using x402
-- **[EIP_PAYMENT_STANDARDS_COMPARISON.md](./EIP_PAYMENT_STANDARDS_COMPARISON.md)** - EIP-2612 vs EIP-3009 deep-dive
-- **[EIP3009_LOOPHOLE_ANALYSIS.md](./EIP3009_LOOPHOLE_ANALYSIS.md)** - Why "EIP-3009 on BNB" claims are false
-
-### Getting Started
-
-- **[QUICK_START.md](./QUICK_START.md)** - Get started in 5 minutes
-- **[SDK README](./sdk/README.md)** - TypeScript SDK documentation
+**⭐ = Core v5.0 features**
 
 ---
 
@@ -200,7 +290,7 @@ const election = await sdk.createMarket({
 - **LiquidityIncentives** - Bootstrap new markets
 
 **v5.0 - s402 Payments:**
-- **S402Facilitator** - Payment settlement with 1% platform fee
+- **S402Facilitator** - Payment settlement with 1% platform fee ([View on BSCScan](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12))
 
 ---
 
@@ -217,7 +307,7 @@ const election = await sdk.createMarket({
 | Batch Query | $0.05 | Multiple oracle queries |
 | AI Resolution | $0.15 | GPT-4 powered settlement |
 
-**Platform Fee:** 1% of all transactions (adjustable by owner)
+**Platform Fee:** 1% of all transactions (adjustable by owner, max 10%)
 
 ---
 
@@ -237,10 +327,9 @@ const election = await sdk.createMarket({
 - ✅ **Replay Prevention** - Used payment tracking
 - ✅ **Recipient Binding** - Payments cryptographically bound to recipient (prevents front-running)
 - ✅ **Deadline Enforcement** - All payments have expiration times
+- ✅ **Dual-Signature** - EIP-2612 permit + EIP-712 authorization
 
-**Security Audit:** Contract reviewed and fixed for front-running vulnerabilities before deployment.
-
-**[View Security Fixes →](./EIP3009_LOOPHOLE_ANALYSIS.md#security-fixes)**
+**[View Contract on BSCScan →](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12)**
 
 ---
 
@@ -266,6 +355,7 @@ const election = await sdk.createMarket({
 - **Chain ID:** 56
 - **RPC:** https://bsc-dataseed.binance.org/
 - **Explorer:** https://bscscan.com
+- **S402 Contract:** [`0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12`](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12) ✅ Verified
 - **USDC:** `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d` (Binance-Bridged, EIP-2612)
 - **USDT:** `0x55d398326f99059fF775485246999027B3197955` (18 decimals!)
 
@@ -278,41 +368,24 @@ const election = await sdk.createMarket({
 
 ---
 
-## 📦 SDK Reference
+## 📖 Documentation
 
-### React Hooks
+### Core Concepts
 
-```typescript
-import { useWallet, useSoraOracle, usePredictionMarket } from '@sora-oracle/sdk/hooks';
+- **[SORA_ORACLE_TECHNICAL_SPECIFICATION.md](./SORA_ORACLE_TECHNICAL_SPECIFICATION.md)** - Complete architecture and design
+- **[V5_PERMISSIONLESS_ORACLE_COMPLETE.md](./V5_PERMISSIONLESS_ORACLE_COMPLETE.md)** - How the permissionless oracle works
+- **[USDC_USDT_BNB_CHAIN_IMPLEMENTATION.md](./USDC_USDT_BNB_CHAIN_IMPLEMENTATION.md)** - s402 payment implementation
 
-function BettingUI() {
-  const { address, connect } = useWallet();
-  const { oracleClient, marketClient } = useSoraOracle(config, provider);
-  const { market, bet, odds } = usePredictionMarket(marketId, address);
-  
-  return (
-    <div>
-      <button onClick={() => bet(true, parseEther('0.1'))}>
-        Bet YES at {odds.yes}% odds
-      </button>
-    </div>
-  );
-}
-```
+### Comparison & Analysis
 
-### Core Clients
+- **[X402_VS_S402_COMPARISON.md](./X402_VS_S402_COMPARISON.md)** - Why we built s402 instead of using x402
+- **[EIP_PAYMENT_STANDARDS_COMPARISON.md](./EIP_PAYMENT_STANDARDS_COMPARISON.md)** - EIP-2612 vs EIP-3009 deep-dive
+- **[EIP3009_LOOPHOLE_ANALYSIS.md](./EIP3009_LOOPHOLE_ANALYSIS.md)** - Why "EIP-3009 on BNB" claims are false
 
-```typescript
-import { 
-  SoraOracleClient,
-  PredictionMarketClient,
-  MultiOutcomeMarketClient,
-  S402Client,
-  MultiWalletS402Pool
-} from '@sora-oracle/sdk';
-```
+### Getting Started
 
-**[View Full SDK Docs →](./sdk/README.md)**
+- **[QUICK_START.md](./QUICK_START.md)** - Get started in 5 minutes
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - How to contribute
 
 ---
 
@@ -331,7 +404,7 @@ npx hardhat compile
 npx hardhat test
 
 # Deploy to testnet
-node scripts/deploy-v3-testnet.js
+npx hardhat run scripts/deploy-s402.js --network bscTestnet
 ```
 
 ### Frontend
@@ -346,44 +419,13 @@ Access at: http://localhost:5000
 
 ---
 
-## 📁 Repository Structure
-
-```
-sora-oracle-sdk/
-├── contracts/                    # 23 Smart Contracts
-│   ├── S402Facilitator.sol       # v5.0 Payment settlement
-│   ├── SoraOracle.sol
-│   ├── SimplePredictionMarket.sol
-│   ├── MultiOutcomeMarket.sol
-│   ├── OrderBookMarket.sol
-│   └── ... (18 more contracts)
-├── src/sdk/                      # TypeScript SDK
-│   ├── MultiWalletS402Pool.ts    # v5.0 Parallel transactions
-│   ├── S402Client.ts
-│   └── ... (core clients)
-├── server/                       # Backend
-│   ├── s402-middleware.js        # v5.0 Payment verification
-│   └── index.js
-├── frontend/                     # React UI
-│   └── src/
-├── scripts/                      # Deployment scripts
-├── docs/                         # Documentation
-│   ├── SORA_ORACLE_TECHNICAL_SPECIFICATION.md
-│   ├── V5_PERMISSIONLESS_ORACLE_COMPLETE.md
-│   ├── X402_VS_S402_COMPARISON.md
-│   └── ... (more docs)
-└── README.md                     # This file
-```
-
----
-
 ## 🤝 Contributing
 
 We welcome contributions! This is open-source MIT licensed software.
 
 ```bash
 # Fork and clone
-git clone https://github.com/yourusername/sora-oracle-sdk
+git clone https://github.com/YOUR_USERNAME/sora-oracle-sdk
 
 # Install and test
 npm install && npx hardhat test
@@ -393,6 +435,8 @@ git checkout -b feature/amazing-feature
 
 # Submit PR
 ```
+
+**See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.**
 
 ---
 
@@ -426,36 +470,17 @@ Use it, fork it, modify it, sell it - whatever you want! All smart contracts are
 | **Market Types** | 8 types | Binary only | Binary + Categorical |
 | **Payments** | s402 (USDC) | Free | ETH gas |
 | **Orderbook** | ✅ Limit orders | ✅ Limit orders | ❌ Shares only |
+| **Mainnet** | ✅ Live | ✅ Live | ✅ Live |
 
 ---
 
-## 📚 Learn More
+## 💬 Support & Community
 
-### Core Documentation
-
-- **[Technical Specification](./SORA_ORACLE_TECHNICAL_SPECIFICATION.md)** - Complete v5.0 architecture
-- **[Permissionless Oracle Guide](./V5_PERMISSIONLESS_ORACLE_COMPLETE.md)** - How AI discovers and verifies APIs
-- **[s402 vs x402 Comparison](./X402_VS_S402_COMPARISON.md)** - Why we built our own payment protocol
-
-### Deep Dives
-
-- **[USDC/USDT Implementation](./USDC_USDT_BNB_CHAIN_IMPLEMENTATION.md)** - BNB Chain payment details
-- **[EIP Payment Standards](./EIP_PAYMENT_STANDARDS_COMPARISON.md)** - EIP-2612 vs EIP-3009 analysis
-- **[EIP-3009 Loopholes](./EIP3009_LOOPHOLE_ANALYSIS.md)** - Why "EIP-3009 on BNB" is impossible
-
-### For Users
-
-- **[Quick Start](./QUICK_START.md)** - Get started in 5 minutes
-- **[SDK Documentation](./sdk/README.md)** - Complete SDK reference
-- **[Contributing](./CONTRIBUTING.md)** - How to contribute
-
----
-
-## 💬 Support
-
+- **Website:** [sora-oracle.xyz](https://sora-oracle.xyz)
+- **𝕏 Twitter:** [@SoraOracle](https://x.com/SoraOracle)
 - **Email:** soraoracle@proton.me
-- **Issues:** [GitHub Issues](https://github.com/yourusername/sora-oracle-sdk/issues)
-- **Docs:** See [docs/](./docs/) directory
+- **GitHub Issues:** [Report bugs & request features](https://github.com/sora-oracle/sora-oracle-sdk/issues)
+- **Contract:** [View on BSCScan](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12)
 
 ---
 
@@ -463,10 +488,12 @@ Use it, fork it, modify it, sell it - whatever you want! All smart contracts are
 
 **Sora Oracle v5.0** - The first production-ready permissionless oracle with integrated micropayments 🚀
 
-✅ Permissionless | ✅ AI-Powered | ✅ s402 Payments | ✅ BNB Chain
+✅ Permissionless | ✅ AI-Powered | ✅ s402 Payments | ✅ BNB Chain | ✅ Mainnet Live
 
 No gatekeepers. No permissions. Just secure, verifiable prediction markets.
 
 Built by the community, for the community 🌐
+
+**[Get Started →](./QUICK_START.md)** • **[View Contract →](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12)** • **[Follow on 𝕏 →](https://x.com/SoraOracle)**
 
 </div>
