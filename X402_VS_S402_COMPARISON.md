@@ -12,7 +12,8 @@
 | Feature | x402 (Coinbase) | s402 (Sora) | Winner |
 |---------|----------------|-------------|--------|
 | **Network** | Base, Ethereum, Polygon | **BNB Chain** | Tie (chain-specific) |
-| **Token Standard** | EIP-3009 | EIP-4337 + EIP-2612 | Tie (both work) |
+| **Payment Standard** | EIP-3009 (random nonces) | EIP-2612 (permit approvals) | x402 (no approval) |
+| **Account Standard** | EOA (standard wallet) | EIP-4337 (smart account) | **s402** 🏆 |
 | **USDC Type** | Native Circle USDC | Binance Bridged USDC | x402 (native better) |
 | **Parallel Transactions** | ✅ Unlimited (random nonces) | ✅ Unlimited (multi-dimensional nonces) | **Tie** ✅ |
 | **User Gas Cost** | ✅ $0 (facilitator pays) | ✅ $0 (paymaster pays) | **Tie** ✅ |
