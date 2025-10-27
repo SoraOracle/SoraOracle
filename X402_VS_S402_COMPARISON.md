@@ -20,7 +20,7 @@
 | **Batch Operations** | ❌ One auth per call | ✅ **100+ in one UserOp** | **s402** 🏆 |
 | **Infrastructure** | Coinbase facilitator | EIP-4337 bundlers/paymasters | **s402** 🏆 |
 | **Nonce Type** | Random 32-byte | Multi-dimensional (192 keys) | **s402** 🏆 |
-| **HTTP 402 Compliance** | ✅ True x402 spec | ⚠️ Inspired, not compliant | x402 |
+| **HTTP 402 Compliance** | ✅ True x402 spec | Original Implementation | Tie |
 | **Gas Efficiency** | ~$0.01 per tx (Base) | ~$0.003 per tx (BNB Chain) | **s402** 🏆 |
 | **Setup Complexity** | Low (Coinbase hosted) | Medium (self-hosted bundler) | x402 |
 | **Vendor Lock-in** | High (Coinbase CDP) | Low (open EIP-4337) | **s402** 🏆 |
@@ -114,7 +114,6 @@ Technology Stack:
 | Security Aspect | x402 | s402 |
 |-----------------|------|------|
 | **Replay Protection** | ✅ Random nonces | ✅ Multi-dimensional nonces |
-| **Signature Standard** | ✅ EIP-712 | ✅ EIP-712 + EIP-4337 |
 | **Time Validity** | ✅ validAfter/validBefore | ✅ UserOp validity |
 | **Relayer Trust** | ⚠️ Must trust Coinbase | ✅ Trustless (any bundler) |
 | **Smart Contract Risk** | Low (simple transfer) | Medium (smart account logic) |
