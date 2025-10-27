@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title TrustlessAPIRegistry
@@ -77,6 +77,8 @@ contract TrustlessAPIRegistry is Ownable, ReentrancyGuard {
     event APISlashed(string indexed name, uint256 slashAmount, bytes32 questionHash);
     event ReputationIncreased(string indexed name, uint256 newReputation);
     event CategoryAdded(string category);
+    
+    constructor() Ownable(msg.sender) {}
     
     /**
      * @notice Register a new API provider (discovered by AI or manually)
