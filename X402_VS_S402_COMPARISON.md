@@ -38,7 +38,7 @@
 | **Parallelization** | ✅ Unlimited | ❌ Sequential only | ✅ Unlimited (192 channels) |
 | **Gas Payment** | Relayer pays | Relayer pays | Paymaster pays |
 | **Approval Needed** | ❌ No | ✅ Yes (permit) | ✅ Yes (via UserOp) |
-| **BNB Chain Support** | ❌ No (needs native USDC) | ⚠️ Limited (token-dependent) | ✅ Yes (production-ready) |
+| **BNB Chain Support** | ❌ No (needs native USDC) | ⚠️ Limited (token-dependent) | 🔜 Coming Soon |
 | **Function** | `transferWithAuthorization()` | `permit()` | `handleOps()` |
 | **Used By** | x402 (Coinbase) | s402 (payment layer) | s402 (account layer) |
 | **Atomic Execution** | ✅ Yes | ❌ No (2-step) | ✅ Yes |
