@@ -71,7 +71,7 @@
 #### **Frontend Layer**
 - **Technology:** React 18 + Vite 6 + React Router 7
 - **Features:** Market creation, betting interface, user dashboards, MetaMask integration
-- **Deployment:** Replit hosting with CDN
+- **Deployment:** Standard web hosting with CDN
 
 #### **SDK Layer** (TypeScript)
 - **Purpose:** Abstraction layer for smart contract interactions
@@ -471,7 +471,7 @@ function submitBatchQuestions(
 
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
-| **Hosting** | Replit | Frontend + backend |
+| **Hosting** | Self-hosted | Frontend + backend |
 | **Blockchain** | BNB Chain | Mainnet (56), Testnet (97) |
 | **RPC** | NodeReal | BSC RPC provider |
 | **Bundler** | Biconomy | EIP-4337 bundler |
@@ -574,12 +574,12 @@ function verifyPaymentProof(proof: PaymentProof): boolean {
 
 | Item | Cost | Notes |
 |------|------|-------|
-| **Replit Hosting** | $20/mo | Core plan |
+| **Hosting** | $20/mo | VPS hosting |
 | **NodeReal RPC** | $0 (free tier) | Upgrade at 50k users |
-| **Database** | Included | Replit PostgreSQL |
+| **Database** | $15/mo | PostgreSQL hosting |
 | **Worker Refills** | $500/mo | 10 workers × $50 BNB gas |
 | **Domain** | $12/yr | sora-oracle.xyz |
-| **Total** | **~$520/mo** | Scales with users |
+| **Total** | **~$535/mo** | Scales with users |
 
 **Revenue (10,000 users, 100 txs/user/mo):**
 
@@ -721,15 +721,15 @@ const resolution = await sora.resolveMarket({
 
 ```
 Production Environment:
-├── Frontend: Replit hosting (auto-deploy on git push)
-├── Backend: Replit Node.js server
-├── Database: Replit PostgreSQL
+├── Frontend: Web hosting (auto-deploy on git push)
+├── Backend: Node.js server
+├── Database: PostgreSQL
 ├── Smart Contracts: BNB Chain Mainnet (56)
 └── Worker Wallets: 10 funded wallets (auto-managed)
 
 Testnet Environment:
-├── Frontend: Replit preview branch
-├── Backend: Replit testnet server
+├── Frontend: Staging branch
+├── Backend: Testnet server
 ├── Database: Separate PostgreSQL instance
 ├── Smart Contracts: BNB Testnet (97)
 └── Worker Wallets: 10 testnet wallets (faucet funded)
