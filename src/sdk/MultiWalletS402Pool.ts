@@ -106,7 +106,7 @@ export class MultiWalletS402Pool {
   /**
    * Get next available wallet (round-robin distribution)
    */
-  private getNextWallet(): { wallet: ethers.Wallet; client: S402Client; index: number } {
+  private getNextWallet(): { wallet: ethers.HDNodeWallet; client: S402Client; index: number } {
     const index = this.currentWalletIndex;
     this.currentWalletIndex = (this.currentWalletIndex + 1) % this.wallets.length;
     

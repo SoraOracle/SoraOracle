@@ -30,13 +30,9 @@ async function multiWalletDemo() {
     facilitatorConfig: {
       facilitatorAddress: FACILITATOR_ADDRESS,
       usdcAddress: BNB_TESTNET_USDC,
-      chainId: 97, // BNB Testnet
-      signer: masterWallet,
-      operationPrices: {
-        dataSourceAccess: 0.03,
-        marketCreation: 0.05,
-        marketResolution: 0.10
-      }
+      recipientAddress: masterWallet.address,
+      network: 'testnet',
+      signer: masterWallet
     },
     walletCount: 10, // 10 worker wallets
     autoFund: true,
@@ -91,11 +87,9 @@ async function sequentialDemo() {
   const client = new S402Client({
     facilitatorAddress: FACILITATOR_ADDRESS,
     usdcAddress: BNB_TESTNET_USDC,
-    chainId: 97,
-    signer: wallet,
-    operationPrices: {
-      dataSourceAccess: 0.03
-    }
+    recipientAddress: wallet.address,
+    network: 'testnet',
+    signer: wallet
   });
   
   console.log('⏱️  Processing 10 operations sequentially...\n');

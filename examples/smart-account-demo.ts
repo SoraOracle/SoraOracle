@@ -34,11 +34,9 @@ async function smartAccountDemo() {
     {
       facilitatorAddress: '0x...', // Your S402Facilitator
       usdcAddress: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
-      chainId: 56,
-      signer: ownerWallet,
-      operationPrices: {
-        dataSourceAccess: 0.03
-      }
+      recipientAddress: ownerWallet.address,
+      network: 'mainnet',
+      signer: ownerWallet
     }
   );
   
