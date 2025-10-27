@@ -29,6 +29,28 @@
 
 ---
 
+## 📋 EIP Standards Comparison
+
+| Feature | EIP-3009 (x402) | EIP-2612 (s402) | EIP-4337 (s402) |
+|---------|-----------------|-----------------|-----------------|
+| **Purpose** | Direct transfer authorization | Gasless approvals | Smart account wallets |
+| **Nonce Type** | Random (bytes32) | Sequential (uint256) | Multidimensional (192+64 bit) |
+| **Parallelization** | ✅ Unlimited | ❌ Sequential only | ✅ Unlimited (192 channels) |
+| **Gas Payment** | Relayer pays | Relayer pays | Paymaster pays |
+| **Approval Needed** | ❌ No | ✅ Yes (permit) | ✅ Yes (via UserOp) |
+| **BNB Chain Support** | ❌ No (needs native USDC) | ⚠️ Limited (token-dependent) | ✅ Yes (production-ready) |
+| **Function** | `transferWithAuthorization()` | `permit()` | `handleOps()` |
+| **Used By** | x402 (Coinbase) | s402 (payment layer) | s402 (account layer) |
+| **Atomic Execution** | ✅ Yes | ❌ No (2-step) | ✅ Yes |
+| **Smart Account** | ❌ No | ❌ No | ✅ Yes |
+| **Batch Operations** | ❌ No | ❌ No | ✅ Yes (100+) |
+| **Production Status** | ✅ Ethereum/Base | ⚠️ Limited on BNB | ✅ BNB Chain ready |
+
+**Key Insight:**  
+s402 combines **EIP-2612** (for USDC payment approvals) + **EIP-4337** (for smart accounts & parallelization) to achieve what x402 does with EIP-3009 alone, but adapted for BNB Chain constraints.
+
+---
+
 ## 🔧 Technical Architecture
 
 ### x402 Flow
