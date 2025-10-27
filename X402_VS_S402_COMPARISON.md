@@ -61,6 +61,7 @@ Technology Stack:
 
 Technology Stack:
 - EIP-4337: Smart Account + UserOperation
+- EIP-2612: permit() for USDC approvals
 - Multi-dimensional nonces: 192 parallel streams
 - Biconomy/NodeReal: Bundler + Paymaster
 - Gas: Paid in USDC via paymaster
@@ -114,6 +115,7 @@ Technology Stack:
 | Security Aspect | x402 | s402 |
 |-----------------|------|------|
 | **Replay Protection** | ✅ Random nonces | ✅ Multi-dimensional nonces |
+| **Token Approval** | ✅ EIP-3009 (no approval) | ✅ EIP-2612 permit() |
 | **Time Validity** | ✅ validAfter/validBefore | ✅ UserOp validity |
 | **Relayer Trust** | ⚠️ Must trust Coinbase | ✅ Trustless (any bundler) |
 | **Smart Contract Risk** | Low (simple transfer) | Medium (smart account logic) |
