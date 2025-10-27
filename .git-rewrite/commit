@@ -1,0 +1,13 @@
+tree be7809a69bfd7c7b3714b0cf197398494eb1e411
+parent 704b02b9989b0e68d10e01f0a3b2118e8280b983
+author Sora <soraoracle@proton.me> 1761569803 +0000
+committer Sora <soraoracle@proton.me> 1761569803 +0000
+
+Add contract ownership and access control features
+
+Integrates OpenZeppelin's Ownable contract to manage ownership and restrict access to specific functions within smart contracts.
+
+Replit-Commit-Author: Agent
+Replit-Commit-Session-Id: 17730777-0ec0-4bea-b585-33a39dc8c35f
+Replit-Commit-Checkpoint-Type: full_checkpoint
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/a37d9087-1337-49bb-b82a-c77be12f03a6/17730777-0ec0-4bea-b585-33a39dc8c35f/NE0dAIk

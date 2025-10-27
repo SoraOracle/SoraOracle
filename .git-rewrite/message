@@ -1,0 +1,8 @@
+Add contract ownership and access control features
+
+Integrates OpenZeppelin's Ownable contract to manage ownership and restrict access to specific functions within smart contracts.
+
+Sora-Commit-Author: Agent
+Sora-Commit-Session-Id: 17730777-0ec0-4bea-b585-33a39dc8c35f
+Sora-Commit-Checkpoint-Type: full_checkpoint
+Sora-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/a37d9087-1337-49bb-b82a-c77be12f03a6/17730777-0ec0-4bea-b585-33a39dc8c35f/NE0dAIk

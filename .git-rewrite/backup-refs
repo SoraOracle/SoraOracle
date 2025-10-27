@@ -1,0 +1,9 @@
+675a59ee51fc73d0eafbc2fbd13ef80c3d5c72ae commit	refs/heads/main
+de10ca7d36bf610dd509288ad0f972f15e658166 commit	refs/heads/replit-agent
+ba9390ae16a955bb7d831b28ca943cb54e7e9735 commit	refs/notes/commits
+b8c084be9b15a4fa4f145a84af401d7b8a5a008b commit	refs/original/refs/heads/main
+4d8100b00fd7949a683dc2fa5306f25811660414 commit	refs/original/refs/heads/replit-agent
+871c519a85c868d8f5540a1b47df583b4556af53 commit	refs/original/refs/tags/v5.0.0
+871c519a85c868d8f5540a1b47df583b4556af53 commit	refs/remotes/origin/main
+4d8100b00fd7949a683dc2fa5306f25811660414 commit	refs/replit/agent-ledger
+fad53fd97220699b6f630e4e01b0a54a125c93f4 tag	refs/tags/v5.0.0
