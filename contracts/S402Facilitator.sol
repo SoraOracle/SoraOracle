@@ -4,18 +4,17 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 /**
  * @title S402Facilitator
  * @notice Sora's HTTP 402 protocol facilitator for BNB Chain
- * @dev Implements EIP-2612 permit() with NoncePoolManager for parallel operations
+ * @dev Implements EIP-2612 permit() + transferFrom() for gasless approvals
  * 
  * S402 (SORA 402):
  * - Inspired by Coinbase's x402 but optimized for BNB Chain
  * - EIP-2612 permit() (BNB Chain USDC compatibility)
- * - Sequential nonces + NoncePoolManager (40x parallel speedup)
- * - Two-step process: permit + transferFrom
+ * - Sequential nonces (handled by USDC contract)
+ * - Two-step process: permit() then transferFrom()
  * - NOT x402-compliant (honest branding)
  * 
  * Network: BNB Chain (56) / BNB Testnet (97)
@@ -24,31 +23,12 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
  * Reference: S402_SPECIFICATION.md
  */
 contract S402Facilitator is ReentrancyGuard, Ownable {
-    using ECDSA for bytes32;
-    
-    // =============================================================================
-    // EIP-712 DOMAIN SEPARATOR (s402 Specification)
-    // =============================================================================
-    
-    bytes32 public constant DOMAIN_TYPEHASH = keccak256(
-        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
-    );
-    
-    // EIP-3009 TransferWithAuthorization TypeHash
-    bytes32 public constant TRANSFER_WITH_AUTHORIZATION_TYPEHASH = keccak256(
-        "TransferWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)"
-    );
-    
-    string public constant name = "s402";
-    string public constant version = "1";
-    
-    bytes32 public immutable DOMAIN_SEPARATOR;
     
     // =============================================================================
     // STATE VARIABLES
     // =============================================================================
     
-    // USDC on Base (EIP-3009 compliant)
+    // USDC on BNB Chain (EIP-2612 compliant)
     IERC20 public immutable usdc;
     
     // Platform fee (basis points, e.g., 100 = 1%)
@@ -57,35 +37,23 @@ contract S402Facilitator is ReentrancyGuard, Ownable {
     // Accumulated platform fees
     uint256 public accumulatedFees;
     
-    // Random nonce tracking (EIP-3009 style)
-    // Random 32-byte nonces allow parallel transactions!
-    mapping(address => mapping(bytes32 => bool)) public authorizationState;
-    
     // Payment tracking
     mapping(address => uint256) public totalPaid;
     mapping(address => uint256) public totalReceived;
+    
+    // Used permit tracking (prevent replay)
+    mapping(bytes32 => bool) public usedPermits;
     
     // =============================================================================
     // EVENTS
     // =============================================================================
     
-    event AuthorizationUsed(
-        address indexed authorizer,
-        bytes32 indexed nonce
-    );
-    
-    event PaymentVerified(
-        address indexed from,
-        address indexed to,
-        uint256 value,
-        uint256 platformFee
-    );
-    
     event PaymentSettled(
         address indexed from,
         address indexed to,
         uint256 value,
-        bytes32 indexed nonce
+        uint256 platformFee,
+        uint256 nonce
     );
     
     event PlatformFeeUpdated(uint256 oldFee, uint256 newFee);
@@ -97,182 +65,143 @@ contract S402Facilitator is ReentrancyGuard, Ownable {
     
     /**
      * @notice Initialize facilitator with USDC address
-     * @param _usdc USDC contract address on Base
+     * @param _usdc USDC contract address on BNB Chain
      */
     constructor(address _usdc) {
         require(_usdc != address(0), "Invalid USDC address");
         usdc = IERC20(_usdc);
-        
-        // Calculate domain separator
-        DOMAIN_SEPARATOR = keccak256(
-            abi.encode(
-                DOMAIN_TYPEHASH,
-                keccak256(bytes(name)),
-                keccak256(bytes(version)),
-                block.chainid, // 8453 (Base) or 84532 (Base Sepolia)
-                address(this)
-            )
-        );
     }
     
     // =============================================================================
-    // EIP-3009: TRANSFER WITH AUTHORIZATION (s402 Core - Base Compatible)
+    // EIP-2612: PERMIT + TRANSFERFROM (s402 Core)
     // =============================================================================
     
     /**
-     * @notice Execute transfer with authorization (EIP-3009)
-     * @dev This is the CORE s402 payment method - atomic, parallel-safe
+     * @notice Settle payment using EIP-2612 permit
+     * @dev Two-step process: 1) permit() approval, 2) transferFrom()
      * 
-     * @param from Payer address
-     * @param to Recipient address (service provider)
-     * @param value Transfer amount (in USDC atomic units, 6 decimals)
-     * @param validAfter Authorization valid after this timestamp
-     * @param validBefore Authorization valid before this timestamp
-     * @param nonce Random 32-byte nonce (allows parallel transactions!)
-     * @param signature EIP-712 signature from payer
+     * @param owner User's address (payer)
+     * @param spender This contract's address (must be this contract!)
+     * @param value Amount to transfer (USDC, 6 decimals)
+     * @param deadline Permit expiration timestamp
+     * @param v Signature component
+     * @param r Signature component
+     * @param s Signature component
+     * @param recipient Final recipient (service provider)
+     * @return success True if payment settled successfully
      */
-    function transferWithAuthorization(
-        address from,
-        address to,
+    function settlePaymentWithPermit(
+        address owner,
+        address spender,
         uint256 value,
-        uint256 validAfter,
-        uint256 validBefore,
-        bytes32 nonce,
-        bytes memory signature
-    ) external nonReentrant {
-        // Validate timing
-        require(block.timestamp > validAfter, "Authorization not yet valid");
-        require(block.timestamp < validBefore, "Authorization expired");
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s,
+        address recipient
+    ) external nonReentrant returns (bool success) {
+        require(owner != address(0), "Invalid owner");
+        require(recipient != address(0), "Invalid recipient");
+        require(spender == address(this), "Spender must be this contract");
+        require(block.timestamp <= deadline, "Permit expired");
+        require(value > 0, "Invalid value");
         
-        // Check nonce hasn't been used (random nonces = no ordering needed!)
-        require(!authorizationState[from][nonce], "Authorization already used");
+        // Create unique permit hash to prevent replay
+        bytes32 permitHash = keccak256(abi.encodePacked(
+            owner,
+            spender,
+            value,
+            deadline,
+            v,
+            r,
+            s
+        ));
         
-        // Construct EIP-712 digest
-        bytes32 digest = keccak256(
-            abi.encodePacked(
-                "\x19\x01",
-                DOMAIN_SEPARATOR,
-                keccak256(abi.encode(
-                    TRANSFER_WITH_AUTHORIZATION_TYPEHASH,
-                    from,
-                    to,
-                    value,
-                    validAfter,
-                    validBefore,
-                    nonce
-                ))
-            )
+        require(!usedPermits[permitHash], "Permit already used");
+        usedPermits[permitHash] = true;
+        
+        // Step 1: Execute permit (sets approval)
+        // Call USDC.permit(owner, spender, value, deadline, v, r, s)
+        IERC20Permit(address(usdc)).permit(
+            owner,
+            spender,
+            value,
+            deadline,
+            v,
+            r,
+            s
         );
-        
-        // Verify signature
-        address signer = digest.recover(signature);
-        require(signer == from, "Invalid signature");
-        
-        // Mark nonce as used
-        authorizationState[from][nonce] = true;
-        emit AuthorizationUsed(from, nonce);
         
         // Calculate platform fee
         uint256 platformFee = (value * platformFeeBps) / 10000;
-        uint256 netAmount = value - platformFee;
+        uint256 recipientAmount = value - platformFee;
         
-        // Execute atomic transfer from payer to recipient
+        // Step 2: Execute transferFrom (uses approval from permit)
+        // Transfer to recipient
         require(
-            usdc.transferFrom(from, to, netAmount),
+            usdc.transferFrom(owner, recipient, recipientAmount),
             "Transfer to recipient failed"
         );
         
-        // Transfer platform fee
+        // Transfer platform fee to this contract
         if (platformFee > 0) {
             require(
-                usdc.transferFrom(from, address(this), platformFee),
-                "Fee transfer failed"
+                usdc.transferFrom(owner, address(this), platformFee),
+                "Platform fee transfer failed"
             );
             accumulatedFees += platformFee;
         }
         
         // Update tracking
-        totalPaid[from] += value;
-        totalReceived[to] += netAmount;
+        totalPaid[owner] += value;
+        totalReceived[recipient] += recipientAmount;
         
-        emit PaymentSettled(from, to, value, nonce);
-        emit PaymentVerified(from, to, value, platformFee);
+        // Get nonce from USDC contract for event
+        uint256 nonce = IERC20Permit(address(usdc)).nonces(owner) - 1;
+        
+        emit PaymentSettled(owner, recipient, value, platformFee, nonce);
+        
+        return true;
     }
     
     /**
-     * @notice Receive with authorization (EIP-3009)
-     * @dev More secure variant - only callable by recipient
-     * Prevents front-running attacks in smart contract integrations
+     * @notice Batch settle multiple payments
+     * @dev Processes multiple EIP-2612 permits in one transaction
      */
-    function receiveWithAuthorization(
-        address from,
-        address to,
-        uint256 value,
-        uint256 validAfter,
-        uint256 validBefore,
-        bytes32 nonce,
-        bytes memory signature
-    ) external nonReentrant {
-        require(to == msg.sender, "Caller must be the payee");
-        
-        // Delegate to transferWithAuthorization with recipient check
-        this.transferWithAuthorization(
-            from,
-            to,
-            value,
-            validAfter,
-            validBefore,
-            nonce,
-            signature
-        );
-    }
-    
-    // =============================================================================
-    // VERIFICATION (No Settlement)
-    // =============================================================================
-    
-    /**
-     * @notice Verify authorization without settling (read-only check)
-     * @dev Useful for middleware verification before processing
-     */
-    function verifyAuthorization(
-        address from,
-        address to,
-        uint256 value,
-        uint256 validAfter,
-        uint256 validBefore,
-        bytes32 nonce,
-        bytes memory signature
-    ) external view returns (bool) {
-        // Check nonce
-        if (authorizationState[from][nonce]) {
-            return false;
-        }
-        
-        // Check timing
-        if (block.timestamp <= validAfter || block.timestamp >= validBefore) {
-            return false;
-        }
-        
-        // Verify signature
-        bytes32 digest = keccak256(
-            abi.encodePacked(
-                "\x19\x01",
-                DOMAIN_SEPARATOR,
-                keccak256(abi.encode(
-                    TRANSFER_WITH_AUTHORIZATION_TYPEHASH,
-                    from,
-                    to,
-                    value,
-                    validAfter,
-                    validBefore,
-                    nonce
-                ))
-            )
+    function batchSettlePayments(
+        address[] calldata owners,
+        address[] calldata spenders,
+        uint256[] calldata values,
+        uint256[] calldata deadlines,
+        uint8[] calldata v,
+        bytes32[] calldata r,
+        bytes32[] calldata s,
+        address[] calldata recipients
+    ) external nonReentrant returns (bool success) {
+        require(
+            owners.length == spenders.length &&
+            owners.length == values.length &&
+            owners.length == deadlines.length &&
+            owners.length == v.length &&
+            owners.length == recipients.length,
+            "Array length mismatch"
         );
         
-        address signer = digest.recover(signature);
-        return signer == from;
+        for (uint256 i = 0; i < owners.length; i++) {
+            // Call single settle for each payment
+            this.settlePaymentWithPermit(
+                owners[i],
+                spenders[i],
+                values[i],
+                deadlines[i],
+                v[i],
+                r[i],
+                s[i],
+                recipients[i]
+            );
+        }
+        
+        return true;
     }
     
     // =============================================================================
@@ -280,10 +209,10 @@ contract S402Facilitator is ReentrancyGuard, Ownable {
     // =============================================================================
     
     /**
-     * @notice Update platform fee (only owner)
+     * @notice Update platform fee
      * @param newFeeBps New fee in basis points (100 = 1%)
      */
-    function setPlatformFee(uint256 newFeeBps) external onlyOwner {
+    function updatePlatformFee(uint256 newFeeBps) external onlyOwner {
         require(newFeeBps <= 1000, "Fee too high (max 10%)");
         uint256 oldFee = platformFeeBps;
         platformFeeBps = newFeeBps;
@@ -291,33 +220,19 @@ contract S402Facilitator is ReentrancyGuard, Ownable {
     }
     
     /**
-     * @notice Withdraw accumulated platform fees (only owner)
-     * @param to Address to send fees to
+     * @notice Withdraw accumulated platform fees
+     * @param to Recipient address
      */
-    function withdrawFees(address to) external onlyOwner nonReentrant {
+    function withdrawFees(address to) external onlyOwner {
         require(to != address(0), "Invalid recipient");
-        uint256 amount = accumulatedFees;
-        require(amount > 0, "No fees to withdraw");
+        require(accumulatedFees > 0, "No fees to withdraw");
         
+        uint256 amount = accumulatedFees;
         accumulatedFees = 0;
-        require(usdc.transfer(to, amount), "Fee withdrawal failed");
+        
+        require(usdc.transfer(to, amount), "Transfer failed");
         
         emit FeesWithdrawn(to, amount);
-    }
-    
-    /**
-     * @notice Emergency withdrawal (only owner)
-     * @param token Token to withdraw
-     * @param to Address to send tokens to
-     * @param amount Amount to withdraw
-     */
-    function emergencyWithdraw(
-        address token,
-        address to,
-        uint256 amount
-    ) external onlyOwner nonReentrant {
-        require(to != address(0), "Invalid recipient");
-        require(IERC20(token).transfer(to, amount), "Emergency withdrawal failed");
     }
     
     // =============================================================================
@@ -325,37 +240,58 @@ contract S402Facilitator is ReentrancyGuard, Ownable {
     // =============================================================================
     
     /**
-     * @notice Get payment stats for an address
-     * @param addr Address to check
-     * @return paid Total amount paid
-     * @return received Total amount received
+     * @notice Get payment statistics for a user
      */
-    function getPaymentStats(address addr) 
-        external 
-        view 
-        returns (uint256 paid, uint256 received) 
-    {
-        return (totalPaid[addr], totalReceived[addr]);
+    function getStats(address user) external view returns (
+        uint256 paid,
+        uint256 received,
+        uint256 balance
+    ) {
+        return (
+            totalPaid[user],
+            totalReceived[user],
+            usdc.balanceOf(user)
+        );
     }
     
     /**
-     * @notice Check if authorization has been used
-     * @param authorizer Address that signed the authorization
-     * @param nonce Random nonce from authorization
-     * @return bool True if already used
+     * @notice Check if permit has been used
      */
-    function isAuthorizationUsed(
-        address authorizer,
-        bytes32 nonce
+    function isPermitUsed(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
     ) external view returns (bool) {
-        return authorizationState[authorizer][nonce];
+        bytes32 permitHash = keccak256(abi.encodePacked(
+            owner,
+            spender,
+            value,
+            deadline,
+            v,
+            r,
+            s
+        ));
+        return usedPermits[permitHash];
     }
+}
+
+/**
+ * @dev Interface for EIP-2612 permit function
+ */
+interface IERC20Permit {
+    function permit(
+        address owner,
+        address spender,
+        uint256 value,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
     
-    /**
-     * @notice Get domain separator
-     * @return bytes32 EIP-712 domain separator
-     */
-    function getDomainSeparator() external view returns (bytes32) {
-        return DOMAIN_SEPARATOR;
-    }
+    function nonces(address owner) external view returns (uint256);
 }

@@ -1,57 +1,74 @@
 /**
- * S402Client - Sora's HTTP 402 Protocol Client for BNB Chain
+ * S402Client - True EIP-2612 Implementation for BNB Chain
  * 
- * S402 (Sora 402):
- * - Inspired by Coinbase's x402
- * - Optimized for BNB Chain (not Base)
- * - Uses EIP-2612 (not EIP-3009)
- * - Sequential nonces + NoncePoolManager for parallel operations
+ * CORRECT s402 FLOW:
+ * 1. Sign EIP-2612 permit (owner/spender/value/nonce/deadline) against USDC contract
+ * 2. Submit permit + transferFrom to S402Facilitator
+ * 3. Facilitator executes: permit() then transferFrom()
  * 
- * Reference: S402_SPECIFICATION.md
+ * Network: BNB Chain (56) / BNB Testnet (97)
+ * Token: USDC on BNB Chain (EIP-2612 compliant)
+ * 
+ * Reference: https://eips.ethereum.org/EIPS/eip-2612
  */
 
 import { ethers } from 'ethers';
 
 export interface S402PaymentConfig {
-  facilitatorAddress: string;
-  facilitatorUrl?: string;
-  usdcAddress: string;
-  recipientAddress: string;
-  network: 'mainnet' | 'testnet';
+  facilitatorAddress: string;    // S402Facilitator contract
+  facilitatorUrl?: string;        // API endpoint (optional)
+  usdcAddress: string;            // USDC token contract on BNB Chain
+  recipientAddress: string;       // Service provider address
+  network: 'mainnet' | 'testnet'; // BNB Chain mainnet (56) or testnet (97)
   signer: ethers.Signer;
 }
 
+/**
+ * EIP-2612 Permit Signature
+ * This is signed against the USDC TOKEN contract, not the facilitator!
+ */
+export interface EIP2612Permit {
+  owner: string;      // User's address
+  spender: string;    // S402Facilitator address (approved to spend)
+  value: string;      // Amount in USDC atomic units (6 decimals)
+  nonce: number;      // Sequential nonce from USDC.nonces(owner)
+  deadline: number;   // Expiration timestamp
+  v: number;          // Signature components
+  r: string;
+  s: string;
+}
+
+/**
+ * s402 Payment Proof (includes permit + metadata)
+ */
 export interface S402PaymentProof {
-  recipient: string;
-  amount: string;
-  assetContract: string;
-  nonce: string;
-  expiration: number;
-  signature: string;
-  payer: string;
-  timestamp: number;
+  permit: EIP2612Permit;
+  recipient: string;        // Final recipient (service provider)
+  operation: string;        // Operation name (for tracking)
+  timestamp: number;        // Creation time
+  chainId: number;          // 56 (mainnet) or 97 (testnet)
 }
 
 export class S402Client {
   private config: S402PaymentConfig;
   private chainId: number;
   
-  // EIP-712 Domain
+  // EIP-712 Domain for USDC contract (not facilitator!)
   private domain: {
     name: string;
     version: string;
     chainId: number;
-    verifyingContract: string;
+    verifyingContract: string; // USDC address
   };
   
-  // EIP-712 Types
+  // EIP-2612 Permit Types
   private types = {
-    Payment: [
-      { name: 'recipient', type: 'address' },
-      { name: 'amount', type: 'uint256' },
-      { name: 'assetContract', type: 'address' },
-      { name: 'nonce', type: 'string' },
-      { name: 'expiration', type: 'uint256' }
+    Permit: [
+      { name: 'owner', type: 'address' },
+      { name: 'spender', type: 'address' },
+      { name: 'value', type: 'uint256' },
+      { name: 'nonce', type: 'uint256' },
+      { name: 'deadline', type: 'uint256' }
     ]
   };
   
@@ -69,63 +86,158 @@ export class S402Client {
     this.config = config;
     this.chainId = config.network === 'mainnet' ? 56 : 97; // BNB Chain IDs
     
-    // Initialize EIP-712 domain
+    // CRITICAL: Domain is USDC contract, not facilitator!
     this.domain = {
-      name: 's402',
-      version: '1',
+      name: 'USD Coin',           // USDC token name
+      version: '2',                // USDC version
       chainId: this.chainId,
-      verifyingContract: config.facilitatorAddress
+      verifyingContract: config.usdcAddress // USDC address!
     };
   }
   
   /**
-   * Create s402 payment proof using EIP-712 typed data signing
+   * Create EIP-2612 permit signature
    * 
    * @param operation Operation name (for pricing)
    * @param customAmount Optional custom amount (overrides operation pricing)
-   * @returns Payment proof with signature
+   * @returns Payment proof with EIP-2612 permit
    */
   async createPayment(
     operation: string,
     customAmount?: number
   ): Promise<S402PaymentProof> {
-    const payerAddress = await this.config.signer.getAddress();
+    const owner = await this.config.signer.getAddress();
     
     // Get amount (6 decimals for USDC)
-    const amount = customAmount || this.getOperationPrice(operation);
+    const value = customAmount || this.getOperationPrice(operation);
     
-    // Generate unique nonce
-    const nonce = this.generateNonce(operation);
+    // Get current nonce from USDC contract
+    const nonce = await this.getCurrentNonce(owner);
     
-    // Set expiration (1 hour from now)
-    const expiration = Math.floor(Date.now() / 1000) + 3600;
+    // Set deadline (1 hour from now)
+    const deadline = Math.floor(Date.now() / 1000) + 3600;
     
-    // Construct message
-    const message = {
-      recipient: this.config.recipientAddress,
-      amount: amount.toString(),
-      assetContract: this.config.usdcAddress,
+    // Construct EIP-2612 permit message
+    const permitMessage = {
+      owner,
+      spender: this.config.facilitatorAddress, // Facilitator approved to spend
+      value: value.toString(),
       nonce,
-      expiration
+      deadline
     };
     
-    // Sign using EIP-712 typed data
+    // Sign using EIP-712 typed data (against USDC contract!)
     const signature = await this.config.signer.signTypedData(
       this.domain,
       this.types,
-      message
+      permitMessage
     );
     
+    // Split signature into v, r, s
+    const sig = ethers.Signature.from(signature);
+    
     return {
-      recipient: message.recipient,
-      amount: message.amount,
-      assetContract: message.assetContract,
-      nonce: message.nonce,
-      expiration: message.expiration,
-      signature,
-      payer: payerAddress,
-      timestamp: Date.now()
+      permit: {
+        owner: permitMessage.owner,
+        spender: permitMessage.spender,
+        value: permitMessage.value,
+        nonce: permitMessage.nonce,
+        deadline: permitMessage.deadline,
+        v: sig.v,
+        r: sig.r,
+        s: sig.s
+      },
+      recipient: this.config.recipientAddress,
+      operation,
+      timestamp: Date.now(),
+      chainId: this.chainId
     };
+  }
+  
+  /**
+   * Get current nonce from USDC contract for a user
+   */
+  async getCurrentNonce(owner: string): Promise<number> {
+    const usdcContract = new ethers.Contract(
+      this.config.usdcAddress,
+      ['function nonces(address owner) view returns (uint256)'],
+      this.config.signer
+    );
+    
+    const nonce = await usdcContract.nonces(owner);
+    return Number(nonce);
+  }
+  
+  /**
+   * Verify EIP-2612 permit signature (client-side check)
+   */
+  async verifyPermit(proof: S402PaymentProof): Promise<boolean> {
+    try {
+      const permitMessage = {
+        owner: proof.permit.owner,
+        spender: proof.permit.spender,
+        value: proof.permit.value,
+        nonce: proof.permit.nonce,
+        deadline: proof.permit.deadline
+      };
+      
+      // Reconstruct signature
+      const signature = ethers.Signature.from({
+        v: proof.permit.v,
+        r: proof.permit.r,
+        s: proof.permit.s
+      }).serialized;
+      
+      // Recover signer
+      const recoveredAddress = ethers.verifyTypedData(
+        this.domain,
+        this.types,
+        permitMessage,
+        signature
+      );
+      
+      // Check if signer matches owner
+      return recoveredAddress.toLowerCase() === proof.permit.owner.toLowerCase();
+    } catch (error) {
+      console.error('Permit verification failed:', error);
+      return false;
+    }
+  }
+  
+  /**
+   * Execute permit + transferFrom on-chain
+   * This is called by the facilitator or can be called directly
+   */
+  async executePermit(proof: S402PaymentProof): Promise<ethers.TransactionReceipt> {
+    const facilitatorContract = new ethers.Contract(
+      this.config.facilitatorAddress,
+      [
+        `function settlePaymentWithPermit(
+          address owner,
+          address spender,
+          uint256 value,
+          uint256 deadline,
+          uint8 v,
+          bytes32 r,
+          bytes32 s,
+          address recipient
+        ) external returns (bool)`
+      ],
+      this.config.signer
+    );
+    
+    const tx = await facilitatorContract.settlePaymentWithPermit(
+      proof.permit.owner,
+      proof.permit.spender,
+      proof.permit.value,
+      proof.permit.deadline,
+      proof.permit.v,
+      proof.permit.r,
+      proof.permit.s,
+      proof.recipient
+    );
+    
+    return await tx.wait();
   }
   
   /**
@@ -144,56 +256,20 @@ export class S402Client {
   }
   
   /**
-   * Generate unique nonce for payment
-   */
-  private generateNonce(operation: string): string {
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(2, 15);
-    return `${operation}-${timestamp}-${random}`;
-  }
-  
-  /**
-   * Verify payment proof (client-side check)
-   */
-  async verifyPayment(proof: S402PaymentProof): Promise<boolean> {
-    try {
-      // Reconstruct message
-      const message = {
-        recipient: proof.recipient,
-        amount: proof.amount,
-        assetContract: proof.assetContract,
-        nonce: proof.nonce,
-        expiration: proof.expiration
-      };
-      
-      // Recover signer
-      const recoveredAddress = ethers.verifyTypedData(
-        this.domain,
-        this.types,
-        message,
-        proof.signature
-      );
-      
-      // Check if signer matches payer
-      return recoveredAddress.toLowerCase() === proof.payer.toLowerCase();
-    } catch (error) {
-      console.error('Payment verification failed:', error);
-      return false;
-    }
-  }
-  
-  /**
-   * Format payment proof for HTTP header
+   * Format payment proof for HTTP header (for gateway use)
    */
   formatPaymentHeader(proof: S402PaymentProof): string {
     return JSON.stringify({
+      owner: proof.permit.owner,
+      spender: proof.permit.spender,
+      value: proof.permit.value,
+      nonce: proof.permit.nonce,
+      deadline: proof.permit.deadline,
+      v: proof.permit.v,
+      r: proof.permit.r,
+      s: proof.permit.s,
       recipient: proof.recipient,
-      amount: proof.amount,
-      assetContract: proof.assetContract,
-      nonce: proof.nonce,
-      expiration: proof.expiration,
-      signature: proof.signature,
-      payer: proof.payer
+      operation: proof.operation
     });
   }
   
@@ -211,13 +287,15 @@ export class S402Client {
         amount: price.toString(),
         resource,
         network: this.config.network === 'mainnet' ? 'bsc' : 'bsc-testnet',
-        facilitator: this.config.facilitatorUrl || this.config.facilitatorAddress
+        facilitator: this.config.facilitatorUrl || this.config.facilitatorAddress,
+        protocol: 's402',
+        standard: 'EIP-2612'
       }
     };
   }
   
   /**
-   * Get account balance (USDC)
+   * Get USDC balance
    */
   async getBalance(): Promise<string> {
     const usdcContract = new ethers.Contract(
@@ -229,33 +307,13 @@ export class S402Client {
     const address = await this.config.signer.getAddress();
     const balance = await usdcContract.balanceOf(address);
     
-    // Convert from 6 decimals to human-readable
     return ethers.formatUnits(balance, 6);
   }
   
   /**
-   * Approve facilitator to spend USDC (required before first payment)
-   */
-  async approveUSDC(amount?: number): Promise<ethers.TransactionReceipt> {
-    const usdcContract = new ethers.Contract(
-      this.config.usdcAddress,
-      ['function approve(address spender, uint256 amount) returns (bool)'],
-      this.config.signer
-    );
-    
-    // Approve max if no amount specified
-    const approvalAmount = amount || ethers.MaxUint256;
-    
-    const tx = await usdcContract.approve(
-      this.config.facilitatorAddress,
-      approvalAmount
-    );
-    
-    return await tx.wait();
-  }
-  
-  /**
-   * Check USDC allowance
+   * Check USDC allowance for facilitator
+   * Note: With EIP-2612, users don't need to pre-approve!
+   * Permit does the approval in the same transaction.
    */
   async checkAllowance(): Promise<string> {
     const usdcContract = new ethers.Contract(
@@ -274,5 +332,5 @@ export class S402Client {
   }
 }
 
-// Export legacy name for backward compatibility
+// Export legacy names for backward compatibility
 export { S402Client as X402Client, S402PaymentProof as X402PaymentProof, S402PaymentConfig as X402PaymentConfig };
