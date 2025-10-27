@@ -2,9 +2,16 @@
 
 ## Overview
 
-Sora Oracle is a permissionless oracle SDK for prediction markets on BNB Chain (BSC). It features the s402 micropayment protocol for USDC-based API access, AI-powered API discovery for trustless data verification, and a comprehensive suite of 23 smart contracts supporting various market types (binary, multi-outcome, AMM, orderbook, conditional).
+Sora Oracle is a production-ready permissionless oracle SDK for prediction markets on BNB Chain. The system enables trustless data feeds through AI-powered API discovery and cryptographic verification, combined with a custom s402 micropayment protocol for USDC/USDT payments.
 
-The system enables developers to create prediction markets with oracle-verified outcomes, gasless transactions through account abstraction, and institutional-grade trading capabilities optimized for BNB Chain's infrastructure.
+**Core Innovation:** First permissionless oracle with built-in micropayment infrastructure optimized for BNB Chain's technical constraints, delivering institutional-grade prediction markets with sub-cent transaction costs.
+
+**Key Components:**
+- 23 production-ready smart contracts for various market types (binary, multi-outcome, AMM, orderbook, conditional)
+- TypeScript SDK with React hooks for frontend integration
+- Self-expanding AI research agent for automated oracle resolution
+- s402 micropayment layer using EIP-4337 account abstraction
+- Multi-wallet parallelization achieving 10x transaction speedup
 
 ## User Preferences
 
@@ -12,162 +19,195 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Core Components
+### Smart Contract Layer
 
-**1. Smart Contract Layer (Solidity 0.8.20)**
-- **SoraOracle.sol** - Main oracle contract for question/answer management
-- **SimplePredictionMarket.sol** - Binary outcome prediction markets
-- **MultiOutcomeMarket.sol** - Markets with 2-10 possible outcomes
-- **OrderBookMarket.sol** - Institutional trading with limit orders
-- **S402Facilitator.sol** - Micropayment settlement using EIP-2612 permits
-- **PancakeTWAPOracle.sol** - Manipulation-resistant price feeds from PancakeSwap
-- **BatchOracleOperations.sol** - Gas-optimized batch question processing
-- Additional contracts for market creation, dispute resolution, reputation tracking, referrals, and liquidity incentives
+**Core Oracle System:**
+- `SoraOracle.sol` - Main oracle contract managing questions, answers, and bounties
+- `PancakeTWAPOracle.sol` - Manipulation-resistant price oracle using time-weighted average prices from PancakeSwap
+- `BatchOracleOperations.sol` - Enables batching multiple oracle queries in single transaction
 
-**2. Payment Architecture (s402 Protocol)**
-- Uses EIP-2612 permit-based approvals instead of EIP-3009 (not available on BNB Chain)
-- Multi-wallet pool system (10 worker wallets) to overcome sequential nonce limitations and achieve 10x parallelization
-- EIP-4337 account abstraction support for unlimited parallel transactions via multidimensional nonces
-- Paymaster pattern allows USDC or BNB payment for gas fees
-- Platform fee: 1% (100 basis points) on all transactions
+**Market Types:**
+- `SimplePredictionMarket.sol` - Binary outcome markets (YES/NO)
+- `MultiOutcomeMarket.sol` - Markets with 2-10 possible outcomes
+- `OrderBookMarket.sol` - Institutional-grade order book trading
+- `MarketFactory.sol` - Factory pattern for creating new markets
 
-**3. AI Oracle System**
-- **SelfExpandingResearchAgent** - Autonomous API discovery and verification
-- **IntelligentResearchAgent** - Dynamic data source routing based on question type
-- Permissionless design: No manual API registration or stakes required
-- Statistical consensus using Median Absolute Deviation (MAD) for outlier detection
-- Cryptographic verification: TLS certificate validation + SHA-256 hashing + IPFS storage
-- Automatic reputation tracking and blacklisting of unreliable sources
-- Integration with OpenAI GPT-4 for answer synthesis and confidence scoring
+**Advanced Features:**
+- `DisputeResolution.sol` - Handles oracle answer disputes
+- `OracleReputationTracker.sol` - Tracks oracle provider reputation
+- `AutomatedMarketResolver.sol` - Automatic market settlement
+- `BatchPayoutDistributor.sol` - Efficient batch payout distribution
+- `ReferralRewards.sol` - Referral incentive system
+- `LiquidityIncentives.sol` - Liquidity mining rewards
 
-**4. SDK Layer (TypeScript)**
-- React hooks for zero-boilerplate frontend integration
-- Multi-wallet pool management for parallel transactions
-- X402Client for micropayment handling
-- Market creation, betting, and resolution helpers
-- Support for both EIP-2612 and EIP-4337 payment methods
+**Deployment Strategy:**
+- Solidity 0.8.20 with optimizer enabled (200 runs)
+- IR-based compilation for gas optimization
+- Deployed on BNB Chain mainnet (Chain ID: 56) and testnet (Chain ID: 97)
 
-**5. Frontend (React + Vite)**
-- Modern React 18 application with TypeScript
-- Wallet connection via ethers.js v6
-- Real-time market data and odds visualization
-- Responsive design for mobile and desktop
+### s402 Micropayment Protocol
 
-### Key Architectural Decisions
+**Architecture Decision: EIP-4337 + EIP-2612**
 
-**BNB Chain Selection**
-- Chosen for low transaction costs (~$0.003 per tx vs ~$0.01 on Base)
-- High throughput for micropayment operations
-- Established DeFi ecosystem with PancakeSwap integration
-- Trade-off: BNB Chain USDC lacks EIP-3009 support, requiring workarounds
+Unlike x402 (Coinbase's implementation using EIP-3009 on Base/Ethereum), Sora Oracle uses a hybrid approach optimized for BNB Chain:
 
-**s402 vs x402 Protocol**
-- s402 is Sora's implementation for BNB Chain (not Coinbase's x402 standard)
-- Uses EIP-2612 permits for backward compatibility with Binance Bridged USDC
-- Multi-wallet pool compensates for sequential nonce limitation
-- Honest branding: Documentation clearly states "s402" to avoid confusion with Coinbase's x402
+- **Problem:** BNB Chain's bridged USDC/USDT tokens lack EIP-3009 `transferWithAuthorization` support
+- **Solution:** Multi-wallet pool with EIP-2612 `permit()` for parallelization, transitioning to EIP-4337 smart accounts
+- **Result:** 10x speedup over sequential transactions, ~$0.003 per transaction on BNB Chain
 
-**Permissionless Oracle Design**
-- No sign-ups, stakes, or manual API registration required
-- AI discovers APIs dynamically from directories (RapidAPI, APIs.guru)
-- Statistical consensus prevents manipulation without centralized authority
-- Self-healing through reputation scores and automatic blacklisting
-- Trade-off: Requires OpenAI API access for question analysis
+**Payment Flow:**
+1. User signs EIP-2612 permit (gasless approval)
+2. Worker wallet from pool executes transfer
+3. Facilitator settles payment
+4. API access granted
 
-**Smart Contract Architecture**
-- Modular design with 23 specialized contracts rather than monolithic
-- Separation of concerns: oracle, markets, payments, governance
-- Upgrade path through contract replacement (not proxies)
-- Gas optimization via batch operations and via-IR compilation
+**Smart Contracts:**
+- `S402Facilitator.sol` - Payment settlement and routing
+- Multi-wallet pool strategy using 10+ worker wallets
+- 1% platform fee (100 basis points)
 
-### Network Configuration
+### AI Oracle System
 
-**Supported Networks:**
-- BNB Chain Mainnet (Chain ID: 56)
-- BNB Testnet (Chain ID: 97)
+**Self-Expanding Research Agent:**
 
-**RPC Endpoints:**
-- Mainnet: `https://bsc-dataseed.binance.org/`
-- Testnet: `https://data-seed-prebsc-1-s1.binance.org:8545`
+The AI system autonomously discovers and verifies data sources without manual API registration:
 
-**Gas Configuration:**
-- Gas price: 20 Gwei (hardcoded in hardhat.config.js)
-- Optimizer enabled with 200 runs
-- Via-IR compilation for additional gas savings
+1. **API Discovery** - Uses APIs.guru and RapidAPI to find relevant endpoints based on question analysis
+2. **Parallel Querying** - Queries 10+ sources simultaneously
+3. **Statistical Consensus** - Uses Median Absolute Deviation (MAD) for outlier detection
+4. **Cryptographic Verification** - TLS certificate verification + SHA-256 hashing + IPFS storage
+5. **Reputation Tracking** - Automatic blacklisting of unreliable sources
+6. **Self-Healing** - System learns from failures and improves over time
+
+**Key Files:**
+- `src/ai/SelfExpandingResearchAgent.ts` - Main AI agent (500+ lines)
+- `src/ai/APIDiscoveryAgent.ts` - Automated API discovery
+- `src/ai/DataSourceRouter.ts` - Intelligent routing based on question category
+- `src/ai/TLSVerifier.ts` - HTTPS certificate verification
+- `src/ai/IPFSClient.ts` - Decentralized data storage
+
+**OpenAI Integration:**
+- Uses GPT-4 for question analysis and answer generation
+- Web search capability for real-time data verification
+- Configurable confidence thresholds (default: 90%)
+
+### Frontend Architecture
+
+**Technology Stack:**
+- React 18.3+ with TypeScript
+- Vite for build tooling
+- React Router for navigation
+- Ethers.js 6.x for blockchain interaction
+
+**SDK Integration:**
+- Local package reference: `@sora-oracle/sdk` (file:../sdk)
+- Zero-boilerplate React hooks
+- Automatic wallet connection handling
+
+**Configuration:**
+- Hosted on port 5000 with 0.0.0.0 binding for Replit compatibility
+- TypeScript strict mode enabled
+- Path aliases: `@/` for src, `@assets/` for assets
+
+### Backend Infrastructure
+
+**Hardhat Development Environment:**
+- Network configurations for BSC Testnet (97) and Mainnet (56)
+- Gas price: 20 Gwei
+- Contract verification via BSCScan API
+- Environment-based private key management
+
+**Scripts Organization:**
+- Deployment scripts for testnet and mainnet
+- AI oracle settler for automated market resolution
+- Batch operations for efficient multi-query processing
+- Worker wallet funding and balance monitoring
 
 ## External Dependencies
 
 ### Blockchain Infrastructure
 
-**BNB Chain**
-- Primary deployment network
-- PancakeSwap V2 Factory: `0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73` (mainnet)
-- Binance Bridged USDC: `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d` (mainnet)
-- BSCScan API for contract verification
+**BNB Chain:**
+- Primary network: BSC Mainnet (Chain ID: 56)
+- Development network: BSC Testnet (Chain ID: 97)
+- RPC Endpoints:
+  - Mainnet: `https://bsc-dataseed.binance.org/`
+  - Testnet: `https://data-seed-prebsc-1-s1.binance.org:8545`
 
-**Smart Contract Libraries**
-- OpenZeppelin Contracts v5.4.0 (Ownable, ReentrancyGuard, ERC20)
-- Hardhat toolbox v5.0.0 for development and testing
+**PancakeSwap Integration:**
+- Factory: `0xcA143Ce32Fe78f1f7019d7d551a6402fC5350c73` (mainnet)
+- TWAP oracles for WBNB/BUSD, WBNB/USDT, CAKE/WBNB pairs
+- 5-minute observation windows for price manipulation resistance
 
-### AI and Data Services
+### Stablecoins
 
-**OpenAI**
-- GPT-4o model for oracle answer synthesis
-- Configured via `AI_INTEGRATIONS_OPENAI_API_KEY` environment variable
-- Custom base URL support via `AI_INTEGRATIONS_OPENAI_BASE_URL`
-- Used for: Question analysis, answer verification, search query generation, confidence scoring
+**USDC (Binance-Bridged):**
+- Mainnet: `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d`
+- Testnet: `0x64544969ed7EBf5f083679233325356EbE738930`
+- EIP-2612 compatible (gasless permits)
+- No EIP-3009 support (uses workaround)
 
-**API Discovery**
-- APIs.guru directory for discovering public APIs
-- RapidAPI marketplace integration (optional)
-- No API keys required for discovery phase
+**USDT:**
+- Mainnet: `0x55d398326f99059fF775485246999027B3197955`
+- No EIP-2612 or EIP-3009 support
+- Standard ERC-20 only
 
-**IPFS Storage**
-- Optional Pinata integration for cryptographic proofs
-- Configured via `IPFS_PROVIDER=pinata` and `PINATA_JWT`
-- Fallback to mock implementation using SHA-256 hashing
+### AI & API Services
 
-### Payment Infrastructure
+**OpenAI:**
+- Model: GPT-4 (gpt-4o)
+- Used for question analysis and oracle resolution
+- Required environment variables:
+  - `OPENAI_API_KEY` or `AI_INTEGRATIONS_OPENAI_API_KEY`
+  - `AI_INTEGRATIONS_OPENAI_BASE_URL` (optional)
 
-**USDC Token**
-- Binance Bridged USDC on BNB Chain
-- EIP-2612 permit support for gasless approvals
-- Does NOT support EIP-3009 random nonces
+**API Discovery:**
+- APIs.guru - Open API directory for automatic discovery
+- RapidAPI - Premium API marketplace integration
+- Free data sources prioritized, paid fallbacks available
 
-**EIP-4337 Bundlers (Future)**
-- Biconomy, Safe, or Particle Network for smart account support
-- Required for unlimited parallel transactions
-- Currently in planning phase (multi-wallet pool used as interim solution)
+**IPFS Storage:**
+- Pinata support (requires `PINATA_JWT`)
+- Mock fallback using SHA-256 hashing
+- Used for cryptographic proof storage
 
 ### Development Tools
 
-**Build and Deploy**
-- Hardhat v2.22.18 for compilation and deployment
-- TypeScript v5.6.3 for SDK and frontend
-- Vite v6.0.7 for frontend bundling
-- Node.js v16+ required
+**Core Dependencies:**
+- Hardhat 2.22+ for smart contract development
+- OpenZeppelin Contracts 5.4+ for secure base implementations
+- Ethers.js 6.x for blockchain interactions
+- Viem 2.38+ for modern web3 utilities
 
-**Database (Optional)**
-- PostgreSQL v8.16.3 for market data persistence
-- Drizzle ORM for type-safe database access
-- Not required for core oracle functionality
+**EIP-4337 Infrastructure:**
+- Biconomy bundler/paymaster (coming soon to BNB Chain)
+- Account abstraction SDK: `@base-org/account`
+- UserOp batching capabilities
 
-**API Gateway (Optional)**
-- Express v5.1.0 for x402 gateway server
-- CORS support for cross-origin requests
-- Cost tracking for revenue/expense monitoring
+**Verification:**
+- BSCScan API for contract verification
+- API key required: `BSCSCAN_API_KEY`
 
-### Web3 Libraries
+### Database
 
-**ethers.js v6.13.0**
-- Primary Web3 library for blockchain interactions
-- Used in SDK, scripts, and frontend
+**Future Integration (Drizzle ORM):**
+- Package.json includes Drizzle scripts (`db:push`, `db:push:force`)
+- Not currently implemented in codebase
+- Likely for caching API responses or reputation data
 
-**viem v2.38.4**
-- Alternative Web3 library (available but not primary)
-- Used for specific account abstraction features
+### Security Considerations
 
-**Other Dependencies**
-- node-fetch v3.3.2 for HTTP requests
-- recharts v3.3.0 for data visualization
-- react-router-dom v7.1.3 for frontend routing
+**Private Key Management:**
+- Environment variable: `PRIVATE_KEY`
+- Automatic 0x prefix handling in hardhat.config.js
+- Never committed to repository (.env in .gitignore)
+
+**Multi-Wallet Security:**
+- Worker wallets generated deterministically from master
+- Automatic funding from master wallet
+- Balance monitoring scripts included
+
+**Smart Contract Security:**
+- ReentrancyGuard on all payment functions
+- Ownable pattern for admin functions
+- Fee validation (1% max platform fee enforced)
