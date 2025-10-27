@@ -1,6 +1,6 @@
 import { ethers } from 'ethers';
 import { TokenFactory } from './TokenFactory';
-import { S402Client as X402Client, S402PaymentProof as X402PaymentProof } from './S402Client';
+import { S402Client, S402PaymentProof } from './S402Client';
 
 // OracleClient placeholder - replace with actual implementation
 interface OracleClient {
@@ -8,7 +8,7 @@ interface OracleClient {
 }
 
 /**
- * Enhanced Prediction Market SDK with Optional Token Factory and x402 Payments
+ * Enhanced Prediction Market SDK with Optional Token Factory and s402 Payments
  */
 
 export interface SDKConfig {
@@ -16,9 +16,9 @@ export interface SDKConfig {
   signer: ethers.Signer;
   marketContractAddress: string;
   oracleClient: OracleClient;
-  x402Config: {
+  s402Config: {
     facilitatorUrl: string;
-    facilitatorAddress: string;  // REQUIRED: x402 facilitator contract address
+    facilitatorAddress: string;  // REQUIRED: s402 facilitator contract address
     usdcAddress: string;
     recipientAddress: string;    // REQUIRED: Service provider address (who receives payment)
     network: 'mainnet' | 'testnet';
@@ -50,7 +50,7 @@ export class PredictionMarketSDK {
   private signer: ethers.Signer;
   private marketContract: ethers.Contract;
   private oracleClient: OracleClient;
-  private x402Client: X402Client;
+  private s402Client: S402Client;
   private tokenFactory?: TokenFactory;
 
   private static readonly MARKET_ABI = [
@@ -66,17 +66,17 @@ export class PredictionMarketSDK {
     this.oracleClient = config.oracleClient;
 
     // Validate facilitatorAddress is a valid Ethereum address
-    if (!ethers.isAddress(config.x402Config.facilitatorAddress)) {
+    if (!ethers.isAddress(config.s402Config.facilitatorAddress)) {
       throw new Error('Invalid facilitatorAddress: must be a valid Ethereum address');
     }
 
-    // Initialize x402 payment client
-    this.x402Client = new X402Client({
-      facilitatorUrl: config.x402Config.facilitatorUrl,
-      facilitatorAddress: config.x402Config.facilitatorAddress,
-      usdcAddress: config.x402Config.usdcAddress,
-      recipientAddress: config.x402Config.recipientAddress,
-      network: config.x402Config.network,
+    // Initialize s402 payment client
+    this.s402Client = new S402Client({
+      facilitatorUrl: config.s402Config.facilitatorUrl,
+      facilitatorAddress: config.s402Config.facilitatorAddress,
+      usdcAddress: config.s402Config.usdcAddress,
+      recipientAddress: config.s402Config.recipientAddress,
+      network: config.s402Config.network,
       signer: config.signer
     });
 
@@ -100,24 +100,24 @@ export class PredictionMarketSDK {
 
   /**
    * Create a prediction market with optional token minting
-   * Requires x402 payment: $0.05 USDC
+   * Requires s402 payment: $0.05 USDC
    */
   async createMarket(options: CreateMarketOptions): Promise<{
     marketId: number;
     tokenAddress?: string;
     transactionHash: string;
-    paymentProof: X402PaymentProof;
+    paymentProof: S402PaymentProof;
   }> {
     console.log(`Creating market: ${options.question}`);
     console.log(`Use token factory: ${options.useTokenFactory || false}`);
 
-    // Generate x402 payment proof for market creation
-    const paymentProof = await this.x402Client.createPayment('createMarket');
+    // Generate s402 payment proof for market creation (EIP-2612 permit)
+    const paymentProof = await this.s402Client.createPayment('createMarket');
 
-    console.log(`Payment proof generated: $${this.x402Client.getOperationPrice('createMarket') / 1_000_000} USDC`);
+    console.log(`Payment proof generated: $${this.s402Client.getOperationPrice('createMarket') / 1_000_000} USDC`);
 
-    // Format payment proof for contract
-    const contractProof = this.formatPaymentProof(paymentProof);
+    // Execute permit on-chain first (EIP-2612: permit then transferFrom)
+    await this.s402Client.executePermit(paymentProof);
 
     // Determine if we're using token factory
     const useToken = options.useTokenFactory && this.tokenFactory !== undefined;
@@ -133,14 +133,13 @@ export class PredictionMarketSDK {
       throw new Error('Token factory not configured in SDK. Provide tokenFactoryAddress in config.');
     }
 
-    // Create market with payment proof
+    // Create market (permit already executed, now just create market)
     const tx = await this.marketContract.createMarket(
       options.question,
       options.oracleFeed,
       options.resolutionTime,
       useToken,
-      tokenSupply,
-      contractProof  // Use formatted proof
+      tokenSupply
     );
 
     console.log(`Transaction submitted: ${tx.hash}`);
