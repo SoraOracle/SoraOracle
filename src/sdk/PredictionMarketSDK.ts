@@ -1,7 +1,11 @@
 import { ethers } from 'ethers';
-import { OracleClient } from '@sora-oracle/sdk';
 import { TokenFactory } from './TokenFactory';
-import { X402Client, X402PaymentProof } from './X402Client';
+import { S402Client as X402Client, S402PaymentProof as X402PaymentProof } from './S402Client';
+
+// OracleClient placeholder - replace with actual implementation
+interface OracleClient {
+  getLatestAnswer(feed: string): Promise<{ answer: string }>;
+}
 
 /**
  * Enhanced Prediction Market SDK with Optional Token Factory and x402 Payments
@@ -16,6 +20,7 @@ export interface SDKConfig {
     facilitatorUrl: string;
     facilitatorAddress: string;  // REQUIRED: x402 facilitator contract address
     usdcAddress: string;
+    recipientAddress: string;    // REQUIRED: Service provider address (who receives payment)
     network: 'mainnet' | 'testnet';
   };
   tokenFactoryAddress?: string; // Optional!
@@ -70,6 +75,7 @@ export class PredictionMarketSDK {
       facilitatorUrl: config.x402Config.facilitatorUrl,
       facilitatorAddress: config.x402Config.facilitatorAddress,
       usdcAddress: config.x402Config.usdcAddress,
+      recipientAddress: config.x402Config.recipientAddress,
       network: config.x402Config.network,
       signer: config.signer
     });
@@ -108,7 +114,7 @@ export class PredictionMarketSDK {
     // Generate x402 payment proof for market creation
     const paymentProof = await this.x402Client.createPayment('createMarket');
 
-    console.log(`Payment proof generated: $${this.x402Client.getPrice('createMarket')} USDC`);
+    console.log(`Payment proof generated: $${this.x402Client.getOperationPrice('createMarket') / 1_000_000} USDC`);
 
     // Format payment proof for contract
     const contractProof = this.formatPaymentProof(paymentProof);
@@ -176,7 +182,7 @@ export class PredictionMarketSDK {
     // Generate x402 payment proof
     const paymentProof = await this.x402Client.createPayment('placeBet');
 
-    console.log(`Payment proof generated: $${this.x402Client.getPrice('placeBet')} USDC`);
+    console.log(`Payment proof generated: $${this.x402Client.getOperationPrice('placeBet') / 1_000_000} USDC`);
 
     // Convert payment proof to contract format
     const contractProof = this.formatPaymentProof(paymentProof);
@@ -258,11 +264,10 @@ export class PredictionMarketSDK {
    */
   getPricing() {
     return {
-      createMarket: this.x402Client.getPrice('createMarket'),
-      placeBet: this.x402Client.getPrice('placeBet'),
-      resolveMarket: this.x402Client.getPrice('resolveMarket'),
-      aiResearch: this.x402Client.getPrice('aiResearch'),
-      dataSourceAccess: this.x402Client.getPrice('dataSourceAccess')
+      createMarket: this.x402Client.getOperationPrice('createMarket') / 1_000_000,
+      placeBet: this.x402Client.getOperationPrice('placeBet') / 1_000_000,
+      resolveMarket: this.x402Client.getOperationPrice('resolveMarket') / 1_000_000,
+      dataSourceAccess: this.x402Client.getOperationPrice('dataSourceAccess') / 1_000_000
     };
   }
 
@@ -274,9 +279,9 @@ export class PredictionMarketSDK {
     return {
       nonce: proof.nonce,               // bytes32
       amount: proof.amount,             // uint256 (already in USDC 6 decimals)
-      token: proof.token,               // address (USDC)
-      from: proof.from,                 // address (user)
-      facilitator: proof.to,            // address (x402 facilitator) - 'to' IS facilitator
+      token: proof.assetContract,       // address (USDC)
+      from: proof.payer,                // address (user)
+      facilitator: proof.recipient,     // address (s402 facilitator/recipient)
       signature: proof.signature        // bytes
       // NO timestamp - not in contract struct
     };
