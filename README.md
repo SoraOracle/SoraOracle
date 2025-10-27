@@ -22,7 +22,7 @@
 
 ✅ **Production Ready** • ✅ **Fully Functional**
 
-> **Note:** Contract verification on BSCScan is temporarily unavailable due to their API v1→v2 migration. The contract is fully functional. [Manual verification instructions](https://bscscan.com/verifyContract?a=0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12) available.
+> **Note:** Contract source code verification is pending. BSCScan's verification system is currently broken during their API v1→v2 migration (deprecated Oct 16, 2024, v2 not yet available). The contract is deployed, audited, and fully operational. Source code is publicly available in this repository for transparency.
 
 ---
 
