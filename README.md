@@ -20,7 +20,9 @@
 **S402Facilitator Contract:**  
 [`0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12`](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12)
 
-✅ **Production Ready** • ✅ **Fully Functional** • ⚠️ **Verification Pending**
+✅ **Production Ready** • ✅ **Fully Functional**
+
+> **Note:** Contract verification on BSCScan is temporarily unavailable due to their API v1→v2 migration. The contract is fully functional. [Manual verification instructions](https://bscscan.com/verifyContract?a=0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12) available.
 
 ---
 
