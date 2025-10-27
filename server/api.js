@@ -6,6 +6,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// S402 Oracle Routes (micropayment-protected endpoints)
+try {
+  const s402OracleRouter = require('./s402-oracle');
+  app.use('/api/s402', s402OracleRouter);
+  console.log('✅ S402 Oracle routes enabled');
+} catch (error) {
+  console.warn('⚠️  S402 Oracle routes not available:', error.message);
+}
+
 app.get('/api/markets', async (req, res) => {
   try {
     const { resolved, limit = 100 } = req.query;
