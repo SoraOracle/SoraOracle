@@ -1,8 +1,10 @@
+<div align="center">
+
+![Sora Oracle Banner](./assets/sora-banner.png)
+
 # Sora Oracle SDK v5.0
 
 **Production-ready permissionless oracle SDK with HTTP 402 micropayments on BNB Chain**
-
-<div align="center">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue.svg)](https://soliditylang.org/)
