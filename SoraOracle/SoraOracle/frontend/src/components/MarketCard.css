@@ -1,0 +1,158 @@
+.market-card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.market-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.market-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(124, 58, 237, 0.2);
+}
+
+.market-card.resolved {
+  opacity: 0.8;
+}
+
+.market-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.market-question {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.market-status {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.market-status.active {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--secondary);
+}
+
+.market-status.closed {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+}
+
+.market-status.resolved {
+  background: rgba(124, 58, 237, 0.2);
+  color: var(--primary);
+}
+
+.outcome {
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.outcome.yes {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--yes-color);
+}
+
+.outcome.no {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--no-color);
+}
+
+.odds-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.odd-box {
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.odd-box.yes {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.odd-box.no {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.odd-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.odd-value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.odd-box.yes .odd-value {
+  color: var(--yes-color);
+}
+
+.odd-box.no .odd-value {
+  color: var(--no-color);
+}
+
+.odd-amount {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.market-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.total-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.total-pool .label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.total-pool .value {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.time-left {
+  font-size: 14px;
+  color: var(--warning);
+  font-weight: 500;
+}

@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+artifacts/
+cache/
+typechain-types/
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary files
+output/
+attached_assets/
+*.tmp
+
+# Deployment artifacts
+deployment-*.json
+
+# Test coverage
+coverage/
+.nyc_output/
+*.html
+
+# Flattened contracts
+*-flattened.sol

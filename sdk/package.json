@@ -1,0 +1,52 @@
+{
+  "name": "@sora-oracle/sdk",
+  "version": "3.0.0",
+  "description": "TypeScript SDK for Sora Oracle - Permissionless oracle platform on BNB Chain",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./hooks": {
+      "import": "./dist/hooks/index.mjs",
+      "require": "./dist/hooks/index.js",
+      "types": "./dist/hooks/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts src/hooks/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts src/hooks/index.ts --format cjs,esm --dts --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "oracle",
+    "bsc",
+    "bnb-chain",
+    "prediction-market",
+    "defi",
+    "web3",
+    "ethereum",
+    "typescript"
+  ],
+  "author": "Sora <soraoracle@proton.me>",
+  "license": "MIT",
+  "peerDependencies": {
+    "ethers": "^6.0.0",
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ]
+}
