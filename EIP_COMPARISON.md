@@ -263,9 +263,10 @@ class MultiWalletS402Pool {
 | **Network** | Base, Ethereum | **BNB Chain** |
 | **Nonces** | Random (EIP-3009) | **Multi-dimensional (EIP-4337)** |
 | **Parallel Transactions** | ✅ Unlimited | ✅ **Unlimited (via EIP-4337)** |
-| **Gas Abstraction** | ⚠️ Still need ETH | ✅ **Pay in USDC only** |
-| **Batch Operations** | ❌ One permit = one call | ✅ **100 calls in one UserOp** |
-| **USDC Type** | Native Circle | Binance Bridged |
+| **User Experience** | ✅ Gasless (relayer pays ETH) | ✅ **Gasless (paymaster pays)** |
+| **Gas Payment** | ⚠️ Relayer/facilitator pays in ETH | ✅ **Paymaster (can pay in USDC)** |
+| **Batch Operations** | ❌ One authorization per call | ✅ **100+ operations in one UserOp** |
+| **USDC Type** | Native Circle USDC | Binance Bridged USDC |
 | **Compliance** | ✅ True x402 | ⚠️ x402-inspired |
 
 ### Our Honest Branding:
