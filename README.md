@@ -20,7 +20,7 @@
 **S402Facilitator Contract:**  
 [`0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12`](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12)
 
-✅ **Verified on BSCScan** • ✅ **Production Ready** • ✅ **Fully Functional**
+✅ **Production Ready** • ✅ **Fully Functional** • ⚠️ **Verification Pending**
 
 ---
 
@@ -35,7 +35,7 @@ Sora Oracle is a **fully permissionless oracle SDK** that lets you create predic
 ✅ **Multi-Wallet Parallelization** - 10x faster than sequential transactions  
 ✅ **23 Smart Contracts** - Production-ready market types (binary, multi-outcome, AMM, orderbook, conditional)  
 ✅ **TypeScript SDK** - React hooks for zero-boilerplate integration  
-✅ **Mainnet Deployed** - Live on BNB Chain with verified contract  
+✅ **Mainnet Deployed** - Live on BNB Chain  
 
 ---
 
@@ -355,7 +355,7 @@ const election = await sdk.createMarket({
 - **Chain ID:** 56
 - **RPC:** https://bsc-dataseed.binance.org/
 - **Explorer:** https://bscscan.com
-- **S402 Contract:** [`0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12`](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12) ✅ Verified
+- **S402 Contract:** [`0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12`](https://bscscan.com/address/0xb1508fD3ADa2DE134b3a3A231c94951BAFc0fF12)
 - **USDC:** `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d` (Binance-Bridged, EIP-2612)
 - **USDT:** `0x55d398326f99059fF775485246999027B3197955` (18 decimals!)
 
