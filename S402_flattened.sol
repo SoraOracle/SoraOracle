@@ -448,7 +448,7 @@ pragma solidity ^0.8.20;
  * - EIP-2612 permit() (BNB Chain USDC compatibility)
  * - Sequential nonces (handled by USDC contract)
  * - Two-step process: permit() then transferFrom()
- * - NOT x402-compliant (honest branding)
+ * - NOT x402-compliant (honest branding)0
  * 
  * Network: BNB Chain (56) / BNB Testnet (97)
  * Token: USDC on BNB Chain (EIP-2612 compliant)
