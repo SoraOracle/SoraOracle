@@ -1,7 +1,7 @@
 {
-  "name": "bsc-oracle-contract",
-  "version": "1.0.0",
-  "description": "Improved Oracle Smart Contract for BNB Chain",
+  "name": "@sora-oracle/sdk",
+  "version": "5.0.0",
+  "description": "Permissionless Oracle SDK with s402 Micropayments on BNB Chain",
   "main": "index.js",
   "scripts": {
     "compile": "hardhat compile",
@@ -23,22 +23,34 @@
     "ai:settle": "node scripts/ai-oracle-settler.js",
     "ai:monitor": "node scripts/ai-market-monitor.js",
     "ai:monitor:continuous": "node scripts/ai-market-monitor.js --continuous",
-    "x402:demo": "tsx examples/x402-express-demo.ts",
-    "x402:integration": "tsx examples/bnb-x402-agent-integration.ts",
-    "x402:test": "tsx scripts/test-x402-bnb-integration.ts",
-    "deploy:x402": "hardhat run scripts/deploy-x402-facilitator.ts",
-    "gateway:start": "tsx gateway/server.ts",
-    "gateway:demo": "tsx examples/gateway-agent-demo.ts"
+    "s402:deploy:mainnet": "hardhat run scripts/deploy-s402-mainnet.js --network bscMainnet",
+    "s402:deploy:testnet": "hardhat run scripts/deploy-s402.js --network bscTestnet",
+    "s402:checklist": "node scripts/pre-deployment-checklist.js",
+    "s402:fund-workers": "node scripts/fund-workers.js",
+    "s402:check-balances": "node scripts/check-worker-balances.js",
+    "db:push": "drizzle-kit push",
+    "db:push:force": "drizzle-kit push --force"
   },
   "keywords": [
     "oracle",
-    "bnb",
+    "prediction-markets",
+    "bnb-chain",
     "bsc",
     "smart-contract",
-    "solidity"
+    "solidity",
+    "s402",
+    "micropayments",
+    "usdc",
+    "permissionless",
+    "ai-oracle",
+    "eip-2612"
   ],
-  "author": "",
+  "author": "Sora Oracle <soraoracle@proton.me>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sora-oracle/sora-oracle-sdk"
+  },
   "dependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^5.4.0",
