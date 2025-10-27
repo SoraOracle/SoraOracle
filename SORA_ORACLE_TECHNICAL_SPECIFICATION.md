@@ -591,51 +591,9 @@ function verifyPaymentProof(proof: PaymentProof): boolean {
 
 ---
 
-## 7. Development Roadmap
+## 7. Competitive Analysis
 
-### 7.1 Completed (Q3-Q4 2025)
-
-- ✅ 23 core smart contracts deployed
-- ✅ Multi-wallet s402 pool (10x speedup)
-- ✅ Frontend UI (React + Vite)
-- ✅ SDK v1.0 published to npm
-- ✅ PostgreSQL indexer
-- ✅ USDC/USDT support on BNB
-- ✅ PancakeSwap TWAP integration
-- ✅ AI-powered market resolution (GPT-4)
-
-### 7.2 Q1 2026
-
-- 🔄 EIP-4337 smart account integration
-- 🔄 Batch payment operations (100+ in 1 TX)
-- 🔄 Security audit (Tier 1 firm)
-- 🔄 Mainnet beta launch
-- 🔄 Mobile-responsive UI improvements
-- 🔄 API documentation portal
-
-### 7.3 Q2 2026
-
-- ⏰ USDC paymaster (custom development)
-- ⏰ Cross-chain expansion (Ethereum, Base)
-- ⏰ Governance token launch
-- ⏰ Liquidity mining program
-- ⏰ Advanced market types (futures, options)
-- ⏰ Third-party integrations (TradingView, Dune)
-
-### 7.4 Q3-Q4 2026
-
-- ⏰ Native Circle USDC migration (when available)
-- ⏰ Institutional API tier
-- ⏰ White-label market SDKs
-- ⏰ Multi-chain oracle aggregation
-- ⏰ DeFi protocol integrations
-- ⏰ 1M+ user target
-
----
-
-## 8. Competitive Analysis
-
-### 8.1 Market Positioning
+### 7.1 Market Positioning
 
 | Protocol | Chain | Micropayments | Oracle | Status | Our Advantage |
 |----------|-------|---------------|--------|--------|---------------|
@@ -645,7 +603,7 @@ function verifyPaymentProof(proof: PaymentProof): boolean {
 | **x402 (Coinbase)** | Base | ✅ Yes | N/A | Live | BNB Chain + custom s402 |
 | **Sora Oracle** | BNB Chain | ✅ Yes | Permissionless | Beta | **Only oracle + payments on BNB** |
 
-### 8.2 Technical Differentiation
+### 7.2 Technical Differentiation
 
 **Unique Advantages:**
 1. ✅ **First s402 on BNB Chain** - No competitors have solved USDC/USDT micropayments without EIP-3009
@@ -662,9 +620,9 @@ function verifyPaymentProof(proof: PaymentProof): boolean {
 
 ---
 
-## 9. Team & Expertise
+## 8. Team & Expertise
 
-### 9.1 Technical Capabilities
+### 8.1 Technical Capabilities
 
 **Smart Contract Development:**
 - Solidity 0.8+ expertise
@@ -692,33 +650,9 @@ function verifyPaymentProof(proof: PaymentProof): boolean {
 
 ---
 
-## 10. Risk Analysis
+## 9. API Specifications
 
-### 10.1 Technical Risks
-
-| Risk | Probability | Impact | Mitigation |
-|------|------------|--------|------------|
-| **Smart contract bugs** | Medium | Critical | Security audit, extensive testing, emergency pause |
-| **BNB Chain downtime** | Low | High | Monitor uptime, communicate delays, insurance fund |
-| **Worker wallet compromise** | Low | Medium | $100 limit per wallet, weekly rotation, multi-sig recovery |
-| **RPC provider failure** | Medium | Medium | Multi-provider fallback (NodeReal + Binance + QuickNode) |
-| **Database corruption** | Low | High | Daily backups, point-in-time recovery, replication |
-| **Gas price spike** | Medium | Low | Auto-adjust fees, paymaster sponsorship |
-
-### 10.2 Market Risks
-
-| Risk | Probability | Impact | Mitigation |
-|------|------------|--------|------------|
-| **Circle deploys native USDC** | High | Positive | Migrate to EIP-3009, maintain backward compatibility |
-| **Regulatory crackdown** | Low | Critical | KYC/AML optional tier, geographic restrictions |
-| **Competitor launches** | Medium | Medium | Fast iteration, feature differentiation, community building |
-| **Low adoption** | Medium | High | Marketing spend, partnerships, liquidity mining |
-
----
-
-## 11. API Specifications
-
-### 11.1 s402 Payment Flow
+### 9.1 s402 Payment Flow
 
 **Step 1: Request Resource**
 ```bash
@@ -771,7 +705,7 @@ HTTP/1.1 200 OK
 }
 ```
 
-### 11.2 SDK Usage
+### 9.2 SDK Usage
 
 ```typescript
 import { SoraOracleSDK } from '@sora-oracle/sdk';
@@ -811,9 +745,9 @@ const resolution = await sora.resolveMarket({
 
 ---
 
-## 12. Deployment & Operations
+## 10. Deployment & Operations
 
-### 12.1 Deployment Architecture
+### 10.1 Deployment Architecture
 
 ```
 Production Environment:
@@ -831,7 +765,7 @@ Testnet Environment:
 └── Worker Wallets: 10 testnet wallets (faucet funded)
 ```
 
-### 12.2 Monitoring & Alerts
+### 10.2 Monitoring & Alerts
 
 **Metrics Tracked:**
 - Worker wallet balances (USDC, USDT, BNB)
@@ -856,7 +790,7 @@ if (paymentFailureRate > 5%) {
 }
 ```
 
-### 12.3 Disaster Recovery
+### 10.3 Disaster Recovery
 
 **Backup Strategy:**
 - Database: Daily PostgreSQL dumps
@@ -872,7 +806,7 @@ if (paymentFailureRate > 5%) {
 
 ---
 
-## 13. Conclusion
+## 11. Conclusion
 
 **Sora Oracle** delivers the first production-ready oracle SDK with integrated micropayments on BNB Chain, solving the EIP-3009 unavailability problem through innovative multi-wallet pooling and EIP-4337 integration. With 23 deployed smart contracts, a complete TypeScript SDK, and a custom s402 payment protocol achieving 10x-100x parallel throughput, the system is positioned to capture the prediction market opportunity on BNB Chain's low-cost, high-throughput infrastructure.
 
