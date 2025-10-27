@@ -33,6 +33,7 @@ attached_assets/
 *.tmp
 .git.backup*
 replit.md
+.replit
 
 # Deployment artifacts
 deployment-*.json
