@@ -620,39 +620,9 @@ function verifyPaymentProof(proof: PaymentProof): boolean {
 
 ---
 
-## 8. Team & Expertise
+## 8. API Specifications
 
-### 8.1 Technical Capabilities
-
-**Smart Contract Development:**
-- Solidity 0.8+ expertise
-- OpenZeppelin security patterns
-- Gas optimization techniques
-- Hardhat development workflow
-
-**Frontend Development:**
-- React 18 + TypeScript
-- Web3 integration (ethers.js)
-- Responsive UI/UX design
-- Production deployment (Replit)
-
-**Backend Development:**
-- Node.js + Express
-- PostgreSQL + Drizzle ORM
-- Blockchain indexing
-- RESTful API design
-
-**Blockchain Architecture:**
-- EIP-2612, EIP-4337, EIP-3009 expertise
-- BNB Chain infrastructure
-- Oracle design patterns
-- Payment protocol design
-
----
-
-## 9. API Specifications
-
-### 9.1 s402 Payment Flow
+### 8.1 s402 Payment Flow
 
 **Step 1: Request Resource**
 ```bash
@@ -705,7 +675,7 @@ HTTP/1.1 200 OK
 }
 ```
 
-### 9.2 SDK Usage
+### 8.2 SDK Usage
 
 ```typescript
 import { SoraOracleSDK } from '@sora-oracle/sdk';
@@ -745,9 +715,9 @@ const resolution = await sora.resolveMarket({
 
 ---
 
-## 10. Deployment & Operations
+## 9. Deployment & Operations
 
-### 10.1 Deployment Architecture
+### 9.1 Deployment Architecture
 
 ```
 Production Environment:
@@ -765,7 +735,7 @@ Testnet Environment:
 └── Worker Wallets: 10 testnet wallets (faucet funded)
 ```
 
-### 10.2 Monitoring & Alerts
+### 9.2 Monitoring & Alerts
 
 **Metrics Tracked:**
 - Worker wallet balances (USDC, USDT, BNB)
@@ -790,7 +760,7 @@ if (paymentFailureRate > 5%) {
 }
 ```
 
-### 10.3 Disaster Recovery
+### 9.3 Disaster Recovery
 
 **Backup Strategy:**
 - Database: Daily PostgreSQL dumps
@@ -806,7 +776,7 @@ if (paymentFailureRate > 5%) {
 
 ---
 
-## 11. Conclusion
+## 10. Conclusion
 
 **Sora Oracle** delivers the first production-ready oracle SDK with integrated micropayments on BNB Chain, solving the EIP-3009 unavailability problem through innovative multi-wallet pooling and EIP-4337 integration. With 23 deployed smart contracts, a complete TypeScript SDK, and a custom s402 payment protocol achieving 10x-100x parallel throughput, the system is positioned to capture the prediction market opportunity on BNB Chain's low-cost, high-throughput infrastructure.
 
