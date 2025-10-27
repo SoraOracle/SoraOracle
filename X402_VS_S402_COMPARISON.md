@@ -9,23 +9,26 @@
 
 ## 📊 Feature Comparison
 
-| Feature | x402 (Coinbase) | s402 (Sora) | Winner |
-|---------|----------------|-------------|--------|
-| **Network** | Base, Ethereum, Polygon | **BNB Chain** | Tie (chain-specific) |
-| **Payment Standard** | EIP-3009 (random nonces) | EIP-2612 (permit approvals) | x402 (no approval) |
-| **Account Standard** | EOA (standard wallet) | EIP-4337 (smart account) | **s402** 🏆 |
-| **USDC Type** | Native Circle USDC | Binance Bridged USDC | x402 (native better) |
-| **Parallel Transactions** | ✅ Unlimited (random nonces) | ✅ Unlimited (multi-dimensional nonces) | **Tie** ✅ |
-| **User Gas Cost** | ✅ $0 (facilitator pays) | ✅ $0 (paymaster pays) | **Tie** ✅ |
-| **Backend Gas Payment** | ETH only | **USDC or BNB** | **s402** 🏆 |
-| **Batch Operations** | ❌ One auth per call | ✅ **100+ in one UserOp** | **s402** 🏆 |
-| **Infrastructure** | Coinbase facilitator | EIP-4337 bundlers/paymasters | **s402** 🏆 |
-| **Nonce Type** | Random 32-byte | Multi-dimensional (192 keys) | **s402** 🏆 |
-| **HTTP 402 Compliance** | ✅ True x402 spec | Original Implementation | Tie |
-| **Gas Efficiency** | ~$0.01 per tx (Base) | ~$0.003 per tx (BNB Chain) | **s402** 🏆 |
-| **Setup Complexity** | Low (Coinbase hosted) | Medium (self-hosted bundler) | x402 |
-| **Vendor Lock-in** | High (Coinbase CDP) | Low (open EIP-4337) | **s402** 🏆 |
-| **Production Ready** | ✅ Yes (since Jan 2025) | ✅ Yes (BNB infrastructure ready) | **Tie** ✅ |
+| Feature | EIP-3009 (x402) | EIP-2612 | EIP-4337 (s402) | Winner |
+|---------|-----------------|----------|-----------------|--------|
+| **Network** | Base, Ethereum, Polygon | Any EVM | **BNB Chain** | Tie |
+| **Payment Method** | Direct transfer auth | Gasless permit | Smart account | EIP-3009 (simplest) |
+| **Nonce Type** | Random (unlimited) | Sequential | Multidimensional | **EIP-3009 / EIP-4337** 🏆 |
+| **USDC Type** | Native Circle USDC | Token-dependent | Binance Bridged | EIP-3009 |
+| **Parallelization** | ✅ Unlimited | ❌ Sequential | ✅ Unlimited (192 channels) | **EIP-3009 / EIP-4337** 🏆 |
+| **User Gas Cost** | ✅ $0 (facilitator pays) | Varies | ✅ $0 (paymaster pays) | **Tie** ✅ |
+| **Backend Gas Payment** | ETH only | Varies | **USDC or BNB** | **EIP-4337** 🏆 |
+| **Batch Operations** | ❌ One auth per call | ❌ One permit per call | ✅ **100+ in one UserOp** | **EIP-4337** 🏆 |
+| **Infrastructure** | Coinbase facilitator | Standard relayer | EIP-4337 bundlers | **EIP-4337** 🏆 |
+| **Approval Needed** | ❌ No | ✅ Yes (permit) | ✅ Yes (UserOp) | **EIP-3009** 🏆 |
+| **Atomic Execution** | ✅ Yes | ❌ No (2-step) | ✅ Yes | **EIP-3009 / EIP-4337** 🏆 |
+| **Smart Account** | ❌ No | ❌ No | ✅ Yes | **EIP-4337** 🏆 |
+| **HTTP 402 Compliance** | ✅ True x402 spec | N/A | Original Implementation | EIP-3009 |
+| **Gas Efficiency** | ~$0.01 per tx (Base) | ~$0.005 per tx | ~$0.003 per tx (BNB) | **EIP-4337** 🏆 |
+| **Setup Complexity** | Low (Coinbase hosted) | Low | Medium (bundler setup) | **EIP-2612** 🏆 |
+| **Vendor Lock-in** | High (Coinbase CDP) | Low | Low (open standard) | **EIP-2612 / EIP-4337** 🏆 |
+| **BNB Chain Support** | ❌ No (needs native USDC) | ⚠️ Limited | 🔜 Coming Soon | **EIP-4337** 🏆 |
+| **Production Ready** | ✅ Ethereum/Base | ✅ Token-dependent | ✅ Infrastructure ready | **Tie** ✅ |
 
 ---
 
