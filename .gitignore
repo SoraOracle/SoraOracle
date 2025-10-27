@@ -31,6 +31,7 @@ Thumbs.db
 output/
 attached_assets/
 *.tmp
+.git.backup*
 
 # Deployment artifacts
 deployment-*.json
