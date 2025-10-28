@@ -42,6 +42,7 @@ function Header({ wallet }: HeaderProps) {
           <Link to="/dashboard" className="nav-link">Dashboard</Link>
           <Link to="/analytics" className="nav-link">Analytics</Link>
           <Link to="/oracle" className="nav-link">Oracle Provider</Link>
+          <Link to="/s402" className="nav-link">S402 Demo</Link>
         </nav>
 
         <SearchBar />

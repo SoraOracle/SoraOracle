@@ -10,6 +10,7 @@ import CreateMarketPage from './pages/CreateMarketPage';
 import DashboardPage from './pages/DashboardPage';
 import OracleProviderPage from './pages/OracleProviderPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import { S402DemoPage } from './pages/S402DemoPage';
 import './styles/App.css';
 
 function App() {
@@ -45,6 +46,10 @@ function App() {
             <Route 
               path="/analytics" 
               element={<AnalyticsPage />} 
+            />
+            <Route 
+              path="/s402" 
+              element={<S402DemoPage />} 
             />
           </Routes>
         </main>
