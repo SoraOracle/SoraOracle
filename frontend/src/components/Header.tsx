@@ -42,11 +42,9 @@ function Header({ wallet }: HeaderProps) {
           </div>
         </div>
         
-        <nav className="nav">
-          <Link to="/dashboard" className="nav-link">Dashboard</Link>
-        </nav>
-
-        <SearchBar />
+        <div className="search-wrapper">
+          <SearchBar disabled={true} />
+        </div>
 
         <div className="wallet-section">
           {!isCorrectChain && address && (

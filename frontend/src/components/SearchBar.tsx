@@ -11,7 +11,11 @@ interface SearchResult {
   created_at: string;
 }
 
-function SearchBar() {
+interface SearchBarProps {
+  disabled?: boolean;
+}
+
+function SearchBar({ disabled = false }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -66,7 +70,7 @@ function SearchBar() {
   };
 
   return (
-    <div className="search-bar" ref={searchRef}>
+    <div className={`search-bar ${disabled ? 'search-bar-disabled' : ''}`} ref={searchRef}>
       <div className="search-input-wrapper">
         <span className="search-icon">🔍</span>
         <input
@@ -74,11 +78,13 @@ function SearchBar() {
           className="search-input"
           placeholder="Search markets..."
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => results.length > 0 && setShowResults(true)}
+          onChange={(e) => !disabled && setQuery(e.target.value)}
+          onFocus={() => !disabled && results.length > 0 && setShowResults(true)}
+          disabled={disabled}
         />
         {loading && <span className="search-loading">⏳</span>}
       </div>
+      {disabled && <div className="search-tooltip">Coming Soon</div>}
 
       {showResults && results.length > 0 && (
         <div className="search-results">

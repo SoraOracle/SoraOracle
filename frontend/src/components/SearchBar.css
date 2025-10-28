@@ -4,6 +4,38 @@
   max-width: 500px;
 }
 
+.search-bar-disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.search-bar-disabled .search-input {
+  cursor: not-allowed;
+}
+
+.search-tooltip {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1A1A1A;
+  color: #F97316;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid #333;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.search-bar-disabled:hover .search-tooltip {
+  opacity: 1;
+}
+
 .search-input-wrapper {
   position: relative;
   display: flex;

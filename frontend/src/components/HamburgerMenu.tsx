@@ -32,38 +32,52 @@ export function HamburgerMenu() {
             </div>
             
             <div className="hamburger-links">
-              <Link to="/" className="hamburger-link" onClick={() => setIsOpen(false)}>
+              <div className="hamburger-link hamburger-link-disabled">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                   <polyline points="9 22 9 12 15 12 15 22" />
                 </svg>
                 <span>Markets</span>
-              </Link>
+                <span className="coming-soon-badge">Coming Soon</span>
+              </div>
 
-              <Link to="/create" className="hamburger-link" onClick={() => setIsOpen(false)}>
+              <div className="hamburger-link hamburger-link-disabled">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
                   <path d="M12 8v8M8 12h8" />
                 </svg>
                 <span>Create Market</span>
-              </Link>
+                <span className="coming-soon-badge">Coming Soon</span>
+              </div>
 
-              <Link to="/analytics" className="hamburger-link" onClick={() => setIsOpen(false)}>
+              <div className="hamburger-link hamburger-link-disabled">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="9" y1="9" x2="15" y2="9" />
+                  <line x1="9" y1="15" x2="15" y2="15" />
+                </svg>
+                <span>Dashboard</span>
+                <span className="coming-soon-badge">Coming Soon</span>
+              </div>
+
+              <div className="hamburger-link hamburger-link-disabled">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 20V10M12 20V4M6 20v-6" />
                 </svg>
                 <span>Analytics</span>
-              </Link>
+                <span className="coming-soon-badge">Coming Soon</span>
+              </div>
 
-              <Link to="/oracle" className="hamburger-link" onClick={() => setIsOpen(false)}>
+              <div className="hamburger-link hamburger-link-disabled">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="3" />
                   <path d="M12 1v6m0 6v6m5.2-17.2l-4.2 4.2m0 6l-4.2 4.2m11.4-4.2l-4.2-4.2m0-6l-4.2-4.2" />
                 </svg>
                 <span>Oracle Provider</span>
-              </Link>
+                <span className="coming-soon-badge">Coming Soon</span>
+              </div>
 
-              <Link to="/s402" className="hamburger-link" onClick={() => setIsOpen(false)}>
+              <Link to="/s402" className="hamburger-link hamburger-link-active" onClick={() => setIsOpen(false)}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg>

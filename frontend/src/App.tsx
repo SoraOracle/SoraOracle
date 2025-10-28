@@ -25,7 +25,11 @@ function App() {
           <Routes>
             <Route 
               path="/" 
-              element={<MarketsPage marketClient={marketClient} />} 
+              element={<S402DemoPage />} 
+            />
+            <Route 
+              path="/s402" 
+              element={<S402DemoPage />} 
             />
             <Route 
               path="/market/:id" 
@@ -46,10 +50,6 @@ function App() {
             <Route 
               path="/analytics" 
               element={<AnalyticsPage />} 
-            />
-            <Route 
-              path="/s402" 
-              element={<S402DemoPage />} 
             />
           </Routes>
         </main>
