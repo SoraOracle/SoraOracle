@@ -11,7 +11,7 @@
 [![BNB Chain](https://img.shields.io/badge/Chain-BNB_Mainnet-orange.svg)](https://www.bnbchain.org/)
 [![npm](https://img.shields.io/badge/npm-@sora--oracle/sdk-red.svg)](https://www.npmjs.com/package/@sora-oracle/sdk)
 
-**[🌐 Website](https://sora-oracle.xyz)** • **[𝕏 Twitter](https://x.com/SoraOracle)** • **[📖 Docs](./SORA_ORACLE_TECHNICAL_SPECIFICATION.md)** • **[🔍 Contract](https://bscscan.com/address/0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1)**
+**[🌐 Website](https://sora-oracle.xyz)** • **[𝕏 Twitter](https://x.com/SoraOracle)** • **[📖 Docs](./SORA_ORACLE_TECHNICAL_SPECIFICATION.md)** • **[🔍 Contract](https://bscscan.com/address/0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3)**
 
 </div>
 
@@ -20,7 +20,7 @@
 ## 🚀 Live on BNB Chain Mainnet
 
 **S402Facilitator Contract:**  
-[`0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1`](https://bscscan.com/address/0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1)
+[`0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3`](https://bscscan.com/address/0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3)
 
 ✅ **Production Ready** • ✅ **Verified on BSCScan** • ✅ **Fully Functional**
 
@@ -57,7 +57,7 @@ import { SoraOracleSDK } from '@sora-oracle/sdk';
 const sdk = new SoraOracleSDK({
   chainId: 56, // BNB Chain Mainnet
   rpcUrl: 'https://bsc-dataseed.binance.org/',
-  s402FacilitatorAddress: '0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1'
+  s402FacilitatorAddress: '0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3'
 });
 
 // Create a prediction market
@@ -292,7 +292,7 @@ const election = await sdk.createMarket({
 - **LiquidityIncentives** - Bootstrap new markets
 
 **v5.0 - s402 Payments:**
-- **S402Facilitator** - Payment settlement with 1% platform fee ([View on BSCScan](https://bscscan.com/address/0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1))
+- **S402Facilitator** - Payment settlement with 1% platform fee ([View on BSCScan](https://bscscan.com/address/0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3))
 
 ---
 
@@ -331,7 +331,7 @@ const election = await sdk.createMarket({
 - ✅ **Deadline Enforcement** - All payments have expiration times
 - ✅ **Dual-Signature** - EIP-2612 permit + EIP-712 authorization
 
-**[View Contract on BSCScan →](https://bscscan.com/address/0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1)**
+**[View Contract on BSCScan →](https://bscscan.com/address/0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3)**
 
 ---
 
@@ -357,7 +357,7 @@ const election = await sdk.createMarket({
 - **Chain ID:** 56
 - **RPC:** https://bsc-dataseed.binance.org/
 - **Explorer:** https://bscscan.com
-- **S402 Contract:** [`0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1`](https://bscscan.com/address/0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1)
+- **S402 Contract:** [`0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3`](https://bscscan.com/address/0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3)
 - **USDC:** `0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d` (Binance-Bridged, EIP-2612)
 - **USDT:** `0x55d398326f99059fF775485246999027B3197955` (18 decimals!)
 
@@ -482,7 +482,7 @@ Use it, fork it, modify it, sell it - whatever you want! All smart contracts are
 - **𝕏 Twitter:** [@SoraOracle](https://x.com/SoraOracle)
 - **Email:** soraoracle@proton.me
 - **GitHub Issues:** [Report bugs & request features](https://github.com/sora-oracle/sora-oracle-sdk/issues)
-- **Contract:** [View on BSCScan](https://bscscan.com/address/0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1)
+- **Contract:** [View on BSCScan](https://bscscan.com/address/0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3)
 
 ---
 
@@ -496,6 +496,6 @@ No gatekeepers. No permissions. Just secure, verifiable prediction markets.
 
 Built by the community, for the community 🌐
 
-**[Get Started →](./QUICK_START.md)** • **[View Contract →](https://bscscan.com/address/0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1)** • **[Follow on 𝕏 →](https://x.com/SoraOracle)**
+**[Get Started →](./QUICK_START.md)** • **[View Contract →](https://bscscan.com/address/0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3)** • **[Follow on 𝕏 →](https://x.com/SoraOracle)**
 
 </div>
