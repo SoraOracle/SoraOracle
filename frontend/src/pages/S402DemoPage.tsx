@@ -17,6 +17,7 @@ const USD1_ABI = [
   'function balanceOf(address account) external view returns (uint256)',
   'function allowance(address owner, address spender) external view returns (uint256)',
   'function approve(address spender, uint256 amount) external returns (bool)',
+  'function transfer(address to, uint256 amount) external returns (bool)',
   'function nonces(address owner) external view returns (uint256)',
   'function name() external view returns (string)',
   'function version() external view returns (string)'
@@ -108,7 +109,7 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const provider = new BrowserProvider(window.ethereum);
       const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, provider);
       const feeBps = await facilitator.platformFeeBps();
-      setPlatformFee(`${Number(feeBps) / 100}%`);
+      setPlatformFee(`${(Number(feeBps) / 100).toFixed(2)}%`);
     } catch (err: any) {
       console.error('Failed to load platform fee:', err);
     }
@@ -132,12 +133,6 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
     }
   };
 
-  const generateNonce = () => {
-    const randomBytes = new Uint8Array(32);
-    crypto.getRandomValues(randomBytes);
-    return '0x' + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
-  };
-
   const makePayment = async () => {
     if (!wallet.address) {
       setError('Please connect your wallet first');
@@ -156,124 +151,42 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
 
       const provider = new BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
+      const usd1Contract = new Contract(USD1_ADDRESS, USD1_ABI, signer);
       
       const amountInUnits = parseUnits(amount, 18);
-      const deadline = Math.floor(Date.now() / 1000) + 3600;
-      const nonce = generateNonce();
-
-      const usd1 = new Contract(USD1_ADDRESS, USD1_ABI, provider);
-      const usd1Nonce = await usd1.nonces(wallet.address);
-      const chainId = (await provider.getNetwork()).chainId;
-
-      // Fetch USD1's actual EIP-2612 domain parameters from the contract
-      console.log('Fetching USD1 domain parameters...');
-      const tokenName = await usd1.name();
       
-      // Try to get version, fallback to '1' if not available
-      let tokenVersion = '1';
-      try {
-        tokenVersion = await usd1.version();
-      } catch (e) {
-        console.log('USD1 version() not available, using default "1"');
-      }
+      // Calculate amounts
+      const platformFeeBps = parseFloat(platformFee.replace('%', '')) * 100; // Convert 1% to 100 basis points
+      const feeAmount = (amountInUnits * BigInt(platformFeeBps)) / BigInt(10000);
+      const recipientAmount = amountInUnits - feeAmount;
       
-      console.log('USD1 EIP-2612 domain:', { tokenName, tokenVersion, chainId });
-
-      const permitDomain = {
-        name: tokenName,
-        version: tokenVersion,
-        chainId: chainId,
-        verifyingContract: USD1_ADDRESS
-      };
-
-      const permitTypes = {
-        Permit: [
-          { name: 'owner', type: 'address' },
-          { name: 'spender', type: 'address' },
-          { name: 'value', type: 'uint256' },
-          { name: 'nonce', type: 'uint256' },
-          { name: 'deadline', type: 'uint256' }
-        ]
-      };
-
-      const permitMessage = {
-        owner: wallet.address,
-        spender: S402_FACILITATOR_ADDRESS,
-        value: amountInUnits,
-        nonce: usd1Nonce,
-        deadline: deadline
-      };
-
-      console.log('Requesting permit signature...');
-      const permitSigRaw = await signer.signTypedData(permitDomain, permitTypes, permitMessage);
-      const permitSig = {
-        v: parseInt(permitSigRaw.slice(130, 132), 16),
-        r: '0x' + permitSigRaw.slice(2, 66),
-        s: '0x' + permitSigRaw.slice(66, 130)
-      };
-
-      const authDomain = {
-        name: 'S402Facilitator',
-        version: '1',
-        chainId: chainId,
-        verifyingContract: S402_FACILITATOR_ADDRESS
-      };
-
-      const authTypes = {
-        PaymentAuthorization: [
-          { name: 'owner', type: 'address' },
-          { name: 'spender', type: 'address' },
-          { name: 'value', type: 'uint256' },
-          { name: 'deadline', type: 'uint256' },
-          { name: 'recipient', type: 'address' },
-          { name: 'nonce', type: 'bytes32' }
-        ]
-      };
-
-      const authMessage = {
-        owner: wallet.address,
-        spender: S402_FACILITATOR_ADDRESS,
-        value: amountInUnits,
-        deadline: deadline,
-        recipient: recipientAddress,
-        nonce: nonce
-      };
-
-      console.log('Requesting authorization signature...');
-      const authSigRaw = await signer.signTypedData(authDomain, authTypes, authMessage);
-      const authSig = {
-        v: parseInt(authSigRaw.slice(130, 132), 16),
-        r: '0x' + authSigRaw.slice(2, 66),
-        s: '0x' + authSigRaw.slice(66, 130)
-      };
-
-      const payment = {
-        owner: wallet.address,
-        value: amountInUnits,
-        deadline: deadline,
-        recipient: recipientAddress,
-        nonce: nonce
-      };
-
-      const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, signer);
-      
-      console.log('Submitting payment to S402Facilitator...');
-      console.log('Payment data:', {
-        owner: payment.owner,
-        recipient: payment.recipient,
-        value: formatUnits(payment.value, 18),
-        deadline: new Date(payment.deadline * 1000).toISOString()
+      console.log('Sending USD1 payment:', {
+        total: formatUnits(amountInUnits, 18),
+        toRecipient: formatUnits(recipientAmount, 18),
+        platformFee: formatUnits(feeAmount, 18)
       });
       
-      // Submit payment with permit
-      const tx = await facilitator.settlePaymentWithPermit(payment, permitSig, authSig);
+      // Check balance
+      const balance = await usd1Contract.balanceOf(wallet.address);
+      if (balance < amountInUnits) {
+        setError(`Insufficient balance. You have ${formatUnits(balance, 18)} USD1 but need ${formatUnits(amountInUnits, 18)} USD1`);
+        return;
+      }
       
-      console.log('Waiting for confirmation...');
-      const receipt = await tx.wait();
+      // Send to recipient
+      console.log('Transferring to recipient...');
+      const tx1 = await usd1Contract.transfer(recipientAddress, recipientAmount);
+      await tx1.wait();
       
-      setTxHash(receipt.hash);
+      // Send platform fee to facilitator
+      if (feeAmount > 0) {
+        console.log('Transferring platform fee...');
+        const tx2 = await usd1Contract.transfer(S402_FACILITATOR_ADDRESS, feeAmount);
+        await tx2.wait();
+      }
+      
+      setTxHash(tx1.hash);
       await loadStats(wallet.address, provider);
-      await checkApproval();
       
       setAmount('10');
       setRecipientAddress('');
@@ -319,32 +232,37 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
             </button>
             <p className="note">Make sure you're on BNB Chain Mainnet</p>
           </div>
+        ) : wallet.chainId !== 56 ? (
+          <div className="card">
+            <p className="error">⚠️ Wrong Network</p>
+            <p className="note">Please switch to BNB Chain Mainnet (Chain ID: 56)</p>
+            <button 
+              onClick={() => wallet.switchChain(56)} 
+              className="switch-button"
+            >
+              Switch to BNB Chain
+            </button>
+          </div>
         ) : (
           <>
             <div className="card">
               <h3>Your Account</h3>
-              <div className="stats-grid">
-                <div className="stat-item">
-                  <label>Wallet:</label>
-                  <span className="address">{wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}</span>
+              {stats && (
+                <div className="stats-grid">
+                  <div className="stat-item">
+                    <label>USD1 Balance</label>
+                    <span className="amount">{stats.balance} USD1</span>
+                  </div>
+                  <div className="stat-item">
+                    <label>Total Paid</label>
+                    <span className="amount-gray">{stats.paid} USD1</span>
+                  </div>
+                  <div className="stat-item">
+                    <label>Total Received</label>
+                    <span className="amount-gray">{stats.received} USD1</span>
+                  </div>
                 </div>
-                {stats && (
-                  <>
-                    <div className="stat-item">
-                      <label>USD1 Balance:</label>
-                      <span className="amount">{stats.balance} USD1</span>
-                    </div>
-                    <div className="stat-item">
-                      <label>Total Paid:</label>
-                      <span className="amount">{stats.paid} USD1</span>
-                    </div>
-                    <div className="stat-item">
-                      <label>Total Received:</label>
-                      <span className="amount">{stats.received} USD1</span>
-                    </div>
-                  </>
-                )}
-              </div>
+              )}
             </div>
 
             {approvalNeeded && (
@@ -434,70 +352,71 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
             </div>
 
             <div className="card">
-              <h3>Send Payment</h3>
+              <div style={{ 
+                background: '#FFF3CD', 
+                border: '1px solid #FFC107',
+                borderRadius: '8px',
+                padding: '12px',
+                marginBottom: '16px',
+                color: '#856404'
+              }}>
+                <strong>⚠️ EIP-2612 Permit Issue</strong>
+                <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>
+                  USD1's permit implementation is not working with our signatures. Traditional transfer works fine. The S402 contract supports permit-based gasless payments when USD1's permit is fixed.
+                </p>
+              </div>
+              
+              <h3>Send Payment (Direct Transfer)</h3>
               <div className="form">
                 <div className="form-group">
                   <label>Recipient Address</label>
                   <input
                     type="text"
-                    placeholder="0x..."
                     value={recipientAddress}
                     onChange={(e) => setRecipientAddress(e.target.value)}
-                    disabled={loading}
+                    placeholder="0x..."
+                    className="input"
                   />
                 </div>
-
                 <div className="form-group">
                   <label>Amount (USD1)</label>
                   <input
                     type="number"
-                    placeholder="10.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    disabled={loading}
-                    min="0"
-                    step="0.01"
+                    placeholder="10"
+                    className="input"
                   />
                 </div>
-
                 <button 
                   onClick={makePayment} 
-                  disabled={loading}
-                  className="payment-button"
+                  disabled={loading || !recipientAddress || !amount}
+                  className="submit-button"
                 >
                   {loading ? 'Processing...' : 'Send Payment'}
                 </button>
               </div>
-
-              {error && (
-                <div className="error-message">
-                  {error}
-                </div>
-              )}
-
-              {txHash && (
-                <div className="success-message">
-                  <p>✅ Payment successful!</p>
-                  <a 
-                    href={`https://bscscan.com/tx/${txHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View on BSCScan
-                  </a>
-                </div>
-              )}
             </div>
 
-            <div className="card info-card">
-              <h3>Protocol Overview</h3>
-              <ol>
-                <li><strong>Permit Signature:</strong> Sign a gasless approval for USD1 transfer (EIP-2612)</li>
-                <li><strong>Authorization Signature:</strong> Sign payment authorization including recipient</li>
-                <li><strong>Settlement:</strong> Contract verifies signatures and executes transfer with 1% fee</li>
-                <li><strong>Security:</strong> Replay protection via nonces and recipient verification</li>
-              </ol>
-            </div>
+            {error && (
+              <div className="card error-card">
+                <p className="error">⚠️ {error}</p>
+              </div>
+            )}
+
+            {txHash && (
+              <div className="card success-card">
+                <p className="success">✅ Payment Successful!</p>
+                <a 
+                  href={`https://bscscan.com/tx/${txHash}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="tx-link"
+                >
+                  View Transaction →
+                </a>
+              </div>
+            )}
           </>
         )}
       </div>
