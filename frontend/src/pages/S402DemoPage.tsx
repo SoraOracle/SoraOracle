@@ -47,13 +47,58 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [platformFee, setPlatformFee] = useState<string>('');
   const [showBuyWidget, setShowBuyWidget] = useState(false);
+  const [approvalNeeded, setApprovalNeeded] = useState(false);
+  const [approving, setApproving] = useState(false);
 
   useEffect(() => {
     if (wallet.address && wallet.chainId === 56) {
       loadPlatformFee();
       loadStats(wallet.address, new BrowserProvider(window.ethereum));
+      checkApproval();
     }
   }, [wallet.address, wallet.chainId]);
+
+  const checkApproval = async () => {
+    if (!wallet.address) return;
+    
+    try {
+      const provider = new BrowserProvider(window.ethereum);
+      const usd1Contract = new Contract(USD1_ADDRESS, USD1_ABI, provider);
+      const allowance = await usd1Contract.allowance(wallet.address, S402_FACILITATOR_ADDRESS);
+      
+      // If allowance is less than 1000 USD1, show approval button
+      setApprovalNeeded(allowance < parseUnits('1000', 18));
+    } catch (err) {
+      console.error('Failed to check approval:', err);
+    }
+  };
+
+  const approveUSD1 = async () => {
+    try {
+      setApproving(true);
+      setError('');
+      
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const usd1Contract = new Contract(USD1_ADDRESS, USD1_ABI, signer);
+      
+      // Approve max amount for convenience
+      const maxApproval = parseUnits('1000000', 18); // 1M USD1
+      console.log('Approving USD1 for S402Facilitator...');
+      const tx = await usd1Contract.approve(S402_FACILITATOR_ADDRESS, maxApproval);
+      
+      console.log('Waiting for approval confirmation...');
+      await tx.wait();
+      
+      setApprovalNeeded(false);
+      console.log('USD1 approved successfully!');
+    } catch (err: any) {
+      console.error('Approval error:', err);
+      setError(`Approval failed: ${err.message || err.toString()}`);
+    } finally {
+      setApproving(false);
+    }
+  };
 
   const loadPlatformFee = async () => {
     try {
@@ -196,13 +241,34 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, signer);
       
       console.log('Submitting payment to S402Facilitator...');
-      const tx = await facilitator.settlePaymentWithPermit(payment, permitSig, authSig);
+      
+      // Try permit-based payment first, fallback to regular payment if permit fails
+      let tx;
+      try {
+        tx = await facilitator.settlePaymentWithPermit(payment, permitSig, authSig);
+      } catch (permitError: any) {
+        console.warn('Permit payment failed, trying regular payment:', permitError.message);
+        
+        // Check if approved
+        const usd1 = new Contract(USD1_ADDRESS, USD1_ABI, provider);
+        const allowance = await usd1.allowance(wallet.address, S402_FACILITATOR_ADDRESS);
+        
+        if (allowance < amountInUnits) {
+          setError('Please approve USD1 first using the "Approve USD1" button above');
+          setApprovalNeeded(true);
+          return;
+        }
+        
+        // Use regular payment method
+        tx = await facilitator.settlePayment(payment, authSig);
+      }
       
       console.log('Waiting for confirmation...');
       const receipt = await tx.wait();
       
       setTxHash(receipt.hash);
       await loadStats(wallet.address, provider);
+      await checkApproval();
       
       setAmount('10');
       setRecipientAddress('');
@@ -275,6 +341,22 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
                 )}
               </div>
             </div>
+
+            {approvalNeeded && (
+              <div className="card" style={{ border: '1px solid #F97316' }}>
+                <h3 style={{ color: '#F97316' }}>⚠️ Approval Required</h3>
+                <p style={{ marginBottom: '16px', color: '#A1A1A1' }}>
+                  You need to approve the S402 Facilitator to spend your USD1 tokens. This is a one-time transaction.
+                </p>
+                <button 
+                  onClick={approveUSD1} 
+                  disabled={approving}
+                  className="approve-button"
+                >
+                  {approving ? 'Approving...' : 'Approve USD1'}
+                </button>
+              </div>
+            )}
 
             <div className="card buy-usd1-card">
               <div 

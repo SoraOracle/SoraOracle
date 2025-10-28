@@ -165,6 +165,29 @@
   color: #FAFAFA;
 }
 
+.approve-button {
+  width: 100%;
+  background: #F97316;
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.approve-button:hover:not(:disabled) {
+  background: #EA580C;
+  transform: translateY(-2px);
+}
+
+.approve-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .connect-button {
   width: 100%;
   background: #F97316;
