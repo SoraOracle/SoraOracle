@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserProvider, Contract, parseUnits, formatUnits, Signature } from 'ethers';
 import './S402DemoPage.css';
 
-const S402_FACILITATOR_ADDRESS = '0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1';
+const S402_FACILITATOR_ADDRESS = '0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3';
 const USD1_ADDRESS = '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d';
 
 const S402_ABI = [
@@ -182,60 +182,7 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       console.log('   Deadline (ISO):', new Date(deadline * 1000).toISOString());
       console.log('   Time until deadline:', Math.floor((deadline - currentTimestamp) / 60), 'minutes');
       
-      // Step 1: Get USD1 nonce and token name
-      const usd1 = new Contract(USD1_ADDRESS, USD1_ABI, provider);
-      const usd1Nonce = await usd1.nonces(wallet.address);
-      const tokenName = await usd1.name();
-      
-      console.log('📝 USD1 Details:', {
-        name: tokenName,
-        currentNonce: usd1Nonce.toString()
-      });
-      
-      // Step 2: Create EIP-712 domain for USD1 permit
-      const permitDomain = {
-        name: tokenName,
-        version: '1',
-        chainId: 56,
-        verifyingContract: USD1_ADDRESS
-      };
-      
-      const permitTypes = {
-        Permit: [
-          { name: 'owner', type: 'address' },
-          { name: 'spender', type: 'address' },
-          { name: 'value', type: 'uint256' },
-          { name: 'nonce', type: 'uint256' },
-          { name: 'deadline', type: 'uint256' }
-        ]
-      };
-      
-      const permitMessage = {
-        owner: wallet.address,
-        spender: S402_FACILITATOR_ADDRESS,
-        value: amountInUnits,
-        nonce: usd1Nonce,
-        deadline: deadline
-      };
-      
-      console.log('📋 Permit Message Details:');
-      console.log('   owner:', permitMessage.owner);
-      console.log('   spender:', permitMessage.spender);
-      console.log('   value:', formatUnits(permitMessage.value, 18), 'USD1');
-      console.log('   nonce:', permitMessage.nonce.toString());
-      console.log('   deadline:', new Date(deadline * 1000).toISOString());
-      
-      // Step 3: Sign permit
-      console.log('✍️  Requesting permit signature...');
-      const permitSigRaw = await signer.signTypedData(permitDomain, permitTypes, permitMessage);
-      const permitSig = Signature.from(permitSigRaw);
-      
-      console.log('✅ Permit signature created');
-      console.log('   v:', permitSig.v);
-      console.log('   r:', permitSig.r);
-      console.log('   s:', permitSig.s);
-      
-      // Step 4: Create EIP-712 domain for payment authorization
+      // Step 1: Create EIP-712 domain for payment authorization
       const authDomain = {
         name: 'S402Facilitator',
         version: '1',
@@ -263,14 +210,17 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
         nonce: nonce
       };
       
-      // Step 5: Sign authorization
+      // Step 2: Sign authorization
       console.log('✍️  Requesting authorization signature...');
       const authSigRaw = await signer.signTypedData(authDomain, authTypes, authMessage);
       const authSig = Signature.from(authSigRaw);
       
       console.log('✅ Authorization signature created');
+      console.log('   v:', authSig.v);
+      console.log('   r:', authSig.r);
+      console.log('   s:', authSig.s);
       
-      // Step 6: Prepare payment data
+      // Step 3: Prepare payment data
       const payment = {
         owner: wallet.address,
         value: amountInUnits,
@@ -279,27 +229,21 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
         nonce: nonce
       };
       
-      const permitSigStruct = {
-        v: permitSig.v,
-        r: permitSig.r,
-        s: permitSig.s
-      };
-      
       const authSigStruct = {
         v: authSig.v,
         r: authSig.r,
         s: authSig.s
       };
       
-      // Step 7: Submit to S402 Facilitator
+      // Step 4: Submit to S402 Facilitator
       const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, signer);
       
-      console.log('📤 Submitting gasless payment...');
+      console.log('📤 Submitting S402 payment (using allowance)...');
       console.log('   Amount:', formatUnits(amountInUnits, 18), 'USD1');
       console.log('   To:', recipientAddress);
       console.log('   Platform Fee:', platformFee);
       
-      console.log('📋 Full payment struct:');
+      console.log('📋 Payment struct:');
       console.log('   payment.owner:', payment.owner);
       console.log('   payment.value (BigInt):', payment.value.toString());
       console.log('   payment.value (formatted):', formatUnits(payment.value, 18));
@@ -307,17 +251,12 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       console.log('   payment.recipient:', payment.recipient);
       console.log('   payment.nonce:', payment.nonce);
       
-      console.log('📋 Permit signature struct:');
-      console.log('   v:', permitSigStruct.v);
-      console.log('   r:', permitSigStruct.r);
-      console.log('   s:', permitSigStruct.s);
-      
       console.log('📋 Auth signature struct:');
       console.log('   v:', authSigStruct.v);
       console.log('   r:', authSigStruct.r);
       console.log('   s:', authSigStruct.s);
       
-      const tx = await facilitator.settlePaymentWithPermit(payment, permitSigStruct, authSigStruct);
+      const tx = await facilitator.settlePayment(payment, authSigStruct);
       
       console.log('⏳ Waiting for confirmation...');
       const receipt = await tx.wait();
@@ -494,7 +433,7 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
             <div className="card">
               <h3>Send Payment (S402 Gasless)</h3>
               <p style={{ color: '#A1A1A1', fontSize: '14px', marginBottom: '16px' }}>
-                Two signatures, zero gas fees! Pay only with USD1 using S402.
+                One signature, zero gas fees! Pay only with USD1 using S402.
               </p>
               <div className="form">
                 <div className="form-group">
