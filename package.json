@@ -4,6 +4,8 @@
   "description": "Permissionless Oracle SDK with s402 Micropayments on BNB Chain",
   "main": "index.js",
   "scripts": {
+    "build": "cd frontend && npm install && npm run build",
+    "start": "cd frontend && npm run start",
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy:testnet": "hardhat run scripts/deploy-sora.js --network bscTestnet",
