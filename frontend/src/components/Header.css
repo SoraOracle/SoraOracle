@@ -51,24 +51,41 @@
 }
 
 .chain-warning {
-  background: var(--warning);
-  color: var(--bg);
+  background: rgba(239, 68, 68, 0.1);
+  color: #FCA5A5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
   padding: 8px 16px;
   border-radius: 6px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all 0.2s ease;
+}
+
+.chain-warning:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.5);
 }
 
 .create-profile-btn {
   margin-right: 12px;
   padding: 8px 16px;
-  font-size: 14px;
-  animation: pulse-glow 2s infinite;
+  font-size: 12px;
+  background: transparent;
+  color: #F97316;
+  border: 1px solid #F97316;
+  border-radius: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 8px rgba(255, 107, 53, 0.4); }
-  50% { box-shadow: 0 0 16px rgba(255, 107, 53, 0.6); }
+.create-profile-btn:hover {
+  background: rgba(249, 115, 22, 0.1);
+  box-shadow: 0 0 12px rgba(249, 115, 22, 0.2);
 }
 
 .wallet-info {
