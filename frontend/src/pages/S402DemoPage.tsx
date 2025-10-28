@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserProvider, Contract, parseUnits, formatUnits } from 'ethers';
+import { BrowserProvider, Contract, parseUnits, formatUnits, Signature } from 'ethers';
 import './S402DemoPage.css';
 
 const S402_FACILITATOR_ADDRESS = '0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1';
@@ -133,6 +133,12 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
     }
   };
 
+  const generateNonce = () => {
+    const randomBytes = new Uint8Array(32);
+    crypto.getRandomValues(randomBytes);
+    return '0x' + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+  };
+
   const makePayment = async () => {
     if (!wallet.address) {
       setError('Please connect your wallet first');
@@ -151,47 +157,135 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
 
       const provider = new BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const usd1Contract = new Contract(USD1_ADDRESS, USD1_ABI, signer);
       
       const amountInUnits = parseUnits(amount, 18);
+      const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour
+      const nonce = generateNonce();
       
-      // Calculate amounts
-      const platformFeeBps = parseFloat(platformFee.replace('%', '')) * 100; // Convert 1% to 100 basis points
-      const feeAmount = (amountInUnits * BigInt(platformFeeBps)) / BigInt(10000);
-      const recipientAmount = amountInUnits - feeAmount;
+      console.log('🔐 Starting EIP-2612 Permit Payment');
       
-      console.log('Sending USD1 payment:', {
-        total: formatUnits(amountInUnits, 18),
-        toRecipient: formatUnits(recipientAmount, 18),
-        platformFee: formatUnits(feeAmount, 18)
+      // Step 1: Get USD1 nonce and token name
+      const usd1 = new Contract(USD1_ADDRESS, USD1_ABI, provider);
+      const usd1Nonce = await usd1.nonces(wallet.address);
+      const tokenName = await usd1.name();
+      
+      console.log('📝 USD1 Details:', {
+        name: tokenName,
+        currentNonce: usd1Nonce.toString()
       });
       
-      // Check balance
-      const balance = await usd1Contract.balanceOf(wallet.address);
-      if (balance < amountInUnits) {
-        setError(`Insufficient balance. You have ${formatUnits(balance, 18)} USD1 but need ${formatUnits(amountInUnits, 18)} USD1`);
-        return;
-      }
+      // Step 2: Create EIP-712 domain for USD1 permit
+      const permitDomain = {
+        name: tokenName,
+        version: '1',
+        chainId: 56,
+        verifyingContract: USD1_ADDRESS
+      };
       
-      // Send to recipient
-      console.log('Transferring to recipient...');
-      const tx1 = await usd1Contract.transfer(recipientAddress, recipientAmount);
-      await tx1.wait();
+      const permitTypes = {
+        Permit: [
+          { name: 'owner', type: 'address' },
+          { name: 'spender', type: 'address' },
+          { name: 'value', type: 'uint256' },
+          { name: 'nonce', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' }
+        ]
+      };
       
-      // Send platform fee to facilitator
-      if (feeAmount > 0) {
-        console.log('Transferring platform fee...');
-        const tx2 = await usd1Contract.transfer(S402_FACILITATOR_ADDRESS, feeAmount);
-        await tx2.wait();
-      }
+      const permitMessage = {
+        owner: wallet.address,
+        spender: S402_FACILITATOR_ADDRESS,
+        value: amountInUnits,
+        nonce: usd1Nonce,
+        deadline: deadline
+      };
       
-      setTxHash(tx1.hash);
+      // Step 3: Sign permit
+      console.log('✍️  Requesting permit signature...');
+      const permitSigRaw = await signer.signTypedData(permitDomain, permitTypes, permitMessage);
+      const permitSig = Signature.from(permitSigRaw);
+      
+      console.log('✅ Permit signature created');
+      
+      // Step 4: Create EIP-712 domain for payment authorization
+      const authDomain = {
+        name: 'S402Facilitator',
+        version: '1',
+        chainId: 56,
+        verifyingContract: S402_FACILITATOR_ADDRESS
+      };
+      
+      const authTypes = {
+        PaymentAuthorization: [
+          { name: 'owner', type: 'address' },
+          { name: 'spender', type: 'address' },
+          { name: 'value', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' },
+          { name: 'recipient', type: 'address' },
+          { name: 'nonce', type: 'bytes32' }
+        ]
+      };
+      
+      const authMessage = {
+        owner: wallet.address,
+        spender: S402_FACILITATOR_ADDRESS,
+        value: amountInUnits,
+        deadline: deadline,
+        recipient: recipientAddress,
+        nonce: nonce
+      };
+      
+      // Step 5: Sign authorization
+      console.log('✍️  Requesting authorization signature...');
+      const authSigRaw = await signer.signTypedData(authDomain, authTypes, authMessage);
+      const authSig = Signature.from(authSigRaw);
+      
+      console.log('✅ Authorization signature created');
+      
+      // Step 6: Prepare payment data
+      const payment = {
+        owner: wallet.address,
+        value: amountInUnits,
+        deadline: deadline,
+        recipient: recipientAddress,
+        nonce: nonce
+      };
+      
+      const permitSigStruct = {
+        v: permitSig.v,
+        r: permitSig.r,
+        s: permitSig.s
+      };
+      
+      const authSigStruct = {
+        v: authSig.v,
+        r: authSig.r,
+        s: authSig.s
+      };
+      
+      // Step 7: Submit to S402 Facilitator
+      const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, signer);
+      
+      console.log('📤 Submitting gasless payment...');
+      console.log('   Amount:', formatUnits(amountInUnits, 18), 'USD1');
+      console.log('   To:', recipientAddress);
+      console.log('   Platform Fee:', platformFee);
+      
+      const tx = await facilitator.settlePaymentWithPermit(payment, permitSigStruct, authSigStruct);
+      
+      console.log('⏳ Waiting for confirmation...');
+      const receipt = await tx.wait();
+      
+      console.log('🎉 Payment successful!');
+      console.log('   TX:', receipt.hash);
+      
+      setTxHash(receipt.hash);
       await loadStats(wallet.address, provider);
       
       setAmount('10');
       setRecipientAddress('');
     } catch (err: any) {
-      console.error('Payment error:', err);
+      console.error('❌ Payment error:', err);
       setError(`Payment failed: ${err.message || err.toString()}`);
     } finally {
       setLoading(false);
@@ -352,21 +446,10 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
             </div>
 
             <div className="card">
-              <div style={{ 
-                background: '#FFF3CD', 
-                border: '1px solid #FFC107',
-                borderRadius: '8px',
-                padding: '12px',
-                marginBottom: '16px',
-                color: '#856404'
-              }}>
-                <strong>⚠️ EIP-2612 Permit Issue</strong>
-                <p style={{ margin: '8px 0 0 0', fontSize: '14px' }}>
-                  USD1's permit implementation is not working with our signatures. Traditional transfer works fine. The S402 contract supports permit-based gasless payments when USD1's permit is fixed.
-                </p>
-              </div>
-              
-              <h3>Send Payment (Direct Transfer)</h3>
+              <h3>Send Payment (Gasless via EIP-2612 Permit)</h3>
+              <p style={{ color: '#A1A1A1', fontSize: '14px', marginBottom: '16px' }}>
+                Two signatures, zero gas fees! Pay only with USD1 using EIP-2612 permits.
+              </p>
               <div className="form">
                 <div className="form-group">
                   <label>Recipient Address</label>
