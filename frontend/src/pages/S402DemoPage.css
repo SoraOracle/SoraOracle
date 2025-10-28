@@ -9,9 +9,8 @@
 }
 
 .s402-demo-page.wallet-connected {
-  display: block;
-  overflow-y: auto;
-  padding-top: 2rem;
+  align-items: flex-start;
+  min-height: auto;
 }
 
 .demo-container {
