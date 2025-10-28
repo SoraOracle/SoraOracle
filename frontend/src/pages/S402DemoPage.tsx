@@ -70,11 +70,21 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, provider);
       const userStats = await facilitator.getStats(address);
       
-      setStats({
+      console.log('Raw stats from contract:', {
+        paid: userStats[0].toString(),
+        received: userStats[1].toString(),
+        balance: userStats[2].toString()
+      });
+      
+      const formattedStats = {
         paid: parseFloat(formatUnits(userStats[0], 6)).toFixed(4),
         received: parseFloat(formatUnits(userStats[1], 6)).toFixed(4),
         balance: parseFloat(formatUnits(userStats[2], 6)).toFixed(4)
-      });
+      };
+      
+      console.log('Formatted stats (6 decimals):', formattedStats);
+      
+      setStats(formattedStats);
     } catch (err: any) {
       console.error('Failed to load stats:', err);
     }
