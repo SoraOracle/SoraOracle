@@ -16,6 +16,12 @@
   gap: 24px;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .logo-image {
   height: 60px;
   width: auto;
@@ -29,8 +35,7 @@
 .nav {
   display: flex;
   gap: 24px;
-  flex: 1;
-  justify-content: center;
+  align-items: center;
 }
 
 .nav-link {
@@ -50,43 +55,6 @@
   gap: 12px;
 }
 
-.chain-warning {
-  background: rgba(239, 68, 68, 0.1);
-  color: #FCA5A5;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: all 0.2s ease;
-}
-
-.chain-warning:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.5);
-}
-
-.create-profile-btn {
-  margin-right: 12px;
-  padding: 8px 16px;
-  font-size: 12px;
-  background: transparent;
-  color: #F97316;
-  border: 1px solid #F97316;
-  border-radius: 6px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.create-profile-btn:hover {
-  background: rgba(249, 115, 22, 0.1);
-  box-shadow: 0 0 12px rgba(249, 115, 22, 0.2);
-}
 
 .wallet-info {
   display: flex;
@@ -132,14 +100,11 @@
 }
 
 @media (max-width: 768px) {
-  .header-content {
-    flex-wrap: wrap;
+  .nav {
+    display: none;
   }
   
-  .nav {
-    order: 3;
-    width: 100%;
-    justify-content: flex-start;
-    overflow-x: auto;
+  .wallet-section {
+    gap: 8px;
   }
 }

@@ -1,0 +1,129 @@
+.hamburger-menu {
+  position: relative;
+}
+
+.hamburger-button {
+  background: transparent;
+  border: 1px solid #333;
+  color: #A1A1A1;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.hamburger-button:hover {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: #F97316;
+  color: #F97316;
+}
+
+.hamburger-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.hamburger-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  background: #141414;
+  border-right: 1px solid #222;
+  z-index: 1001;
+  animation: slideIn 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.hamburger-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #222;
+}
+
+.hamburger-header h3 {
+  color: #F97316;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  color: #A1A1A1;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.close-button:hover {
+  color: #FAFAFA;
+}
+
+.hamburger-links {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+  overflow-y: auto;
+}
+
+.hamburger-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  color: #A1A1A1;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.hamburger-link:hover {
+  background: rgba(249, 115, 22, 0.1);
+  color: #F97316;
+  border-left-color: #F97316;
+}
+
+.hamburger-link svg {
+  flex-shrink: 0;
+  transition: stroke 0.2s ease;
+}
+
+.hamburger-link:hover svg {
+  stroke: #F97316;
+}
+
+@media (max-width: 768px) {
+  .hamburger-nav {
+    width: 100%;
+  }
+}
