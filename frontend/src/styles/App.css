@@ -9,14 +9,14 @@
   padding: 0;
 }
 
-@media (min-width: 769px) {
+@media (min-width: 1400px) {
   .app {
     overflow: hidden;
     height: 100vh;
   }
   
   .main-content {
-    overflow-y: auto;
+    overflow: hidden;
   }
 }
 
