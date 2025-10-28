@@ -163,7 +163,7 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const deadline = currentTimestamp + 3600; // 1 hour from NOW
       const nonce = generateNonce();
       
-      console.log('🔐 Starting EIP-2612 Permit Payment');
+      console.log('🔐 Starting S402 Gasless Payment');
       console.log('⏰ Timestamp check:');
       console.log('   Current time:', new Date().toISOString());
       console.log('   Current timestamp (unix):', currentTimestamp);
@@ -313,7 +313,7 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
     <div className={`s402-demo-page ${wallet.address ? 'wallet-connected' : ''}`}>
       <div className="demo-container">
         <h1>S402 Payment Protocol</h1>
-        <p className="subtitle">Gasless USD1 payments on BNB Chain using EIP-2612 permits</p>
+        <p className="subtitle">Gasless USD1 payments on BNB Chain</p>
 
         <div className="card">
           <h3>Contract Information</h3>
@@ -463,9 +463,9 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
             </div>
 
             <div className="card">
-              <h3>Send Payment (Gasless via EIP-2612 Permit)</h3>
+              <h3>Send Payment (S402 Gasless)</h3>
               <p style={{ color: '#A1A1A1', fontSize: '14px', marginBottom: '16px' }}>
-                Two signatures, zero gas fees! Pay only with USD1 using EIP-2612 permits.
+                Two signatures, zero gas fees! Pay only with USD1 using S402.
               </p>
               <div className="form">
                 <div className="form-group">
