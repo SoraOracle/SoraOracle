@@ -32,8 +32,11 @@ output/
 attached_assets/
 *.tmp
 .git.backup*
+
+# Replit-specific
 replit.md
 .replit
+.git/
 
 # Deployment artifacts
 deployment-*.json
