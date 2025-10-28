@@ -17,12 +17,20 @@ The SDK provides TypeScript/JavaScript bindings for React applications and inclu
   - Users can swap any token (BNB, BUSD, USDT, etc.) for USD1 directly on the S402 page
   - Dark theme integration matching S402 design system
   - Collapsed by default to keep UI clean
-- ✅ S402Facilitator v2 deployed to BNB Chain mainnet at 0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1
-- ✅ Contract successfully verified on BSCScan
+- ✅ **S402Facilitator v3 deployed to BNB Chain mainnet at 0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3**
+  - Added `settlePayment()` function that uses existing USD1 allowances
+  - Bypasses USD1 permit signature issues (root cause unknown)
+  - Simpler UX: One signature instead of two
+  - Contract successfully verified on BSCScan
+  - Frontend updated to use new contract and settlePayment() function
+  - SDK configuration updated with new verified mainnet contract
 - ✅ Refactored contract to use PaymentData and Signature structs (eliminates stack too deep errors)
 - ✅ Contract compiles without viaIR, enabling BSCScan verification
 - ✅ All documentation updated with USD1 integration
-- ✅ SDK configuration updated with verified mainnet contract
+- ⚠️ **Note**: USD1's permit() function rejects valid signatures in production despite passing all cryptographic tests
+  - Workaround: Use `settlePayment()` with pre-approved USD1 allowances
+  - Users must approve USD1 spending once (one-time transaction)
+  - After approval, unlimited gasless payments with just one signature
 
 ## User Preferences
 
@@ -41,7 +49,9 @@ Preferred communication style: Simple, everyday language.
 - Refund mechanism for unanswered questions after deadline
 
 **S402 Payment Facilitator (S402Facilitator.sol)**
-- EIP-2612 permit-based USD1 transfers on BNB Chain
+- **Current deployment: v3 at 0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3**
+- Allowance-based USD1 transfers on BNB Chain (via `settlePayment()`)
+- Legacy EIP-2612 permit support (via `settlePaymentWithPermit()` - not recommended due to USD1 permit issues)
 - Platform fee collection (1% on mainnet)
 - Payment verification and settlement tracking
 - Support for USD1 - World Liberty Financial (0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d, 18 decimals)
