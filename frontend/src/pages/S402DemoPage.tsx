@@ -211,11 +211,11 @@ export function S402DemoPage() {
   return (
     <div className="s402-demo-page">
       <div className="demo-container">
-        <h1>S402 Payment Protocol Demo</h1>
+        <h1>S402 Payment Protocol</h1>
         <p className="subtitle">Gasless USDC payments on BNB Chain using EIP-2612 permits</p>
 
         <div className="card">
-          <h2>Contract Information</h2>
+          <h3>Contract Information</h3>
           <div className="info-grid">
             <div className="info-item">
               <label>S402 Facilitator:</label>
@@ -245,7 +245,7 @@ export function S402DemoPage() {
         ) : (
           <>
             <div className="card">
-              <h2>Your Stats</h2>
+              <h3>Your Account</h3>
               <div className="stats-grid">
                 <div className="stat-item">
                   <label>Wallet:</label>
@@ -271,7 +271,7 @@ export function S402DemoPage() {
             </div>
 
             <div className="card">
-              <h2>Make Payment</h2>
+              <h3>Send Payment</h3>
               <div className="form">
                 <div className="form-group">
                   <label>Recipient Address</label>
@@ -327,7 +327,7 @@ export function S402DemoPage() {
             </div>
 
             <div className="card info-card">
-              <h3>How It Works</h3>
+              <h3>Protocol Overview</h3>
               <ol>
                 <li><strong>Permit Signature:</strong> Sign a gasless approval for USDC transfer (EIP-2612)</li>
                 <li><strong>Authorization Signature:</strong> Sign payment authorization including recipient</li>
