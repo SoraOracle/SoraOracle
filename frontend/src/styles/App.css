@@ -6,7 +6,18 @@
 
 .main-content {
   flex: 1;
-  padding: 40px 0;
+  padding: 0;
+}
+
+@media (min-width: 769px) {
+  .app {
+    overflow: hidden;
+    height: 100vh;
+  }
+  
+  .main-content {
+    overflow-y: auto;
+  }
 }
 
 /* Grid layouts */

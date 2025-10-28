@@ -4,7 +4,6 @@ import { useSoraOracle } from '@sora-oracle/sdk/hooks';
 import { SORA_CONFIG } from './config';
 import { ProfileProvider } from './contexts/ProfileContext';
 import Header from './components/Header';
-import MarketsPage from './pages/MarketsPage';
 import MarketDetailPage from './pages/MarketDetailPage';
 import CreateMarketPage from './pages/CreateMarketPage';
 import DashboardPage from './pages/DashboardPage';
