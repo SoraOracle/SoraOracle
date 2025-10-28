@@ -176,7 +176,7 @@ function AnalyticsPage() {
                     <YAxis 
                       stroke="rgba(255,255,255,0.5)"
                       style={{ fontSize: '12px' }}
-                      tickFormatter={(value) => `${value.toFixed(0)} BNB`}
+                      tickFormatter={(value: number) => `${value.toFixed(0)} BNB`}
                     />
                     <Tooltip 
                       contentStyle={{

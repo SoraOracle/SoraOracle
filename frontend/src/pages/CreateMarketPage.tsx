@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProfile } from '../contexts/ProfileContext';
 import './CreateMarketPage.css';
 
-function CreateMarketPage({ wallet, _oracleClient, _marketClient }: any) {
+function CreateMarketPage({ wallet }: any) {
   const navigate = useNavigate();
   const { profile } = useProfile();
   const [question, setQuestion] = useState('');

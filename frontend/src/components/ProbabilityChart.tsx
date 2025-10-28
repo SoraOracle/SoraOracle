@@ -94,7 +94,7 @@ function ProbabilityChart({ marketId, data }: ProbabilityChartProps) {
             style={{ fontSize: '12px' }}
             domain={[0, 100]}
             ticks={[0, 20, 40, 60, 80, 100]}
-            tickFormatter={(value) => `${value}%`}
+            tickFormatter={(value: number) => `${value}%`}
           />
           <Tooltip content={<CustomTooltip />} />
           <Line 
