@@ -1,13 +1,16 @@
 .s402-demo-page {
   min-height: 100vh;
   background: #0A0A0A;
-  padding: 1rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 .demo-container {
   max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 .demo-container h1 {
