@@ -168,7 +168,14 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       // Fetch USD1's actual EIP-2612 domain parameters from the contract
       console.log('Fetching USD1 domain parameters...');
       const tokenName = await usd1.name();
-      const tokenVersion = await usd1.version();
+      
+      // Try to get version, fallback to '1' if not available
+      let tokenVersion = '1';
+      try {
+        tokenVersion = await usd1.version();
+      } catch (e) {
+        console.log('USD1 version() not available, using default "1"');
+      }
       
       console.log('USD1 EIP-2612 domain:', { tokenName, tokenVersion, chainId });
 
