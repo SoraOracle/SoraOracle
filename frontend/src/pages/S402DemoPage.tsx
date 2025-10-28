@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserProvider, Contract, parseUnits, formatUnits } from 'ethers';
+import { setup1inchWidget } from '@1inch/embedded-widget';
 import './S402DemoPage.css';
 
 const S402_FACILITATOR_ADDRESS = '0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1';
@@ -46,6 +47,10 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
   const [error, setError] = useState<string>('');
   const [stats, setStats] = useState<Stats | null>(null);
   const [platformFee, setPlatformFee] = useState<string>('');
+  const [showBuyWidget, setShowBuyWidget] = useState(false);
+  
+  const widgetContainerRef = useRef<HTMLDivElement>(null);
+  const widgetManagerRef = useRef<any>(null);
 
   useEffect(() => {
     if (wallet.address && wallet.chainId === 56) {
@@ -53,6 +58,37 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       loadStats(wallet.address, new BrowserProvider(window.ethereum));
     }
   }, [wallet.address, wallet.chainId]);
+
+  useEffect(() => {
+    if (showBuyWidget && widgetContainerRef.current && !widgetManagerRef.current && window.ethereum) {
+      try {
+        widgetManagerRef.current = setup1inchWidget({
+          chainId: 56,
+          hostElement: widgetContainerRef.current,
+          provider: window.ethereum,
+          theme: 'dark',
+          params: {
+            tokenOut: USD1_ADDRESS,
+          }
+        } as any);
+
+        if (widgetManagerRef.current?.onIframeLoad) {
+          widgetManagerRef.current.onIframeLoad(() => {
+            console.log('1inch swap widget loaded');
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load 1inch widget:', error);
+      }
+    }
+
+    return () => {
+      if (widgetManagerRef.current && !showBuyWidget) {
+        widgetManagerRef.current.destroy?.();
+        widgetManagerRef.current = null;
+      }
+    };
+  }, [showBuyWidget]);
 
   const loadPlatformFee = async () => {
     try {
@@ -270,6 +306,42 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
                   </>
                 )}
               </div>
+            </div>
+
+            <div className="card buy-usd1-card">
+              <div 
+                className="buy-usd1-header"
+                onClick={() => setShowBuyWidget(!showBuyWidget)}
+                style={{ cursor: 'pointer', userSelect: 'none' }}
+              >
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  Buy USD1
+                  <span style={{ 
+                    transform: showBuyWidget ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transition: 'transform 0.3s ease',
+                    fontSize: '20px'
+                  }}>
+                    ▼
+                  </span>
+                </h3>
+                <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#999' }}>
+                  Swap any token for USD1 using 1inch
+                </p>
+              </div>
+              
+              {showBuyWidget && (
+                <div style={{ marginTop: '16px' }}>
+                  <div 
+                    ref={widgetContainerRef}
+                    style={{
+                      width: '100%',
+                      height: '600px',
+                      borderRadius: '8px',
+                      overflow: 'hidden'
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="card">

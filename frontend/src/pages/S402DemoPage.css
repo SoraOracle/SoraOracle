@@ -117,6 +117,26 @@
   font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
 }
 
+.buy-usd1-card {
+  border: 1px solid #F97316;
+}
+
+.buy-usd1-header:hover {
+  opacity: 0.8;
+}
+
+.buy-usd1-header h3 {
+  color: #F97316;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.buy-usd1-header p {
+  color: #A1A1A1;
+}
+
 .connect-button {
   width: 100%;
   background: #F97316;

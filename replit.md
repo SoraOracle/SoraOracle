@@ -13,6 +13,10 @@ The SDK provides TypeScript/JavaScript bindings for React applications and inclu
   - USD1 has full EIP-2612 support with 18 decimals on BSC mainnet
   - Contract address: 0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d
   - 268K+ holders, $2.9B market cap, backed by US Treasuries
+- ✅ Added collapsible "Buy USD1" widget powered by 1inch DEX aggregator
+  - Users can swap any token (BNB, BUSD, USDT, etc.) for USD1 directly on the S402 page
+  - Dark theme integration matching S402 design system
+  - Collapsed by default to keep UI clean
 - ✅ S402Facilitator v2 deployed to BNB Chain mainnet at 0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1
 - ✅ Contract successfully verified on BSCScan
 - ✅ Refactored contract to use PaymentData and Signature structs (eliminates stack too deep errors)
@@ -97,12 +101,19 @@ Preferred communication style: Simple, everyday language.
 - Vite for build tooling
 - React Router for navigation
 - Ethers.js v6 for blockchain interaction
+- 1inch Embedded Widget for token swaps
 
 **SDK Integration (@sora-oracle/sdk)**
 - React hooks for market data (useMarkets, useMarketDetails)
 - TypeScript client classes (OracleClient, PredictionMarketSDK, X402Client)
 - Automatic wallet connection handling
 - Real-time market updates
+
+**Buy USD1 Integration**
+- 1inch DEX aggregator widget (@1inch/embedded-widget)
+- Collapsible UI section with arrow indicator
+- Swap any BSC token to USD1 with best rates
+- Dark theme matching S402 design (#0A0A0A background, #F97316 accents)
 
 ### Payment Gateway (x402 Express Integration)
 
