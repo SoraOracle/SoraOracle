@@ -7,6 +7,7 @@ const USD1_ADDRESS = '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d';
 
 const S402_ABI = [
   'function settlePaymentWithPermit((address owner, uint256 value, uint256 deadline, address recipient, bytes32 nonce) payment, (uint8 v, bytes32 r, bytes32 s) permitSig, (uint8 v, bytes32 r, bytes32 s) authSig) external returns (bool)',
+  'function settlePayment((address owner, uint256 value, uint256 deadline, address recipient, bytes32 nonce) payment, (uint8 v, bytes32 r, bytes32 s) authSig) external returns (bool)',
   'function getStats(address user) external view returns (uint256 paid, uint256 received, uint256 balance)',
   'function platformFeeBps() external view returns (uint256)',
   'event PaymentSettled(address indexed from, address indexed to, uint256 value, uint256 platformFee, bytes32 nonce)'
@@ -14,6 +15,8 @@ const S402_ABI = [
 
 const USD1_ABI = [
   'function balanceOf(address account) external view returns (uint256)',
+  'function allowance(address owner, address spender) external view returns (uint256)',
+  'function approve(address spender, uint256 amount) external returns (bool)',
   'function nonces(address owner) external view returns (uint256)',
   'function name() external view returns (string)',
   'function version() external view returns (string)'
