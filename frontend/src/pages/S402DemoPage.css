@@ -8,6 +8,12 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
+.s402-demo-page.wallet-connected {
+  display: block;
+  overflow-y: auto;
+  padding-top: 2rem;
+}
+
 .demo-container {
   max-width: 1200px;
   width: 100%;

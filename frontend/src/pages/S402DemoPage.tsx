@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserProvider, Contract, parseUnits } from 'ethers';
 import './S402DemoPage.css';
 
@@ -25,8 +25,20 @@ interface Stats {
   balance: string;
 }
 
-export function S402DemoPage() {
-  const [walletAddress, setWalletAddress] = useState<string>('');
+interface WalletProps {
+  address: string | null;
+  isConnecting: boolean;
+  connect: () => Promise<void>;
+  disconnect: () => void;
+  chainId: number | null;
+  switchChain: (chainId: number) => Promise<void>;
+}
+
+interface S402DemoPageProps {
+  wallet: WalletProps;
+}
+
+export function S402DemoPage({ wallet }: S402DemoPageProps) {
   const [recipientAddress, setRecipientAddress] = useState<string>('');
   const [amount, setAmount] = useState<string>('10');
   const [loading, setLoading] = useState(false);
@@ -35,31 +47,21 @@ export function S402DemoPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [platformFee, setPlatformFee] = useState<string>('');
 
-  const connectWallet = async () => {
+  useEffect(() => {
+    if (wallet.address && wallet.chainId === 56) {
+      loadPlatformFee();
+      loadStats(wallet.address, new BrowserProvider(window.ethereum));
+    }
+  }, [wallet.address, wallet.chainId]);
+
+  const loadPlatformFee = async () => {
     try {
-      setError('');
-      if (!window.ethereum) {
-        setError('MetaMask not detected. Please install MetaMask.');
-        return;
-      }
-
       const provider = new BrowserProvider(window.ethereum);
-      const accounts = await provider.send('eth_requestAccounts', []);
-      setWalletAddress(accounts[0]);
-
-      const network = await provider.getNetwork();
-      if (network.chainId !== 56n) {
-        setError('Please switch to BNB Chain Mainnet (Chain ID 56)');
-        return;
-      }
-
       const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, provider);
       const feeBps = await facilitator.platformFeeBps();
       setPlatformFee(`${Number(feeBps) / 100}%`);
-
-      await loadStats(accounts[0], provider);
     } catch (err: any) {
-      setError(`Failed to connect wallet: ${err.message}`);
+      console.error('Failed to load platform fee:', err);
     }
   };
 
@@ -85,7 +87,7 @@ export function S402DemoPage() {
   };
 
   const makePayment = async () => {
-    if (!walletAddress) {
+    if (!wallet.address) {
       setError('Please connect your wallet first');
       return;
     }
@@ -108,7 +110,7 @@ export function S402DemoPage() {
       const nonce = generateNonce();
 
       const usdc = new Contract(USDC_ADDRESS, USDC_ABI, provider);
-      const usdcNonce = await usdc.nonces(walletAddress);
+      const usdcNonce = await usdc.nonces(wallet.address);
       const chainId = (await provider.getNetwork()).chainId;
 
       const permitDomain = {
@@ -129,7 +131,7 @@ export function S402DemoPage() {
       };
 
       const permitMessage = {
-        owner: walletAddress,
+        owner: wallet.address,
         spender: S402_FACILITATOR_ADDRESS,
         value: amountInUnits,
         nonce: usdcNonce,
@@ -163,7 +165,7 @@ export function S402DemoPage() {
       };
 
       const authMessage = {
-        owner: walletAddress,
+        owner: wallet.address,
         spender: S402_FACILITATOR_ADDRESS,
         value: amountInUnits,
         deadline: deadline,
@@ -180,7 +182,7 @@ export function S402DemoPage() {
       };
 
       const payment = {
-        owner: walletAddress,
+        owner: wallet.address,
         value: amountInUnits,
         deadline: deadline,
         recipient: recipientAddress,
@@ -196,7 +198,7 @@ export function S402DemoPage() {
       const receipt = await tx.wait();
       
       setTxHash(receipt.hash);
-      await loadStats(walletAddress, provider);
+      await loadStats(wallet.address, provider);
       
       setAmount('10');
       setRecipientAddress('');
@@ -209,7 +211,7 @@ export function S402DemoPage() {
   };
 
   return (
-    <div className="s402-demo-page">
+    <div className={`s402-demo-page ${wallet.address ? 'wallet-connected' : ''}`}>
       <div className="demo-container">
         <h1>S402 Payment Protocol</h1>
         <p className="subtitle">Gasless USDC payments on BNB Chain using EIP-2612 permits</p>
@@ -235,9 +237,9 @@ export function S402DemoPage() {
           </div>
         </div>
 
-        {!walletAddress ? (
+        {!wallet.address ? (
           <div className="card">
-            <button onClick={connectWallet} className="connect-button">
+            <button onClick={wallet.connect} className="connect-button">
               Connect MetaMask
             </button>
             <p className="note">Make sure you're on BNB Chain Mainnet</p>
@@ -249,7 +251,7 @@ export function S402DemoPage() {
               <div className="stats-grid">
                 <div className="stat-item">
                   <label>Wallet:</label>
-                  <span className="address">{walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</span>
+                  <span className="address">{wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}</span>
                 </div>
                 {stats && (
                   <>

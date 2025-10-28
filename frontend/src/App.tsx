@@ -24,11 +24,11 @@ function App() {
           <Routes>
             <Route 
               path="/" 
-              element={<S402DemoPage />} 
+              element={<S402DemoPage wallet={wallet} />} 
             />
             <Route 
               path="/s402" 
-              element={<S402DemoPage />} 
+              element={<S402DemoPage wallet={wallet} />} 
             />
             <Route 
               path="/market/:id" 
