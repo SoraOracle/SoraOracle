@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import './HamburgerMenu.css';
 
@@ -6,7 +7,7 @@ export function HamburgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="hamburger-menu">
+    <>
       <button 
         className="hamburger-button"
         onClick={() => setIsOpen(!isOpen)}
@@ -17,7 +18,7 @@ export function HamburgerMenu() {
         </svg>
       </button>
 
-      {isOpen && (
+      {isOpen && createPortal(
         <>
           <div className="hamburger-overlay" onClick={() => setIsOpen(false)} />
           <nav className="hamburger-nav">
@@ -70,8 +71,9 @@ export function HamburgerMenu() {
               </Link>
             </div>
           </nav>
-        </>
+        </>,
+        document.body
       )}
-    </div>
+    </>
   );
 }
