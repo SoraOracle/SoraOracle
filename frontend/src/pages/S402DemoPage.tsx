@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserProvider, Contract, parseUnits } from 'ethers';
+import { BrowserProvider, Contract, parseUnits, formatUnits } from 'ethers';
 import './S402DemoPage.css';
 
 const S402_FACILITATOR_ADDRESS = '0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1';
@@ -71,9 +71,9 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const userStats = await facilitator.getStats(address);
       
       setStats({
-        paid: (Number(userStats[0]) / 1e6).toFixed(2),
-        received: (Number(userStats[1]) / 1e6).toFixed(2),
-        balance: (Number(userStats[2]) / 1e6).toFixed(2)
+        paid: parseFloat(formatUnits(userStats[0], 6)).toFixed(2),
+        received: parseFloat(formatUnits(userStats[1], 6)).toFixed(2),
+        balance: parseFloat(formatUnits(userStats[2], 6)).toFixed(2)
       });
     } catch (err: any) {
       console.error('Failed to load stats:', err);
