@@ -159,10 +159,17 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const signer = await provider.getSigner();
       
       const amountInUnits = parseUnits(amount, 18);
-      const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const deadline = currentTimestamp + 3600; // 1 hour from NOW
       const nonce = generateNonce();
       
       console.log('🔐 Starting EIP-2612 Permit Payment');
+      console.log('⏰ Timestamp check:');
+      console.log('   Current time:', new Date().toISOString());
+      console.log('   Current timestamp (unix):', currentTimestamp);
+      console.log('   Deadline timestamp (unix):', deadline);
+      console.log('   Deadline (ISO):', new Date(deadline * 1000).toISOString());
+      console.log('   Time until deadline:', Math.floor((deadline - currentTimestamp) / 60), 'minutes');
       
       // Step 1: Get USD1 nonce and token name
       const usd1 = new Contract(USD1_ADDRESS, USD1_ABI, provider);
@@ -200,12 +207,22 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
         deadline: deadline
       };
       
+      console.log('📋 Permit Message Details:');
+      console.log('   owner:', permitMessage.owner);
+      console.log('   spender:', permitMessage.spender);
+      console.log('   value:', formatUnits(permitMessage.value, 18), 'USD1');
+      console.log('   nonce:', permitMessage.nonce.toString());
+      console.log('   deadline:', new Date(deadline * 1000).toISOString());
+      
       // Step 3: Sign permit
       console.log('✍️  Requesting permit signature...');
       const permitSigRaw = await signer.signTypedData(permitDomain, permitTypes, permitMessage);
       const permitSig = Signature.from(permitSigRaw);
       
       console.log('✅ Permit signature created');
+      console.log('   v:', permitSig.v);
+      console.log('   r:', permitSig.r);
+      console.log('   s:', permitSig.s);
       
       // Step 4: Create EIP-712 domain for payment authorization
       const authDomain = {

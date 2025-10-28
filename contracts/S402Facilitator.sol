@@ -122,17 +122,31 @@ contract S402Facilitator is ReentrancyGuard, Pausable, Ownable {
     // =============================================================================
     
     /**
-     * @notice Settle payment using EIP-2612 permit with signed recipient
-     * @dev SECURITY FIX: Recipient is now part of signed authorization
-     * 
-     * User signs: PaymentAuthorization(owner, spender, value, deadline, recipient, nonce)
-     * This prevents front-running attacks where recipient could be changed
+     * @notice Settle payment using existing allowance (no permit needed)
+     * @dev Requires user to have approved the contract beforehand
      * 
      * @param payment Payment data (owner, value, deadline, recipient, nonce)
-     * @param permitSig EIP-2612 permit signature for USD1 approval
      * @param authSig Authorization signature for payment (includes recipient)
      * @return True if payment settled successfully
      */
+    function settlePayment(
+        PaymentData calldata payment,
+        Signature calldata authSig
+    ) external nonReentrant whenNotPaused returns (bool) {
+        require(payment.owner != address(0) && payment.recipient != address(0), "Invalid address");
+        require(block.timestamp <= payment.deadline && payment.value > 0, "Invalid params");
+        
+        bytes32 hash = keccak256(abi.encodePacked(
+            payment.owner, payment.recipient, payment.value, payment.deadline, payment.nonce
+        ));
+        require(!usedPayments[hash], "Payment used");
+        usedPayments[hash] = true;
+        
+        _verifyAuth(payment, authSig);
+        _doTransfers(payment);
+        return true;
+    }
+    
     function settlePaymentWithPermit(
         PaymentData calldata payment,
         Signature calldata permitSig,
