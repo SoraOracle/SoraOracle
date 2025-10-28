@@ -299,6 +299,24 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       console.log('   To:', recipientAddress);
       console.log('   Platform Fee:', platformFee);
       
+      console.log('📋 Full payment struct:');
+      console.log('   payment.owner:', payment.owner);
+      console.log('   payment.value (BigInt):', payment.value.toString());
+      console.log('   payment.value (formatted):', formatUnits(payment.value, 18));
+      console.log('   payment.deadline:', payment.deadline);
+      console.log('   payment.recipient:', payment.recipient);
+      console.log('   payment.nonce:', payment.nonce);
+      
+      console.log('📋 Permit signature struct:');
+      console.log('   v:', permitSigStruct.v);
+      console.log('   r:', permitSigStruct.r);
+      console.log('   s:', permitSigStruct.s);
+      
+      console.log('📋 Auth signature struct:');
+      console.log('   v:', authSigStruct.v);
+      console.log('   r:', authSigStruct.r);
+      console.log('   s:', authSigStruct.s);
+      
       const tx = await facilitator.settlePaymentWithPermit(payment, permitSigStruct, authSigStruct);
       
       console.log('⏳ Waiting for confirmation...');
