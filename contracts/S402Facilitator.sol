@@ -19,13 +19,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * 
  * S402 (SORA 402):
  * - Inspired by Coinbase's x402 but optimized for BNB Chain
- * - EIP-2612 permit() (BNB Chain USDC compatibility)
- * - Sequential nonces (handled by USDC contract)
+ * - EIP-2612 permit() (World Liberty Financial USD1 compatibility)
+ * - Sequential nonces (handled by USD1 contract)
  * - Two-step process: permit() then transferFrom()
  * - NOT x402-compliant (honest branding)
  * 
  * Network: BNB Chain (56) / BNB Testnet (97)
- * Token: USDC on BNB Chain (EIP-2612 compliant)
+ * Token: USD1 on BNB Chain (EIP-2612 compliant, 18 decimals)
  * 
  * Reference: S402_SPECIFICATION.md
  */
@@ -51,7 +51,7 @@ contract S402Facilitator is ReentrancyGuard, Pausable, Ownable {
     // STATE VARIABLES
     // =============================================================================
     
-    // USDC on BNB Chain (EIP-2612 compliant)
+    // USD1 on BNB Chain (World Liberty Financial, EIP-2612 compliant, 18 decimals)
     IERC20 public immutable usdc;
     
     // Platform fee (basis points, e.g., 100 = 1%)
@@ -98,11 +98,11 @@ contract S402Facilitator is ReentrancyGuard, Pausable, Ownable {
     // =============================================================================
     
     /**
-     * @notice Initialize facilitator with USDC address
-     * @param _usdc USDC contract address on BNB Chain
+     * @notice Initialize facilitator with USD1 address
+     * @param _usdc USD1 contract address on BNB Chain (World Liberty Financial)
      */
     constructor(address _usdc) Ownable(msg.sender) {
-        require(_usdc != address(0), "Invalid USDC address");
+        require(_usdc != address(0), "Invalid USD1 address");
         usdc = IERC20(_usdc);
         
         // Set up EIP-712 domain separator
@@ -129,7 +129,7 @@ contract S402Facilitator is ReentrancyGuard, Pausable, Ownable {
      * This prevents front-running attacks where recipient could be changed
      * 
      * @param payment Payment data (owner, value, deadline, recipient, nonce)
-     * @param permitSig EIP-2612 permit signature for USDC approval
+     * @param permitSig EIP-2612 permit signature for USD1 approval
      * @param authSig Authorization signature for payment (includes recipient)
      * @return True if payment settled successfully
      */

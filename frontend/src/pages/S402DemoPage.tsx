@@ -3,7 +3,7 @@ import { BrowserProvider, Contract, parseUnits, formatUnits } from 'ethers';
 import './S402DemoPage.css';
 
 const S402_FACILITATOR_ADDRESS = '0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1';
-const USDC_ADDRESS = '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d';
+const USD1_ADDRESS = '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d';
 
 const S402_ABI = [
   'function settlePaymentWithPermit((address owner, uint256 value, uint256 deadline, address recipient, bytes32 nonce) payment, (uint8 v, bytes32 r, bytes32 s) permitSig, (uint8 v, bytes32 r, bytes32 s) authSig) external returns (bool)',
@@ -12,7 +12,7 @@ const S402_ABI = [
   'event PaymentSettled(address indexed from, address indexed to, uint256 value, uint256 platformFee, bytes32 nonce)'
 ];
 
-const USDC_ABI = [
+const USD1_ABI = [
   'function balanceOf(address account) external view returns (uint256)',
   'function nonces(address owner) external view returns (uint256)',
   'function name() external view returns (string)',
@@ -109,15 +109,15 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const deadline = Math.floor(Date.now() / 1000) + 3600;
       const nonce = generateNonce();
 
-      const usdc = new Contract(USDC_ADDRESS, USDC_ABI, provider);
-      const usdcNonce = await usdc.nonces(wallet.address);
+      const usd1 = new Contract(USD1_ADDRESS, USD1_ABI, provider);
+      const usd1Nonce = await usd1.nonces(wallet.address);
       const chainId = (await provider.getNetwork()).chainId;
 
       const permitDomain = {
-        name: 'USD Coin',
-        version: '2',
+        name: 'USD1',
+        version: '1',
         chainId: chainId,
-        verifyingContract: USDC_ADDRESS
+        verifyingContract: USD1_ADDRESS
       };
 
       const permitTypes = {
@@ -134,7 +134,7 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
         owner: wallet.address,
         spender: S402_FACILITATOR_ADDRESS,
         value: amountInUnits,
-        nonce: usdcNonce,
+        nonce: usd1Nonce,
         deadline: deadline
       };
 
@@ -214,7 +214,7 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
     <div className={`s402-demo-page ${wallet.address ? 'wallet-connected' : ''}`}>
       <div className="demo-container">
         <h1>S402 Payment Protocol</h1>
-        <p className="subtitle">Gasless USDC payments on BNB Chain using EIP-2612 permits</p>
+        <p className="subtitle">Gasless USD1 payments on BNB Chain using EIP-2612 permits</p>
 
         <div className="card">
           <h3>Contract Information</h3>
@@ -256,16 +256,16 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
                 {stats && (
                   <>
                     <div className="stat-item">
-                      <label>USDC Balance:</label>
-                      <span className="amount">{stats.balance} USDC</span>
+                      <label>USD1 Balance:</label>
+                      <span className="amount">{stats.balance} USD1</span>
                     </div>
                     <div className="stat-item">
                       <label>Total Paid:</label>
-                      <span className="amount">{stats.paid} USDC</span>
+                      <span className="amount">{stats.paid} USD1</span>
                     </div>
                     <div className="stat-item">
                       <label>Total Received:</label>
-                      <span className="amount">{stats.received} USDC</span>
+                      <span className="amount">{stats.received} USD1</span>
                     </div>
                   </>
                 )}
@@ -287,7 +287,7 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
                 </div>
 
                 <div className="form-group">
-                  <label>Amount (USDC)</label>
+                  <label>Amount (USD1)</label>
                   <input
                     type="number"
                     placeholder="10.00"
@@ -331,7 +331,7 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
             <div className="card info-card">
               <h3>Protocol Overview</h3>
               <ol>
-                <li><strong>Permit Signature:</strong> Sign a gasless approval for USDC transfer (EIP-2612)</li>
+                <li><strong>Permit Signature:</strong> Sign a gasless approval for USD1 transfer (EIP-2612)</li>
                 <li><strong>Authorization Signature:</strong> Sign payment authorization including recipient</li>
                 <li><strong>Settlement:</strong> Contract verifies signatures and executes transfer with 1% fee</li>
                 <li><strong>Security:</strong> Replay protection via nonces and recipient verification</li>

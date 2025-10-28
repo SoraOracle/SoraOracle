@@ -2,17 +2,22 @@
 
 ## Overview
 
-Sora Oracle is a permissionless oracle SDK for prediction markets on BNB Chain. The system enables trustless data feeds through AI-powered API discovery, cryptographic verification, and HTTP 402 micropayments using USDC. The platform supports multiple market types including binary outcomes, multi-outcome markets, AMMs, and orderbooks, with automated settlement through AI research agents.
+Sora Oracle is a permissionless oracle SDK for prediction markets on BNB Chain. The system enables trustless data feeds through AI-powered API discovery, cryptographic verification, and HTTP 402 micropayments using USD1 (World Liberty Financial stablecoin). The platform supports multiple market types including binary outcomes, multi-outcome markets, AMMs, and orderbooks, with automated settlement through AI research agents.
 
-The SDK provides TypeScript/JavaScript bindings for React applications and includes a complete smart contract suite deployed on BNB Chain mainnet. The system uses EIP-2612 permit signatures for gasless USDC payments and supports parallel transaction processing through multi-wallet pools.
+The SDK provides TypeScript/JavaScript bindings for React applications and includes a complete smart contract suite deployed on BNB Chain mainnet. The system uses EIP-2612 permit signatures for gasless USD1 payments and supports parallel transaction processing through multi-wallet pools.
 
-## Recent Updates (October 27, 2025)
+## Recent Updates (October 28, 2025)
 
+- ✅ **CRITICAL FIX**: Switched from Binance-Bridged USDC to USD1 (World Liberty Financial)
+  - Binance USDC lacks EIP-2612 permit support (blocker for gasless payments)
+  - USD1 has full EIP-2612 support with 18 decimals on BSC mainnet
+  - Contract address: 0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d
+  - 268K+ holders, $2.9B market cap, backed by US Treasuries
 - ✅ S402Facilitator v2 deployed to BNB Chain mainnet at 0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1
 - ✅ Contract successfully verified on BSCScan
 - ✅ Refactored contract to use PaymentData and Signature structs (eliminates stack too deep errors)
 - ✅ Contract compiles without viaIR, enabling BSCScan verification
-- ✅ All documentation updated with new contract address
+- ✅ All documentation updated with USD1 integration
 - ✅ SDK configuration updated with verified mainnet contract
 
 ## User Preferences
@@ -32,10 +37,10 @@ Preferred communication style: Simple, everyday language.
 - Refund mechanism for unanswered questions after deadline
 
 **S402 Payment Facilitator (S402Facilitator.sol)**
-- EIP-2612 permit-based USDC transfers on BNB Chain
+- EIP-2612 permit-based USD1 transfers on BNB Chain
 - Platform fee collection (1% on mainnet)
 - Payment verification and settlement tracking
-- Support for Binance-Bridged USDC (0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d)
+- Support for USD1 - World Liberty Financial (0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d, 18 decimals)
 
 **Prediction Market Contracts**
 - SimplePredictionMarket: Binary outcome markets with YES/NO bets
@@ -78,7 +83,7 @@ Preferred communication style: Simple, everyday language.
 **Problem Solved**: EIP-2612 permit signatures use sequential nonces, limiting to 1 transaction per block per wallet
 
 **Solution**: Multi-wallet worker pool
-- Master wallet funds 10 worker wallets with USDC
+- Master wallet funds 10 worker wallets with USD1
 - Parallel s402 payment processing (10x speedup)
 - Automatic worker balance monitoring and refunding
 - Round-robin wallet selection for operations
@@ -136,9 +141,9 @@ Preferred communication style: Simple, everyday language.
 - Multiple prediction market contracts on testnet
 
 **Token Standards**
-- ERC-20 USDC (Binance-Bridged): 0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d
-- EIP-2612: Permit signatures for gasless approvals
-- EIP-3009: Attempted but unsupported by Binance USDC (falls back to EIP-2612)
+- ERC-20 USD1 (World Liberty Financial): 0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d (18 decimals)
+- EIP-2612: Permit signatures for gasless approvals (FULL SUPPORT)
+- Previous attempt with Binance USDC (0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d) failed - lacks EIP-2612
 
 ### DeFi Integrations
 

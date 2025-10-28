@@ -20,8 +20,8 @@ export const S402_MAINNET_CONFIG: S402NetworkConfig = {
   networkName: 'BNB Chain',
   chainId: 56,
   rpcUrl: 'https://bsc-dataseed.binance.org/',
-  // Binance-Bridged USDC (EIP-2612 compatible)
-  usdcAddress: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+  // USD1 - World Liberty Financial (EIP-2612 compatible, 18 decimals)
+  usdcAddress: '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d',
   // Binance-Bridged USDT (18 decimals!)
   usdtAddress: '0x55d398326f99059fF775485246999027B3197955',
   // S402Facilitator (Verified on BSCScan)
@@ -46,7 +46,7 @@ export const S402_TESTNET_CONFIG: S402NetworkConfig = {
 };
 
 /**
- * Operation pricing in USDC (6 decimals)
+ * Operation pricing in USD1 (18 decimals)
  */
 export const S402_OPERATION_PRICES = {
   // Oracle operations
@@ -82,14 +82,14 @@ export const MULTI_WALLET_CONFIG = {
   // Number of worker wallets for parallel transactions
   workerWalletCount: 10,
   
-  // USDC funding per wallet (recommended: $100 USDC each)
+  // USD1 funding per wallet (recommended: $100 USD1 each)
   fundingAmountUSDC: '100',
   
   // Auto-refund workers when balance drops below threshold
-  refundThreshold: '10', // $10 USDC
+  refundThreshold: '10', // $10 USD1
   
-  // Maximum USDC per worker (security limit)
-  maxBalancePerWallet: '500' // $500 USDC
+  // Maximum USD1 per worker (security limit)
+  maxBalancePerWallet: '500' // $500 USD1
 };
 
 /**
@@ -113,7 +113,7 @@ export const S402_METADATA = {
   
   roadmap: [
     'EIP-4337 smart account integration (Q1 2026)',
-    'Native Circle USDC migration (when available)',
+    'Multi-stablecoin support (USDT, BUSD when EIP-2612 available)',
     'Cross-chain expansion (Ethereum, Base)'
   ]
 };
