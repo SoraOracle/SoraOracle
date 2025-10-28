@@ -24,8 +24,8 @@ export const S402_MAINNET_CONFIG: S402NetworkConfig = {
   usdcAddress: '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d',
   // Binance-Bridged USDT (18 decimals!)
   usdtAddress: '0x55d398326f99059fF775485246999027B3197955',
-  // S402Facilitator (Verified on BSCScan)
-  facilitatorAddress: '0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1',
+  // S402Facilitator v3 with settlePayment (Verified on BSCScan)
+  facilitatorAddress: '0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3',
   blockExplorerUrl: 'https://bscscan.com'
 };
 
