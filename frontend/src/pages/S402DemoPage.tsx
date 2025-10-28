@@ -474,7 +474,7 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
                 <button 
                   onClick={makePayment} 
                   disabled={loading || !recipientAddress || !amount}
-                  className="submit-button"
+                  className="payment-button"
                 >
                   {loading ? 'Processing...' : 'Send Payment'}
                 </button>
