@@ -165,9 +165,16 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const usd1Nonce = await usd1.nonces(wallet.address);
       const chainId = (await provider.getNetwork()).chainId;
 
+      // Fetch USD1's actual EIP-2612 domain parameters from the contract
+      console.log('Fetching USD1 domain parameters...');
+      const tokenName = await usd1.name();
+      const tokenVersion = await usd1.version();
+      
+      console.log('USD1 EIP-2612 domain:', { tokenName, tokenVersion, chainId });
+
       const permitDomain = {
-        name: 'USD1',
-        version: '1',
+        name: tokenName,
+        version: tokenVersion,
         chainId: chainId,
         verifyingContract: USD1_ADDRESS
       };
@@ -244,40 +251,15 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, signer);
       
       console.log('Submitting payment to S402Facilitator...');
+      console.log('Payment data:', {
+        owner: payment.owner,
+        recipient: payment.recipient,
+        value: formatUnits(payment.value, 18),
+        deadline: new Date(payment.deadline * 1000).toISOString()
+      });
       
-      // Try permit-based payment first, fallback to regular payment if permit fails
-      let tx;
-      try {
-        tx = await facilitator.settlePaymentWithPermit(payment, permitSig, authSig);
-      } catch (permitError: any) {
-        console.warn('Permit payment failed, trying regular payment:', permitError.message);
-        
-        // Check if approved
-        const usd1 = new Contract(USD1_ADDRESS, USD1_ABI, provider);
-        const allowance = await usd1.allowance(wallet.address, S402_FACILITATOR_ADDRESS);
-        const balance = await usd1.balanceOf(wallet.address);
-        
-        console.log('Approval check:', {
-          allowance: formatUnits(allowance, 18),
-          balance: formatUnits(balance, 18),
-          amountNeeded: formatUnits(amountInUnits, 18)
-        });
-        
-        if (balance < amountInUnits) {
-          setError(`Insufficient USD1 balance. You have ${formatUnits(balance, 18)} USD1 but need ${formatUnits(amountInUnits, 18)} USD1`);
-          return;
-        }
-        
-        if (allowance < amountInUnits) {
-          setError('USD1 not approved! Click the "Approve USD1" button above before sending payments.');
-          setApprovalNeeded(true);
-          return;
-        }
-        
-        // Use regular payment method
-        console.log('Using regular payment (non-permit)...');
-        tx = await facilitator.settlePayment(payment, authSig);
-      }
+      // Submit payment with permit
+      const tx = await facilitator.settlePaymentWithPermit(payment, permitSig, authSig);
       
       console.log('Waiting for confirmation...');
       const receipt = await tx.wait();
