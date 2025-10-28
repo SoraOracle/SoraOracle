@@ -150,6 +150,12 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       return;
     }
 
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      setError('Please enter a valid positive amount');
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
@@ -159,6 +165,11 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const signer = await provider.getSigner();
       
       const amountInUnits = parseUnits(amount, 18);
+      
+      if (amountInUnits <= 0) {
+        setError('Amount must be greater than 0');
+        return;
+      }
       const currentTimestamp = Math.floor(Date.now() / 1000);
       const deadline = currentTimestamp + 3600; // 1 hour from NOW
       const nonce = generateNonce();
@@ -485,6 +496,8 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="10"
+                    min="0"
+                    step="0.01"
                     className="input"
                   />
                 </div>
