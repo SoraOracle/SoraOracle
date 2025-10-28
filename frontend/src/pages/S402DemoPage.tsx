@@ -1,6 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserProvider, Contract, parseUnits, formatUnits } from 'ethers';
-import { setup1inchWidget } from '@1inch/embedded-widget';
 import './S402DemoPage.css';
 
 const S402_FACILITATOR_ADDRESS = '0x75c8CCD195F7B5Fb288B107B45FaF9a1289d7Df1';
@@ -48,9 +47,6 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [platformFee, setPlatformFee] = useState<string>('');
   const [showBuyWidget, setShowBuyWidget] = useState(false);
-  
-  const widgetContainerRef = useRef<HTMLDivElement>(null);
-  const widgetManagerRef = useRef<any>(null);
 
   useEffect(() => {
     if (wallet.address && wallet.chainId === 56) {
@@ -58,37 +54,6 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       loadStats(wallet.address, new BrowserProvider(window.ethereum));
     }
   }, [wallet.address, wallet.chainId]);
-
-  useEffect(() => {
-    if (showBuyWidget && widgetContainerRef.current && !widgetManagerRef.current && window.ethereum) {
-      try {
-        widgetManagerRef.current = setup1inchWidget({
-          chainId: 56,
-          hostElement: widgetContainerRef.current,
-          provider: window.ethereum,
-          theme: 'dark',
-          params: {
-            tokenOut: USD1_ADDRESS,
-          }
-        } as any);
-
-        if (widgetManagerRef.current?.onIframeLoad) {
-          widgetManagerRef.current.onIframeLoad(() => {
-            console.log('1inch swap widget loaded');
-          });
-        }
-      } catch (error) {
-        console.error('Failed to load 1inch widget:', error);
-      }
-    }
-
-    return () => {
-      if (widgetManagerRef.current && !showBuyWidget) {
-        widgetManagerRef.current.destroy?.();
-        widgetManagerRef.current = null;
-      }
-    };
-  }, [showBuyWidget]);
 
   const loadPlatformFee = async () => {
     try {
@@ -104,12 +69,15 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
   const loadStats = async (address: string, provider: BrowserProvider) => {
     try {
       const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, provider);
+      const usd1Contract = new Contract(USD1_ADDRESS, USD1_ABI, provider);
+      
       const userStats = await facilitator.getStats(address);
+      const usd1Balance = await usd1Contract.balanceOf(address);
       
       setStats({
         paid: parseFloat(formatUnits(userStats[0], 18)).toFixed(4),
         received: parseFloat(formatUnits(userStats[1], 18)).toFixed(4),
-        balance: parseFloat(formatUnits(userStats[2], 18)).toFixed(4)
+        balance: parseFloat(formatUnits(usd1Balance, 18)).toFixed(4)
       });
     } catch (err: any) {
       console.error('Failed to load stats:', err);
@@ -325,21 +293,55 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
                   </span>
                 </h3>
                 <p style={{ margin: '8px 0 0 0', fontSize: '14px', color: '#999' }}>
-                  Swap any token for USD1 using 1inch
+                  Swap any token for USD1 on PancakeSwap or 1inch
                 </p>
               </div>
               
               {showBuyWidget && (
-                <div style={{ marginTop: '16px' }}>
-                  <div 
-                    ref={widgetContainerRef}
-                    style={{
-                      width: '100%',
-                      height: '600px',
-                      borderRadius: '8px',
-                      overflow: 'hidden'
-                    }}
-                  />
+                <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <a
+                    href={`https://app.1inch.io/#/56/simple/swap/BNB/${USD1_ADDRESS}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="swap-link swap-1inch"
+                  >
+                    <div className="swap-link-content">
+                      <div>
+                        <strong>1inch DEX Aggregator</strong>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#999' }}>
+                          Best rates across all BSC DEXs
+                        </p>
+                      </div>
+                      <span style={{ fontSize: '24px' }}>→</span>
+                    </div>
+                  </a>
+                  
+                  <a
+                    href={`https://pancakeswap.finance/swap?outputCurrency=${USD1_ADDRESS}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="swap-link swap-pancake"
+                  >
+                    <div className="swap-link-content">
+                      <div>
+                        <strong>PancakeSwap</strong>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#999' }}>
+                          Leading BSC DEX with deep liquidity
+                        </p>
+                      </div>
+                      <span style={{ fontSize: '24px' }}>→</span>
+                    </div>
+                  </a>
+                  
+                  <div style={{ 
+                    padding: '12px', 
+                    background: '#1A1A1A', 
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    color: '#A1A1A1'
+                  }}>
+                    <strong style={{ color: '#F97316' }}>Note:</strong> Links open in new tab. Make sure you're connected to BNB Chain (BSC) in your wallet.
+                  </div>
                 </div>
               )}
             </div>

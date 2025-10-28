@@ -137,6 +137,34 @@
   color: #A1A1A1;
 }
 
+.swap-link {
+  display: block;
+  padding: 16px;
+  background: #1A1A1A;
+  border: 1px solid #333;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #FAFAFA;
+  transition: all 0.2s ease;
+}
+
+.swap-link:hover {
+  background: #222;
+  border-color: #F97316;
+  transform: translateX(4px);
+}
+
+.swap-link-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.swap-link strong {
+  font-size: 16px;
+  color: #FAFAFA;
+}
+
 .connect-button {
   width: 100%;
   background: #F97316;
