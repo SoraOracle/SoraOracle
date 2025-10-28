@@ -255,14 +255,27 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
         // Check if approved
         const usd1 = new Contract(USD1_ADDRESS, USD1_ABI, provider);
         const allowance = await usd1.allowance(wallet.address, S402_FACILITATOR_ADDRESS);
+        const balance = await usd1.balanceOf(wallet.address);
+        
+        console.log('Approval check:', {
+          allowance: formatUnits(allowance, 18),
+          balance: formatUnits(balance, 18),
+          amountNeeded: formatUnits(amountInUnits, 18)
+        });
+        
+        if (balance < amountInUnits) {
+          setError(`Insufficient USD1 balance. You have ${formatUnits(balance, 18)} USD1 but need ${formatUnits(amountInUnits, 18)} USD1`);
+          return;
+        }
         
         if (allowance < amountInUnits) {
-          setError('Please approve USD1 first using the "Approve USD1" button above');
+          setError('USD1 not approved! Click the "Approve USD1" button above before sending payments.');
           setApprovalNeeded(true);
           return;
         }
         
         // Use regular payment method
+        console.log('Using regular payment (non-permit)...');
         tx = await facilitator.settlePayment(payment, authSig);
       }
       
