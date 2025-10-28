@@ -71,9 +71,9 @@ export function S402DemoPage({ wallet }: S402DemoPageProps) {
       const userStats = await facilitator.getStats(address);
       
       setStats({
-        paid: parseFloat(formatUnits(userStats[0], 6)).toFixed(2),
-        received: parseFloat(formatUnits(userStats[1], 6)).toFixed(2),
-        balance: parseFloat(formatUnits(userStats[2], 6)).toFixed(2)
+        paid: parseFloat(formatUnits(userStats[0], 6)).toFixed(4),
+        received: parseFloat(formatUnits(userStats[1], 6)).toFixed(4),
+        balance: parseFloat(formatUnits(userStats[2], 6)).toFixed(4)
       });
     } catch (err: any) {
       console.error('Failed to load stats:', err);
