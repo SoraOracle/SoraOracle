@@ -39,5 +39,6 @@ localPort = 34449
 externalPort = 3000
 
 [deployment]
-run = ["sh", "-c", "cd frontend && npm run build && npm run start"]
-deploymentTarget = "cloudrun"
+run = ["bash", "-c", "cd frontend && npm run start"]
+deploymentTarget = "autoscale"
+build = ["bash", "-c", "cd frontend && npm install && npm run build"]
