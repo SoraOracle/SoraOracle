@@ -273,28 +273,107 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
     try {
       setIsLoading(true);
 
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const from = accounts[0];
+      // Import ethers dynamically
+      const { BrowserProvider, Contract, parseUnits, Signature } = await import('ethers');
 
-      const amountWei = Math.floor(paymentRequest.tool.cost_usd * 1e18);
+      const S402_FACILITATOR_ADDRESS = '0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3';
+      const USD1_ADDRESS = '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d';
 
-      const txHash = await window.ethereum.request({
-        method: 'eth_sendTransaction',
-        params: [{
-          from,
-          to: paymentRequest.tool.provider_address,
-          value: `0x${amountWei.toString(16)}`,
-        }],
-      });
+      const S402_ABI = [
+        'function settlePayment((address owner, uint256 value, uint256 deadline, address recipient, bytes32 nonce) payment, (uint8 v, bytes32 r, bytes32 s) authSig) external returns (bool)',
+      ];
 
+      const USD1_ABI = [
+        'function allowance(address owner, address spender) external view returns (uint256)',
+        'function approve(address spender, uint256 amount) external returns (bool)',
+      ];
+
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const from = await signer.getAddress();
+
+      // Check and approve USD1 if needed
+      const usd1Contract = new Contract(USD1_ADDRESS, USD1_ABI, signer);
+      const amountInUnits = parseUnits(paymentRequest.tool.cost_usd.toString(), 18);
+      const allowance = await usd1Contract.allowance(from, S402_FACILITATOR_ADDRESS);
+
+      if (allowance < amountInUnits) {
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '⏳ Approving USD1 for S402 payments...',
+        }]);
+
+        const maxApproval = parseUnits('1000000', 18); // 1M USD1
+        const approveTx = await usd1Contract.approve(S402_FACILITATOR_ADDRESS, maxApproval);
+        await approveTx.wait();
+      }
+
+      // Generate nonce
+      const randomBytes = new Uint8Array(32);
+      crypto.getRandomValues(randomBytes);
+      const nonce = '0x' + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const deadline = currentTimestamp + 3600; // 1 hour
+
+      // Create EIP-712 signature for payment authorization
+      const authDomain = {
+        name: 'S402Facilitator',
+        version: '1',
+        chainId: 56,
+        verifyingContract: S402_FACILITATOR_ADDRESS
+      };
+
+      const authTypes = {
+        PaymentAuthorization: [
+          { name: 'owner', type: 'address' },
+          { name: 'spender', type: 'address' },
+          { name: 'value', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' },
+          { name: 'recipient', type: 'address' },
+          { name: 'nonce', type: 'bytes32' }
+        ]
+      };
+
+      const authMessage = {
+        owner: from,
+        spender: S402_FACILITATOR_ADDRESS,
+        value: amountInUnits,
+        deadline: deadline,
+        recipient: paymentRequest.tool.provider_address,
+        nonce: nonce
+      };
+
+      const authSigRaw = await signer.signTypedData(authDomain, authTypes, authMessage);
+      const authSig = Signature.from(authSigRaw);
+
+      const payment = {
+        owner: from,
+        value: amountInUnits,
+        deadline: deadline,
+        recipient: paymentRequest.tool.provider_address,
+        nonce: nonce
+      };
+
+      const authSigStruct = {
+        v: authSig.v,
+        r: authSig.r,
+        s: authSig.s
+      };
+
+      // Submit to S402 Facilitator
+      const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, signer);
+      const tx = await facilitator.settlePayment(payment, authSigStruct);
+      
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `⏳ Payment confirmed! Executing tool...\nTransaction: ${txHash.slice(0, 10)}...${txHash.slice(-8)}`,
+        content: `⏳ Payment confirmed! Executing tool...\n$${paymentRequest.tool.cost_usd.toFixed(3)} USD1 paid`,
       }]);
 
       setPaymentRequest(null);
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const receipt = await tx.wait();
+      const txHash = receipt.hash;
 
       const response = await fetch(`/api/agents/${agentId}/execute-tool`, {
         method: 'POST',
@@ -325,13 +404,16 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       }
     } catch (error: any) {
       console.error('Payment error:', error);
-      if (error.code === 4001) {
+      if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
         setMessages(prev => [...prev, {
           role: 'assistant',
           content: '❌ Payment cancelled. Let me know if you\'d like to try again.',
         }]);
       } else {
-        alert('Payment failed. Please try again.');
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `❌ Payment failed: ${error.message || 'Unknown error'}`,
+        }]);
       }
       setPaymentRequest(null);
     } finally {
@@ -598,7 +680,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
               onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="Ask your agent anything..."
               disabled={isLoading || !!paymentRequest || !currentSessionId}
-              className="flex-1 bg-s402-light-bg dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-s402-orange focus:ring-1 focus:ring-s402-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-s402-orange focus:ring-1 focus:ring-s402-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               onClick={sendMessage}
