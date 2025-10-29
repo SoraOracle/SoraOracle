@@ -16,9 +16,9 @@ const CONFIG = {
   RPC_URL: 'https://flashy-few-bush.bsc.quiknode.pro/c803d56e46396f5b5b45025ac3ecdee74488fea9/',
   BSCSCAN_API_URL: 'https://api.bscscan.com/api',
   BSCSCAN_API_KEY: process.env.BSCSCAN_API_KEY || '',
-  START_BLOCK: 44000000, // S402Facilitator v3 deployment block
+  START_BLOCK: 66230000, // Focus on last 24 hours
   POLL_INTERVAL: 60000, // 60 seconds
-  BLOCKS_PER_BATCH: 500, // Smaller batches for RPC reliability
+  BLOCKS_PER_BATCH: 2000, // Larger batches for faster catch-up
   CONFIRMATIONS: 12,
 };
 
