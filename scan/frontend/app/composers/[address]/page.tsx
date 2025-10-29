@@ -46,7 +46,7 @@ export default function ComposerProfilePage() {
         
         // Calculate stats
         const totalQueries = publicAgents.reduce((sum: number, a: Agent) => sum + (a.query_count || 0), 0);
-        const totalSpent = publicAgents.reduce((sum: number, a: Agent) => sum + (a.total_spent_usd || 0), 0);
+        const totalSpent = publicAgents.reduce((sum: number, a: Agent) => sum + (parseFloat(a.total_spent_usd as any) || 0), 0);
         
         setStats({
           totalAgents: publicAgents.length,
@@ -125,7 +125,7 @@ export default function ComposerProfilePage() {
         </div>
         <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-4 shadow-soft dark:shadow-none">
           <div className="text-xs text-gray-500 uppercase mb-2">Total Spent</div>
-          <div className="text-2xl font-bold">${stats.totalSpent.toFixed(2)}</div>
+          <div className="text-2xl font-bold">${(stats.totalSpent || 0).toFixed(2)}</div>
         </div>
       </div>
 
