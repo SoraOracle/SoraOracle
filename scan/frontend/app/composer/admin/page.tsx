@@ -8,6 +8,7 @@ interface Tool {
   name: string;
   description: string;
   category: string;
+  icon?: string;
   endpoint_url: string;
   http_method: string;
   auth_headers: Record<string, string>;
@@ -29,7 +30,8 @@ export default function AdminPage() {
     id: '',
     name: '',
     description: '',
-    category: 'crypto',
+    category: 'ai',
+    icon: '🤖',
     endpoint_url: '',
     http_method: 'GET',
     auth_headers: '',
@@ -128,7 +130,8 @@ export default function AdminPage() {
           id: '',
           name: '',
           description: '',
-          category: 'crypto',
+          category: 'ai',
+          icon: '🤖',
           endpoint_url: '',
           http_method: 'GET',
           auth_headers: '',
@@ -252,7 +255,18 @@ export default function AdminPage() {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm text-gray-400 mb-2">Icon (emoji)</label>
+              <input
+                type="text"
+                maxLength={2}
+                placeholder="🤖"
+                value={newTool.icon}
+                onChange={e => setNewTool({ ...newTool, icon: e.target.value })}
+                className="w-full bg-transparent border border-gray-800 rounded px-3 py-2 text-sm text-center text-2xl"
+              />
+            </div>
             <div>
               <label className="block text-sm text-gray-400 mb-2">Category</label>
               <select
@@ -260,10 +274,22 @@ export default function AdminPage() {
                 onChange={e => setNewTool({ ...newTool, category: e.target.value })}
                 className="w-full bg-transparent border border-gray-800 rounded px-3 py-2 text-sm"
               >
-                <option value="crypto">Crypto</option>
-                <option value="weather">Weather</option>
-                <option value="news">News</option>
-                <option value="finance">Finance</option>
+                <option value="ai">AI & ML</option>
+                <option value="crypto">Crypto & Blockchain</option>
+                <option value="finance">Finance & Trading</option>
+                <option value="weather">Weather & Climate</option>
+                <option value="news">News & Media</option>
+                <option value="social">Social Media</option>
+                <option value="gaming">Gaming & Entertainment</option>
+                <option value="productivity">Productivity & Tools</option>
+                <option value="health">Health & Fitness</option>
+                <option value="travel">Travel & Maps</option>
+                <option value="ecommerce">E-commerce & Shopping</option>
+                <option value="education">Education & Learning</option>
+                <option value="data">Data & Analytics</option>
+                <option value="security">Security & Auth</option>
+                <option value="communication">Communication</option>
+                <option value="iot">IoT & Hardware</option>
                 <option value="other">Other</option>
               </select>
             </div>

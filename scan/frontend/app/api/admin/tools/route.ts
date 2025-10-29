@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       name,
       description,
       category,
+      icon,
       endpoint_url,
       http_method,
       auth_headers,
@@ -41,9 +42,9 @@ export async function POST(request: NextRequest) {
     }
 
     await pool.query(
-      `INSERT INTO s402_tools (id, name, description, category, endpoint_url, http_method, auth_headers, input_schema, cost_usd, provider_address)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [id, name, description, category, endpoint_url, http_method, JSON.stringify(auth_headers), JSON.stringify(input_schema), cost_usd, provider_address]
+      `INSERT INTO s402_tools (id, name, description, category, icon, endpoint_url, http_method, auth_headers, input_schema, cost_usd, provider_address)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      [id, name, description, category, icon || '🔧', endpoint_url, http_method, JSON.stringify(auth_headers), JSON.stringify(input_schema), cost_usd, provider_address]
     );
 
     return NextResponse.json({ success: true });

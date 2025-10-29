@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface AgentConfig {
@@ -12,13 +12,14 @@ interface AgentConfig {
   webhook: string;
 }
 
-const AVAILABLE_SOURCES = [
-  { id: 'coingecko', name: 'CoinGecko', category: 'crypto', costUSD: 0.03 },
-  { id: 'openweather', name: 'OpenWeather', category: 'weather', costUSD: 0.02 },
-  { id: 'newsapi', name: 'NewsAPI', category: 'news', costUSD: 0.05 },
-  { id: 'alphavantage', name: 'Alpha Vantage', category: 'finance', costUSD: 0.04 },
-  { id: 'cryptocompare', name: 'CryptoCompare', category: 'crypto', costUSD: 0.03 },
-];
+interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  icon: string;
+  costUSD: number;
+}
 
 export default function ComposerPage() {
   const router = useRouter();
@@ -33,6 +34,87 @@ export default function ComposerPage() {
 
   const [step, setStep] = useState(1);
   const [isDeploying, setIsDeploying] = useState(false);
+  const [availableTools, setAvailableTools] = useState<Tool[]>([]);
+  const [loadingTools, setLoadingTools] = useState(true);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadTools();
+    checkAuthToken();
+  }, []);
+
+  const loadTools = async () => {
+    try {
+      const response = await fetch('/api/tools');
+      if (response.ok) {
+        const tools = await response.json();
+        setAvailableTools(tools);
+      }
+    } catch (error) {
+      console.error('Failed to load tools:', error);
+    } finally {
+      setLoadingTools(false);
+    }
+  };
+
+  const checkAuthToken = () => {
+    const token = localStorage.getItem('composer_auth_token');
+    if (token) {
+      try {
+        setAuthToken(token);
+        const { jwtDecode } = require('jwt-decode');
+        const payload: any = jwtDecode(token);
+        if (payload.exp && payload.exp > Date.now() / 1000) {
+          setWalletAddress(payload.address);
+        } else {
+          localStorage.removeItem('composer_auth_token');
+        }
+      } catch (error) {
+        console.error('Invalid token:', error);
+        localStorage.removeItem('composer_auth_token');
+      }
+    }
+  };
+
+  const authenticateWallet = async () => {
+    if (typeof window.ethereum === 'undefined') {
+      alert('Please install MetaMask to create an agent');
+      return false;
+    }
+
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const address = accounts[0];
+
+      const message = `Sign this message to create an agent on S402 Scan.\n\nAddress: ${address}\nTimestamp: ${Date.now()}`;
+      const signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [message, address],
+      });
+
+      const response = await fetch('/api/auth/composer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, signature, message }),
+      });
+
+      if (response.ok) {
+        const { token } = await response.json();
+        localStorage.setItem('composer_auth_token', token);
+        setAuthToken(token);
+        setWalletAddress(address);
+        return true;
+      } else {
+        alert('Authentication failed');
+        return false;
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+      alert('Failed to authenticate wallet');
+      return false;
+    }
+  };
 
   const toggleDataSource = (sourceId: string) => {
     setConfig(prev => ({
@@ -45,30 +127,32 @@ export default function ComposerPage() {
 
   const estimatedMonthlyCost =
     config.dataSources.reduce((sum, id) => {
-      const source = AVAILABLE_SOURCES.find(s => s.id === id);
-      return sum + (source?.costUSD || 0);
+      const tool = availableTools.find(s => s.id === id);
+      return sum + (tool?.costUSD || 0);
     }, 0) *
     ((30 * 24 * 60 * 60) / config.queryInterval);
 
   const deployAgent = async () => {
-    if (typeof window.ethereum === 'undefined') {
-      alert('Please install MetaMask to create an agent');
-      return;
-    }
-
     try {
       setIsDeploying(true);
 
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const owner = accounts[0];
+      if (!authToken) {
+        const authenticated = await authenticateWallet();
+        if (!authenticated) {
+          setIsDeploying(false);
+          return;
+        }
+      }
 
       const response = await fetch('/api/agents', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken || localStorage.getItem('composer_auth_token')}`,
+        },
         body: JSON.stringify({
           name: config.name,
           description: config.description,
-          owner_address: owner,
           data_sources: config.dataSources,
         }),
       });
@@ -190,10 +274,18 @@ export default function ComposerPage() {
       {/* Step 2 */}
       {step === 2 && (
         <div className="space-y-4">
-          <p className="text-sm text-gray-500">Select which oracle APIs your agent will query</p>
+          <p className="text-sm text-gray-500">Select which s402 tools your agent can use</p>
 
-          <div className="space-y-2">
-            {AVAILABLE_SOURCES.map(source => (
+          {loadingTools ? (
+            <div className="text-center py-8 text-gray-500 text-sm">Loading available tools...</div>
+          ) : availableTools.length === 0 ? (
+            <div className="text-center py-8 border border-gray-800 rounded">
+              <p className="text-gray-500 text-sm">No tools available yet.</p>
+              <p className="text-xs text-gray-600 mt-1">Admins can add tools via the Admin Panel.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {availableTools.map(source => (
               <button
                 key={source.id}
                 onClick={() => toggleDataSource(source.id)}
@@ -204,13 +296,14 @@ export default function ComposerPage() {
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <input
                       type="checkbox"
                       checked={config.dataSources.includes(source.id)}
                       onChange={() => {}}
                       className="w-4 h-4"
                     />
+                    <span className="text-2xl">{source.icon}</span>
                     <div>
                       <div className="text-sm font-medium">{source.name}</div>
                       <div className="text-xs text-gray-500">{source.category}</div>
@@ -218,12 +311,13 @@ export default function ComposerPage() {
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-medium text-s402-orange">${source.costUSD.toFixed(3)}</div>
-                    <div className="text-xs text-gray-500">per query</div>
+                    <div className="text-xs text-gray-500">per use</div>
                   </div>
                 </div>
               </button>
-            ))}
-          </div>
+            )))}
+            </div>
+          )}
 
           {config.dataSources.length > 0 && (
             <div className="border border-gray-800 rounded p-4">
