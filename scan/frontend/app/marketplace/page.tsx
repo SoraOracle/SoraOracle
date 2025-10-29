@@ -6,10 +6,12 @@ interface Tool {
   id: string;
   name: string;
   description: string;
-  cost_usd: string;
-  provider_address: string;
-  endpoint: string;
-  created_at: string;
+  costUSD: number;
+  provider_address?: string;
+  endpoint?: string;
+  created_at?: string;
+  category?: string;
+  icon?: string;
 }
 
 export default function MarketplacePage() {
@@ -46,9 +48,9 @@ export default function MarketplacePage() {
         case 'name':
           return a.name.localeCompare(b.name);
         case 'price':
-          return parseFloat(a.cost_usd) - parseFloat(b.cost_usd);
+          return (a.costUSD || 0) - (b.costUSD || 0);
         case 'newest':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
         default:
           return 0;
       }
@@ -132,7 +134,7 @@ export default function MarketplacePage() {
         <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-4 shadow-soft dark:shadow-none">
           <div className="text-xs text-gray-500 uppercase mb-1">Avg Price</div>
           <div className="text-2xl font-bold">
-            ${tools.length > 0 ? (tools.reduce((sum, t) => sum + parseFloat(t.cost_usd), 0) / tools.length).toFixed(3) : '0.000'}
+            ${tools.length > 0 ? (tools.reduce((sum, t) => sum + (t.costUSD || 0), 0) / tools.length).toFixed(3) : '0.000'}
           </div>
         </div>
         <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-4 shadow-soft dark:shadow-none">
@@ -160,7 +162,7 @@ export default function MarketplacePage() {
                 <div className="text-right">
                   <div className="text-xs text-gray-500">Price</div>
                   <div className="text-lg font-bold text-s402-orange">
-                    ${parseFloat(tool.cost_usd).toFixed(3)}
+                    ${(tool.costUSD || 0).toFixed(3)}
                   </div>
                 </div>
               </div>

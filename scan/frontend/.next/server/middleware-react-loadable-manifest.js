@@ -1,1 +1,1 @@
-self.__REACT_LOADABLE_MANIFEST="{}"
+self.__REACT_LOADABLE_MANIFEST="{\"app/composer/agent/[id]/page.tsx -> ethers\":{\"id\":\"app/composer/agent/[id]/page.tsx -> ethers\",\"files\":[\"static/chunks/_app-pages-browser_node_modules_ethers_lib_esm_index_js.js\"]}}"
