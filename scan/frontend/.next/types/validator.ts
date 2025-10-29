@@ -182,6 +182,33 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../app/api/agents/[id]/sessions/[sessionId]/messages/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/agents/[id]/sessions/[sessionId]/messages">> = Specific
+  const handler = {} as typeof import("../../app/api/agents/[id]/sessions/[sessionId]/messages/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/agents/[id]/sessions/[sessionId]/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/agents/[id]/sessions/[sessionId]">> = Specific
+  const handler = {} as typeof import("../../app/api/agents/[id]/sessions/[sessionId]/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/agents/[id]/sessions/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/agents/[id]/sessions">> = Specific
+  const handler = {} as typeof import("../../app/api/agents/[id]/sessions/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../app/api/agents/route.ts
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/agents">> = Specific

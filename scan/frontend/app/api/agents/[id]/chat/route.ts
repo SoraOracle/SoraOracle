@@ -27,8 +27,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const { message, payment_proof } = await request.json();
+    const { message, payment_proof, session_id } = await request.json();
     const agentId = id;
+
+    if (!session_id) {
+      return NextResponse.json({ error: 'Session ID required' }, { status: 400 });
+    }
 
     const agentResult = await pool.query(
       'SELECT * FROM s402_agents WHERE id = $1',
@@ -42,13 +46,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const agent = agentResult.rows[0];
 
     await pool.query(
-      'INSERT INTO s402_agent_chats (agent_id, role, content) VALUES ($1, $2, $3)',
-      [agentId, 'user', message]
+      'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
+      [agentId, session_id, 'user', message]
     );
 
     const historyResult = await pool.query(
-      'SELECT role, content FROM s402_agent_chats WHERE agent_id = $1 ORDER BY created_at ASC LIMIT 20',
-      [agentId]
+      'SELECT role, content FROM s402_agent_chats WHERE agent_id = $1 AND session_id = $2 ORDER BY created_at ASC LIMIT 20',
+      [agentId, session_id]
     );
 
     const conversationHistory = historyResult.rows.map(row => ({
@@ -105,8 +109,8 @@ Focus on providing valuable insights using s402 oracle data. Be concise and help
       const tool = toolResult.rows[0];
 
       await pool.query(
-        'INSERT INTO s402_agent_chats (agent_id, role, content, tool_calls) VALUES ($1, $2, $3, $4)',
-        [agentId, 'assistant', '', JSON.stringify([toolCall])]
+        'INSERT INTO s402_agent_chats (agent_id, session_id, role, content, tool_calls) VALUES ($1, $2, $3, $4, $5)',
+        [agentId, session_id, 'assistant', '', JSON.stringify([toolCall])]
       );
 
       return NextResponse.json({
@@ -126,8 +130,14 @@ Focus on providing valuable insights using s402 oracle data. Be concise and help
     const reply = textContent ? (textContent as any).text : 'I apologize, but I could not generate a response.';
 
     await pool.query(
-      'INSERT INTO s402_agent_chats (agent_id, role, content) VALUES ($1, $2, $3)',
-      [agentId, 'assistant', reply]
+      'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
+      [agentId, session_id, 'assistant', reply]
+    );
+
+    // Update session timestamp
+    await pool.query(
+      'UPDATE s402_chat_sessions SET updated_at = NOW() WHERE id = $1',
+      [session_id]
     );
 
     await pool.query(

@@ -13,8 +13,12 @@ const anthropic = new Anthropic({
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const { tool_call_id, tool_id, tx_hash, input, payer_address } = await request.json();
+    const { tool_call_id, tool_id, tx_hash, input, payer_address, session_id } = await request.json();
     const agentId = id;
+
+    if (!session_id) {
+      return NextResponse.json({ error: 'Session ID required' }, { status: 400 });
+    }
 
     if (!payer_address) {
       return NextResponse.json({ error: 'Payer address required' }, { status: 400 });
@@ -120,8 +124,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     );
 
     const historyResult = await pool.query(
-      'SELECT role, content, tool_calls FROM s402_agent_chats WHERE agent_id = $1 ORDER BY created_at ASC LIMIT 20',
-      [agentId]
+      'SELECT role, content, tool_calls FROM s402_agent_chats WHERE agent_id = $1 AND session_id = $2 ORDER BY created_at ASC LIMIT 20',
+      [agentId, session_id]
     );
 
     const conversationHistory: any[] = [];
@@ -170,8 +174,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const reply = textContent ? (textContent as any).text : 'I received the data but could not process it.';
 
     await pool.query(
-      'INSERT INTO s402_agent_chats (agent_id, role, content) VALUES ($1, $2, $3)',
-      [agentId, 'assistant', reply]
+      'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
+      [agentId, session_id, 'assistant', reply]
     );
 
     await pool.query(
