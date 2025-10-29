@@ -172,12 +172,14 @@ export default function MarketplacePage() {
                 {tool.description}
               </p>
 
-              <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
-                <div className="text-xs text-gray-500 mb-1">Provider</div>
-                <div className="text-xs font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded">
-                  {tool.provider_address.slice(0, 6)}...{tool.provider_address.slice(-4)}
+              {tool.provider_address && (
+                <div className="pt-4 border-t border-gray-200 dark:border-gray-800">
+                  <div className="text-xs text-gray-500 mb-1">Provider</div>
+                  <div className="text-xs font-mono bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded">
+                    {tool.provider_address.slice(0, 6)}...{tool.provider_address.slice(-4)}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <a
                 href={`/composer`}
