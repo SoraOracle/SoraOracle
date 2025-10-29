@@ -1251,6 +1251,10 @@ video {
   border-color: rgb(31 41 55 / 0.5);
 }
 
+.dark\:bg-black\/80:is(.dark *) {
+  background-color: rgb(0 0 0 / 0.8);
+}
+
 .dark\:bg-gray-800\/50:is(.dark *) {
   background-color: rgb(31 41 55 / 0.5);
 }
@@ -1263,10 +1267,6 @@ video {
 .dark\:bg-s402-dark-card:is(.dark *) {
   --tw-bg-opacity: 1;
   background-color: rgb(44 44 46 / var(--tw-bg-opacity, 1));
-}
-
-.dark\:bg-s402-dark-card\/95:is(.dark *) {
-  background-color: rgb(44 44 46 / 0.95);
 }
 
 .dark\:text-gray-100:is(.dark *) {

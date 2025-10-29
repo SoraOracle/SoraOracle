@@ -90,7 +90,7 @@ export default function Dashboard() {
           <span className="text-2xl">🤖</span>
           <div>
             <h2 className="font-pixel text-sm text-s402-orange">INTRODUCING THE COMPOSER</h2>
-            <p className="text-xs text-gray-400 mt-1">Build and use agents that pay for oracle data with s402</p>
+            <p className="text-xs text-gray-400 mt-1">Build and use agents that pay for credits with s402</p>
           </div>
           <Link href="/composer" className="ml-auto bg-s402-orange hover:bg-orange-600 px-4 py-2 rounded text-xs font-medium transition-colors">
             Try Now →
