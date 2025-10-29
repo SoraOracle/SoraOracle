@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node index.js",
     "start": "node index.js",
-    "init-db": "node init-db.js"
+    "init-db": "psql $DATABASE_URL -f schema.sql"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
