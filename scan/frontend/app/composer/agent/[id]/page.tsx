@@ -506,7 +506,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   }
 
   return (
-    <div className="fixed inset-0 top-16 flex overflow-hidden">
+    <div className="fixed inset-0 top-16 flex overflow-hidden pt-6">
       {/* Sessions Sidebar */}
       <div className="w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-black flex flex-col">
         <div className="p-4 border-b border-gray-200 dark:border-gray-800">

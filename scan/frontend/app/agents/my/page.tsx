@@ -157,7 +157,7 @@ export default function MyAgentsPage() {
   const privateAgents = agents.filter(a => !a.is_public);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6 pt-6">
       {/* Header */}
       <div>
         <div className="flex items-center justify-between mb-2">
