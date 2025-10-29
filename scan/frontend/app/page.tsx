@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface OverviewStats {
   totalPayments: number;
@@ -127,11 +127,11 @@ export default function Dashboard() {
         <div className="border border-gray-800 rounded p-4">
           <h3 className="font-pixel text-xs mb-4">TRANSACTION VOLUME</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={chartData}>
+            <BarChart data={chartData}>
               <defs>
-                <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#F97316" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#F97316" stopOpacity={0}/>
+                <linearGradient id="barGradientVolume" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#F97316" stopOpacity={1}/>
+                  <stop offset="100%" stopColor="#F97316" stopOpacity={0.3}/>
                 </linearGradient>
               </defs>
               <XAxis dataKey="time" stroke="#444" style={{ fontSize: '10px' }} />
@@ -140,23 +140,29 @@ export default function Dashboard() {
                 contentStyle={{ background: '#111', border: '1px solid #333', borderRadius: '4px', fontSize: '12px' }}
                 labelStyle={{ color: '#999' }}
               />
-              <Area type="monotone" dataKey="volume" stroke="#F97316" fillOpacity={1} fill="url(#colorVolume)" />
-            </AreaChart>
+              <Bar dataKey="volume" fill="url(#barGradientVolume)" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
         <div className="border border-gray-800 rounded p-4">
           <h3 className="font-pixel text-xs mb-4">TRANSACTIONS</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData}>
+            <BarChart data={chartData}>
+              <defs>
+                <linearGradient id="barGradientTxns" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#F97316" stopOpacity={1}/>
+                  <stop offset="100%" stopColor="#F97316" stopOpacity={0.3}/>
+                </linearGradient>
+              </defs>
               <XAxis dataKey="time" stroke="#444" style={{ fontSize: '10px' }} />
               <YAxis stroke="#444" style={{ fontSize: '10px' }} />
               <Tooltip 
                 contentStyle={{ background: '#111', border: '1px solid #333', borderRadius: '4px', fontSize: '12px' }}
                 labelStyle={{ color: '#999' }}
               />
-              <Line type="monotone" dataKey="txns" stroke="#F97316" strokeWidth={2} dot={false} />
-            </LineChart>
+              <Bar dataKey="txns" fill="url(#barGradientTxns)" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
