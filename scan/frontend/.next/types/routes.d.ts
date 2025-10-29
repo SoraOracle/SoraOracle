@@ -4,7 +4,7 @@
 type AppRoutes = "/" | "/agents" | "/agents/my" | "/composer" | "/composer/admin" | "/composer/agent/[id]" | "/composers" | "/composers/[address]" | "/data-sources" | "/transactions"
 type AppRouteHandlerRoutes = "/api/admin/check" | "/api/admin/tools" | "/api/admin/verify" | "/api/agents" | "/api/agents/[id]/chat" | "/api/agents/[id]/execute-tool" | "/api/agents/[id]/sessions" | "/api/agents/[id]/sessions/[sessionId]" | "/api/agents/[id]/sessions/[sessionId]/messages" | "/api/auth/composer" | "/api/charts" | "/api/composers/top" | "/api/services" | "/api/stats" | "/api/tools" | "/api/transactions"
 type PageRoutes = never
-type LayoutRoutes = "/"
+type LayoutRoutes = "/" | "/composer/agent/[id]"
 type RedirectRoutes = never
 type RewriteRoutes = never
 type Routes = AppRoutes | PageRoutes | LayoutRoutes | RedirectRoutes | RewriteRoutes | AppRouteHandlerRoutes
@@ -44,6 +44,7 @@ export type ParamsOf<Route extends Routes> = ParamMap[Route]
 
 interface LayoutSlotMap {
   "/": never
+  "/composer/agent/[id]": never
 }
 
 

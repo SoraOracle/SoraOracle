@@ -399,14 +399,14 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   }
 
   return (
-    <div className="h-screen flex">
+    <div className="fixed inset-0 top-16 flex overflow-hidden">
       {/* Sessions Sidebar */}
-      <div className="w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex flex-col">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
-          <Link href="/agents/my" className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1 mb-3">
+      <div className="w-64 border-r border-gray-200 dark:border-gray-800 bg-s402-light-card dark:bg-gray-950 flex flex-col shadow-soft dark:shadow-none">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+          <Link href="/agents/my" className="text-xs text-gray-500 hover:text-s402-orange flex items-center gap-1 mb-3">
             ← Back to Agents
           </Link>
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 bg-s402-orange/10 rounded-full flex items-center justify-center text-lg">
               {agent.icon || '🤖'}
             </div>
@@ -417,18 +417,18 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           </div>
           <button
             onClick={createNewSession}
-            className="w-full px-3 py-2 bg-s402-orange hover:bg-orange-600 text-white text-sm font-medium rounded transition-colors"
+            className="w-full px-3 py-2 bg-s402-orange hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors shadow-soft"
           >
             + New Chat
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-950">
           {sessions.map(session => (
             <div
               key={session.id}
-              className={`group px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900 border-b border-gray-100 dark:border-gray-900 ${
-                currentSessionId === session.id ? 'bg-gray-100 dark:bg-gray-900' : ''
+              className={`group px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900/50 border-b border-gray-100 dark:border-gray-900 transition-colors ${
+                currentSessionId === session.id ? 'bg-gray-50 dark:bg-gray-900/50 border-l-2 border-l-s402-orange' : ''
               }`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -436,7 +436,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
                   className="flex-1 min-w-0"
                   onClick={() => setCurrentSessionId(session.id)}
                 >
-                  <div className="text-sm truncate">{session.title}</div>
+                  <div className="text-sm truncate font-medium">{session.title}</div>
                   <div className="text-xs text-gray-500">
                     {new Date(session.created_at).toLocaleDateString()}
                   </div>
@@ -446,7 +446,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
                     e.stopPropagation();
                     deleteSession(session.id);
                   }}
-                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-opacity"
+                  className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-all"
                   title="Delete chat"
                 >
                   <span className="text-xs text-red-600 dark:text-red-400">🗑️</span>
@@ -456,20 +456,21 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           ))}
         </div>
 
-        <div className="p-3 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-500">
+        <div className="p-3 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-500 bg-gray-50 dark:bg-gray-900/50">
           <button
             onClick={() => setShowToolsPanel(!showToolsPanel)}
-            className="w-full text-left hover:text-gray-700 dark:hover:text-gray-300"
+            className="w-full text-left hover:text-s402-orange transition-colors flex items-center justify-between"
           >
-            🔧 {availableTools.length} tools enabled
+            <span>🔧 Tools</span>
+            <span className="text-s402-orange font-medium">{availableTools.length}</span>
           </button>
         </div>
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col bg-s402-light-bg dark:bg-s402-dark">
         {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 p-6">
+        <div className="flex-1 overflow-y-auto p-6">
           {messages.length === 0 ? (
             <div className="text-center text-gray-500 mt-20">
               <div className="text-6xl mb-4">{agent.icon || '🤖'}</div>
@@ -484,10 +485,10 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[75%] rounded-lg px-4 py-3 ${
+                    className={`max-w-[75%] rounded-lg px-4 py-3 shadow-soft dark:shadow-none ${
                       msg.role === 'user'
                         ? 'bg-s402-orange text-white'
-                        : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800'
+                        : 'bg-s402-light-card dark:bg-gray-900 border border-gray-200 dark:border-gray-800'
                     }`}
                   >
                     <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
@@ -497,7 +498,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
               
               {isLoading && !paymentRequest && (
                 <div className="flex justify-start">
-                  <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3">
+                  <div className="bg-s402-light-card dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 shadow-soft dark:shadow-none">
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <div className="animate-pulse">●</div>
                       <div>Thinking...</div>
@@ -513,7 +514,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
 
         {/* Payment Request Banner */}
         {paymentRequest && (
-          <div className="border-t border-s402-orange bg-s402-orange/5 px-6 py-4">
+          <div className="border-t border-s402-orange bg-s402-orange/10 dark:bg-s402-orange/5 px-6 py-4 shadow-soft-lg dark:shadow-none">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-s402-orange/20 rounded-full flex items-center justify-center">
@@ -548,7 +549,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
 
         {/* Tools Panel */}
         {showToolsPanel && (
-          <div className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-6 py-4 max-h-64 overflow-y-auto">
+          <div className="border-t border-gray-200 dark:border-gray-800 bg-s402-light-card dark:bg-gray-900 px-6 py-4 max-h-64 overflow-y-auto shadow-soft-lg dark:shadow-none">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium">Available Tools</h3>
               <button
@@ -562,7 +563,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
               {availableTools.map(tool => (
                 <div
                   key={tool.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
                 >
                   <div>
                     <div className="text-sm font-medium">{tool.name}</div>
@@ -578,7 +579,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
         )}
 
         {/* Input Area */}
-        <div className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 px-6 py-4">
+        <div className="border-t border-gray-200 dark:border-gray-800 bg-s402-light-card dark:bg-gray-950 px-6 py-4 shadow-soft-lg dark:shadow-none">
           <div className="flex gap-3">
             <input
               type="text"
@@ -587,12 +588,12 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
               onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="Ask your agent anything..."
               disabled={isLoading || !!paymentRequest || !currentSessionId}
-              className="flex-1 bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-s402-orange transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-s402-orange focus:ring-1 focus:ring-s402-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-soft dark:shadow-none"
             />
             <button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading || !!paymentRequest || !currentSessionId}
-              className="px-6 py-3 bg-s402-orange hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 bg-s402-orange hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-soft"
             >
               Send
             </button>
