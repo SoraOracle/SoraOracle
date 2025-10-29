@@ -18,7 +18,7 @@ const CONFIG = {
   BSCSCAN_API_KEY: process.env.BSCSCAN_API_KEY || '',
   START_BLOCK: 44000000, // S402Facilitator v3 deployment block
   POLL_INTERVAL: 60000, // 60 seconds
-  BLOCKS_PER_BATCH: 5000,
+  BLOCKS_PER_BATCH: 1000, // Smaller batches to avoid rate limits
   CONFIRMATIONS: 12,
 };
 
