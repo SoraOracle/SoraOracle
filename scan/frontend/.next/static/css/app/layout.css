@@ -1076,6 +1076,10 @@ video {
 .to-transparent {
   --tw-gradient-to: transparent var(--tw-gradient-to-position);
 }
+.object-contain {
+  -o-object-fit: contain;
+     object-fit: contain;
+}
 .p-1 {
   padding: 0.25rem;
 }
@@ -1236,6 +1240,9 @@ video {
 }
 .leading-none {
   line-height: 1;
+}
+.tracking-wider {
+  letter-spacing: 0.05em;
 }
 .text-gray-300 {
   --tw-text-opacity: 1;
@@ -1448,6 +1455,10 @@ video {
 
 .hover\:underline:hover {
   text-decoration-line: underline;
+}
+
+.hover\:opacity-80:hover {
+  opacity: 0.8;
 }
 
 .hover\:shadow-\[0_0_12px_rgba\(249\2c 115\2c 22\2c 0\.6\)\]:hover {

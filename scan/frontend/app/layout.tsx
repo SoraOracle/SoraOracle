@@ -53,8 +53,22 @@ export default function RootLayout({
             </main>
             <footer className="border-t border-gray-200 dark:border-gray-800 mt-16 py-8">
               <div className="container mx-auto px-4 text-center text-gray-600 dark:text-gray-400 text-sm">
-                <p>S402 Scan - Oracle Ecosystem Explorer for BNB Chain</p>
-                <p className="mt-2">Built by <a href="https://github.com/sora-oracle" className="text-s402-orange hover:underline">Sora Oracle</a></p>
+                <p className="mb-4">S402 Scan - Oracle Ecosystem Explorer for BNB Chain</p>
+                <div className="flex items-center justify-center gap-2 mt-4">
+                  <span className="text-xs uppercase tracking-wider text-gray-500">Powered by</span>
+                  <a 
+                    href="https://github.com/sora-oracle" 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  >
+                    <img 
+                      src="/sora-logo.png" 
+                      alt="Sora Oracle" 
+                      className="h-8 object-contain"
+                    />
+                  </a>
+                </div>
               </div>
             </footer>
             </WalletProvider>
