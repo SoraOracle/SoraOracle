@@ -5,10 +5,19 @@ import { useState, useEffect } from 'react';
 export default function Header() {
   const [address, setAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     checkIfWalletIsConnected();
   }, []);
+
+  useEffect(() => {
+    if (address) {
+      checkAdminStatus(address);
+    } else {
+      setIsAdmin(false);
+    }
+  }, [address]);
 
   const checkIfWalletIsConnected = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -20,6 +29,24 @@ export default function Header() {
       } catch (error) {
         console.error('Error checking wallet connection:', error);
       }
+    }
+  };
+
+  const checkAdminStatus = async (walletAddress: string) => {
+    try {
+      const response = await fetch('/api/admin/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: walletAddress }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setIsAdmin(data.isAdmin);
+      }
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+      setIsAdmin(false);
     }
   };
 
@@ -95,6 +122,11 @@ export default function Header() {
               <a href="/providers" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Providers</a>
               <a href="/data-sources" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Data Sources</a>
               <a href="/composer" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Composer</a>
+              {isAdmin && (
+                <a href="/composer/admin" className="text-s402-orange font-bold border border-s402-orange px-3 py-1 rounded hover:bg-s402-orange hover:text-white transition-all duration-300 hover:shadow-[0_0_12px_rgba(249,115,22,0.6)]">
+                  ⚙️ Admin Panel
+                </a>
+              )}
             </div>
           </div>
           <div className="flex items-center space-x-4">

@@ -1112,6 +1112,11 @@ video {
   background-color: rgb(234 88 12 / var(--tw-bg-opacity, 1));
 }
 
+.hover\:bg-s402-orange:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 115 22 / var(--tw-bg-opacity, 1));
+}
+
 .hover\:text-s402-orange:hover {
   --tw-text-opacity: 1;
   color: rgb(249 115 22 / var(--tw-text-opacity, 1));
@@ -1124,6 +1129,12 @@ video {
 
 .hover\:underline:hover {
   text-decoration-line: underline;
+}
+
+.hover\:shadow-\[0_0_12px_rgba\(249\2c 115\2c 22\2c 0\.6\)\]:hover {
+  --tw-shadow: 0 0 12px rgba(249,115,22,0.6);
+  --tw-shadow-colored: 0 0 12px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
 .hover\:shadow-\[0_0_20px_rgba\(249\2c 115\2c 22\2c 0\.5\)\]:hover {
