@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     let toolOutput: any;
     
     // Handle specific tool types
-    if (tool_id === 'seedream4_generator') {
+    if (tool_id === 'replicate_seedream4') {
       // Use Replicate for image generation
       try {
         const Replicate = require('replicate');
@@ -59,14 +59,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           auth: process.env.REPLICATE_API_TOKEN,
         });
 
-        console.log('Generating image with prompt:', input.prompt);
+        console.log('🎨 Generating image with prompt:', input.prompt);
         
         const output = await replicate.run(
-          "fofr/seedream:fe2e9a37e3ec81e6fc882c9063ea31ee8e83eea9f2ca79a19a19f2b4dc32cb65",
+          "lucataco/seedream-4",
           {
             input: {
               prompt: input.prompt,
-              aspect_ratio: input.aspect_ratio || "4:3",
+              aspect_ratio: input.aspect_ratio || "1:1",
               num_outputs: 1,
             }
           }
@@ -76,12 +76,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           success: true,
           images: Array.isArray(output) ? output : [output],
           prompt: input.prompt,
-          aspect_ratio: input.aspect_ratio || "4:3",
+          aspect_ratio: input.aspect_ratio || "1:1",
         };
         
-        console.log('Image generated successfully:', toolOutput.images[0]);
+        console.log('✅ Image generated successfully:', toolOutput.images[0]);
       } catch (error) {
-        console.error('Replicate API error:', error);
+        console.error('❌ Replicate API error:', error);
         toolOutput = { 
           success: false, 
           error: 'Failed to generate image',

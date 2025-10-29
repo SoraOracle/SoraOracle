@@ -223,6 +223,10 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       const data = await response.json();
 
       if (data.type === 'payment_required') {
+        // Show any assistant text that came before the tool request
+        if (data.assistant_message) {
+          setMessages(prev => [...prev, { role: 'assistant', content: data.assistant_message }]);
+        }
         setPaymentRequest(data);
         setIsLoading(false);
       } else if (data.type === 'message') {
@@ -308,10 +312,16 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       const data = await response.json();
 
       if (data.type === 'message') {
-        setMessages(prev => [
-          ...prev.slice(0, -1),
-          { role: 'assistant', content: data.content }
-        ]);
+        setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
+        
+        // Show tool output if images were generated
+        if (data.tool_output?.images) {
+          const imageUrls = data.tool_output.images;
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `Here are the generated images:\n${imageUrls.map((url: string, i: number) => `Image ${i+1}: ${url}`).join('\n')}`
+          }]);
+        }
       }
     } catch (error: any) {
       console.error('Payment error:', error);
@@ -401,8 +411,8 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   return (
     <div className="fixed inset-0 top-16 flex overflow-hidden">
       {/* Sessions Sidebar */}
-      <div className="w-64 border-r border-gray-200 dark:border-gray-800 bg-s402-light-card dark:bg-gray-950 flex flex-col shadow-soft dark:shadow-none">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50">
+      <div className="w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex flex-col">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
           <Link href="/agents/my" className="text-xs text-gray-500 hover:text-s402-orange flex items-center gap-1 mb-3">
             ← Back to Agents
           </Link>
@@ -456,7 +466,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           ))}
         </div>
 
-        <div className="p-3 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-500 bg-gray-50 dark:bg-gray-900/50">
+        <div className="p-3 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-500">
           <button
             onClick={() => setShowToolsPanel(!showToolsPanel)}
             className="w-full text-left hover:text-s402-orange transition-colors flex items-center justify-between"
@@ -588,7 +598,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
               onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="Ask your agent anything..."
               disabled={isLoading || !!paymentRequest || !currentSessionId}
-              className="flex-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-s402-orange focus:ring-1 focus:ring-s402-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-soft dark:shadow-none"
+              className="flex-1 bg-s402-light-bg dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-s402-orange focus:ring-1 focus:ring-s402-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               onClick={sendMessage}

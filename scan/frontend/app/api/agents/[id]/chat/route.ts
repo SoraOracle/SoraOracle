@@ -92,11 +92,14 @@ Focus on providing valuable insights using s402 oracle data. Be concise and help
       tools: tools as any,
     });
 
-    const assistantMessage = response.content[0];
+    // Check for tool_use in ANY content block (Claude can return text + tool_use)
+    const toolUseBlock = response.content.find((c: any) => c.type === 'tool_use');
+    const textContent = response.content.find((c: any) => c.type === 'text');
+    const textReply = textContent ? (textContent as any).text : '';
 
-    if (assistantMessage.type === 'tool_use') {
-      const toolCall = assistantMessage;
-      
+    if (toolUseBlock) {
+      const toolCall = toolUseBlock as any;
+
       const toolResult = await pool.query(
         'SELECT * FROM s402_tools WHERE id = $1',
         [toolCall.name]
@@ -108,6 +111,14 @@ Focus on providing valuable insights using s402 oracle data. Be concise and help
 
       const tool = toolResult.rows[0];
 
+      // Store the text reply if present, then store the tool call
+      if (textReply) {
+        await pool.query(
+          'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
+          [agentId, session_id, 'assistant', textReply]
+        );
+      }
+
       await pool.query(
         'INSERT INTO s402_agent_chats (agent_id, session_id, role, content, tool_calls) VALUES ($1, $2, $3, $4, $5)',
         [agentId, session_id, 'assistant', '', JSON.stringify([toolCall])]
@@ -115,19 +126,19 @@ Focus on providing valuable insights using s402 oracle data. Be concise and help
 
       return NextResponse.json({
         type: 'payment_required',
+        assistant_message: textReply || null,
         tool: {
           id: tool.id,
           name: tool.name,
           cost_usd: parseFloat(tool.cost_usd),
-          provider_address: tool.provider_address,
+          provider_address: tool.provider_address || '0x0000000000000000000000000000000000000000',
           input: toolCall.input,
         },
         tool_call_id: toolCall.id,
       });
     }
 
-    const textContent = response.content.find(c => c.type === 'text');
-    const reply = textContent ? (textContent as any).text : 'I apologize, but I could not generate a response.';
+    const reply = textReply || 'I apologize, but I could not generate a response.';
 
     await pool.query(
       'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
