@@ -16,29 +16,42 @@ interface OverviewStats {
   volumeLast24h: number;
 }
 
-// Placeholder chart data
-const CHART_DATA = [
-  { time: '00:00', txns: 850, volume: 1200 },
-  { time: '04:00', txns: 920, volume: 1350 },
-  { time: '08:00', txns: 1100, volume: 1800 },
-  { time: '12:00', txns: 1250, volume: 2100 },
-  { time: '16:00', txns: 980, volume: 1650 },
-  { time: '20:00', txns: 1050, volume: 1750 },
-];
+interface ChartDataPoint {
+  time: string;
+  txns: number;
+  volume: number;
+}
+
+interface Transaction {
+  txHash: string;
+  from: string;
+  to: string;
+  valueUSD: number;
+  platformFeeUSD: number;
+  blockNumber: number;
+  timestamp: string;
+}
 
 export default function Dashboard() {
   const [stats, setStats] = useState<OverviewStats | null>(null);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [recentTxs, setRecentTxs] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/stats')
-      .then(res => res.json())
-      .then(data => {
-        setStats(data);
+    Promise.all([
+      fetch('/api/stats').then(res => res.json()),
+      fetch('/api/charts').then(res => res.json()),
+      fetch('/api/transactions').then(res => res.json()),
+    ])
+      .then(([statsData, chartsData, txsData]) => {
+        setStats(statsData);
+        setChartData(chartsData);
+        setRecentTxs(txsData.slice(0, 5));
         setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to fetch stats:', err);
+        console.error('Failed to fetch data:', err);
         setLoading(false);
       });
   }, []);
@@ -53,6 +66,16 @@ export default function Dashboard() {
       </div>
     );
   }
+
+  const formatAge = (timestamp: string) => {
+    const diff = Date.now() - new Date(timestamp).getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    
+    if (hours > 0) return `${hours}h ago`;
+    if (minutes > 0) return `${minutes}m ago`;
+    return 'just now';
+  };
 
   return (
     <div className="space-y-8">
@@ -104,7 +127,7 @@ export default function Dashboard() {
         <div className="border border-gray-800 rounded p-4">
           <h3 className="font-pixel text-xs mb-4">TRANSACTION VOLUME</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={CHART_DATA}>
+            <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#F97316" stopOpacity={0.3}/>
@@ -125,7 +148,7 @@ export default function Dashboard() {
         <div className="border border-gray-800 rounded p-4">
           <h3 className="font-pixel text-xs mb-4">TRANSACTIONS</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={CHART_DATA}>
+            <LineChart data={chartData}>
               <XAxis dataKey="time" stroke="#444" style={{ fontSize: '10px' }} />
               <YAxis stroke="#444" style={{ fontSize: '10px' }} />
               <Tooltip 
@@ -138,7 +161,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Top Data Sources */}
+      {/* Top Data Sources - KEEP AS PLACEHOLDER */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-pixel text-sm">TOP DATA SOURCES <span className="text-gray-600">Past 24 Hours</span></h2>
@@ -178,7 +201,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Transactions */}
+      {/* Recent Transactions - REAL DATA */}
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-pixel text-sm">TRANSACTIONS <span className="text-gray-600">Past 24 Hours</span></h2>
@@ -187,42 +210,48 @@ export default function Dashboard() {
           </Link>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-800 text-xs text-gray-500 uppercase">
-                <th className="text-left py-3 font-medium">Server</th>
-                <th className="text-right py-3 font-medium">Amount</th>
-                <th className="text-left py-3 font-medium">Sender</th>
-                <th className="text-left py-3 font-medium">Hash</th>
-                <th className="text-right py-3 font-medium">Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {RECENT_TXS.map((tx, i) => (
-                <tr key={i} className="border-b border-gray-900 hover:bg-gray-950 transition-colors">
-                  <td className="py-3">
-                    <a href={`https://bscscan.com/address/${tx.to}`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-gray-400 hover:text-white">
-                      {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
-                    </a>
-                  </td>
-                  <td className="text-right tabular-nums">${tx.value.toFixed(2)}</td>
-                  <td>
-                    <a href={`https://bscscan.com/address/${tx.from}`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-gray-400 hover:text-white">
-                      {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
-                    </a>
-                  </td>
-                  <td>
-                    <a href={`https://bscscan.com/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="text-s402-orange hover:underline font-mono text-xs">
-                      {tx.hash.slice(0, 10)}...
-                    </a>
-                  </td>
-                  <td className="text-right text-gray-500 text-xs">{tx.age}</td>
+        {recentTxs.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-800 text-xs text-gray-500 uppercase">
+                  <th className="text-left py-3 font-medium">Server</th>
+                  <th className="text-right py-3 font-medium">Amount</th>
+                  <th className="text-left py-3 font-medium">Sender</th>
+                  <th className="text-left py-3 font-medium">Hash</th>
+                  <th className="text-right py-3 font-medium">Time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {recentTxs.map((tx, i) => (
+                  <tr key={i} className="border-b border-gray-900 hover:bg-gray-950 transition-colors">
+                    <td className="py-3">
+                      <a href={`https://bscscan.com/address/${tx.to}`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-gray-400 hover:text-white">
+                        {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
+                      </a>
+                    </td>
+                    <td className="text-right tabular-nums">${tx.valueUSD.toFixed(2)}</td>
+                    <td>
+                      <a href={`https://bscscan.com/address/${tx.from}`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-gray-400 hover:text-white">
+                        {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
+                      </a>
+                    </td>
+                    <td>
+                      <a href={`https://bscscan.com/tx/${tx.txHash}`} target="_blank" rel="noopener noreferrer" className="text-s402-orange hover:underline font-mono text-xs">
+                        {tx.txHash.slice(0, 10)}...
+                      </a>
+                    </td>
+                    <td className="text-right text-gray-500 text-xs">{formatAge(tx.timestamp)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500 text-sm border border-gray-800 rounded">
+            No transactions yet. Data will appear as the indexer syncs.
+          </div>
+        )}
       </div>
     </div>
   );
@@ -251,12 +280,4 @@ const TOP_SOURCES = [
   { icon: '🌤️', name: 'OpenWeather', queries: 823, volume: 16.46, avgCost: 0.02, reliability: 98.5 },
   { icon: '💰', name: 'CryptoCompare', queries: 612, volume: 24.48, avgCost: 0.03, reliability: 98.9 },
   { icon: '📰', name: 'NewsAPI', queries: 456, volume: 22.80, avgCost: 0.05, reliability: 97.2 },
-];
-
-const RECENT_TXS = [
-  { hash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b', from: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb', to: '0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199', value: 0.03, age: '1m ago' },
-  { hash: '0x2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c', from: '0x9876543210fedcba9876543210fedcba98765432', to: '0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199', value: 0.05, age: '4m ago' },
-  { hash: '0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d', from: '0x1234567890abcdef1234567890abcdef12345678', to: '0x5555666677778888999900001111222233334444', value: 0.02, age: '12m ago' },
-  { hash: '0x4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e', from: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd', to: '0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199', value: 0.04, age: '23m ago' },
-  { hash: '0x5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f', from: '0x7777888899990000111122223333444455556666', to: '0x5555666677778888999900001111222233334444', value: 0.025, age: '~2h ago' },
 ];
