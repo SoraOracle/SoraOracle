@@ -169,6 +169,27 @@ export default function AdminPage() {
     }
   };
 
+  const deleteTool = async (toolId: string, toolName: string) => {
+    if (!confirm(`Are you sure you want to permanently delete "${toolName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/tools?id=${toolId}&admin_address=${address}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        await loadTools();
+      } else {
+        alert('Failed to delete tool');
+      }
+    } catch (error) {
+      console.error('Failed to delete tool:', error);
+      alert('Failed to delete tool');
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="max-w-md mx-auto mt-20 text-center space-y-6">
@@ -406,12 +427,21 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => toggleToolStatus(tool.id, tool.is_active)}
-                  className="text-sm px-3 py-1 border border-gray-800 hover:border-gray-700 rounded transition-colors"
-                >
-                  {tool.is_active ? 'Disable' : 'Enable'}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => toggleToolStatus(tool.id, tool.is_active)}
+                    className="text-sm px-3 py-1 border border-gray-800 hover:border-gray-700 rounded transition-colors"
+                  >
+                    {tool.is_active ? 'Disable' : 'Enable'}
+                  </button>
+                  <button
+                    onClick={() => deleteTool(tool.id, tool.name)}
+                    className="text-sm px-3 py-1 border border-red-900/50 hover:border-red-700 text-red-400 hover:text-red-300 rounded transition-colors"
+                    title="Delete tool permanently"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             </div>
           ))

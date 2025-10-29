@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { Press_Start_2P, Inter } from 'next/font/google';
 import Header from './components/Header';
+import { ThemeProvider } from './providers/ThemeProvider';
 
 const pressStart = Press_Start_2P({ 
   weight: '400',
@@ -26,18 +27,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${pressStart.variable}`}>
-      <body className="font-sans bg-black text-white min-h-screen">
-        <Header />
-        <div className="h-16"></div>
-        <main className="container mx-auto px-4 py-8">
-          {children}
-        </main>
-        <footer className="border-t border-gray-800 mt-16 py-8">
-          <div className="container mx-auto px-4 text-center text-gray-400 text-sm">
-            <p>S402 Scan - Oracle Ecosystem Explorer for BNB Chain</p>
-            <p className="mt-2">Built by <a href="https://github.com/sora-oracle" className="text-s402-orange hover:underline">Sora Oracle</a></p>
-          </div>
-        </footer>
+      <body className="font-sans bg-white dark:bg-black text-gray-900 dark:text-white min-h-screen transition-colors">
+        <div className="flex flex-col min-h-screen">
+          <ThemeProvider>
+            <Header />
+            <div className="h-16"></div>
+            <main className="container mx-auto px-4 py-8 flex-1">
+              {children}
+            </main>
+            <footer className="border-t border-gray-200 dark:border-gray-800 mt-16 py-8">
+              <div className="container mx-auto px-4 text-center text-gray-600 dark:text-gray-400 text-sm">
+                <p>S402 Scan - Oracle Ecosystem Explorer for BNB Chain</p>
+                <p className="mt-2">Built by <a href="https://github.com/sora-oracle" className="text-s402-orange hover:underline">Sora Oracle</a></p>
+              </div>
+            </footer>
+          </ThemeProvider>
+        </div>
       </body>
     </html>
   );

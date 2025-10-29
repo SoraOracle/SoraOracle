@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const Replicate = require('replicate');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
@@ -9,6 +10,11 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
+
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is not set - cannot start server');
+}
 
 const ADMIN_WALLET = '0x89907F51bE80c12E63Eb62fa7680c3960aC0C18f';
 const IMAGE_COST_USD = 0.05;
@@ -19,7 +25,27 @@ app.use(express.json());
 
 app.post('/api/generate-image', async (req, res) => {
   try {
-    const { prompt, aspect_ratio, tx_hash, payer_address } = req.body;
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized: No JWT token provided' });
+    }
+
+    const token = authHeader.substring(7);
+    let decodedToken;
+    
+    try {
+      decodedToken = jwt.verify(token, JWT_SECRET);
+    } catch (error) {
+      return res.status(401).json({ error: 'Unauthorized: Invalid or expired JWT token' });
+    }
+
+    if (!decodedToken.address || typeof decodedToken.address !== 'string') {
+      return res.status(401).json({ error: 'Unauthorized: Invalid token payload - missing address' });
+    }
+
+    const authenticatedAddress = decodedToken.address;
+
+    const { prompt, aspect_ratio, tx_hash } = req.body;
 
     if (!prompt) {
       return res.status(400).json({ error: 'Prompt is required' });
@@ -37,10 +63,6 @@ app.post('/api/generate-image', async (req, res) => {
       });
     }
 
-    if (!payer_address) {
-      return res.status(400).json({ error: 'Payer address required for verification' });
-    }
-
     const paymentCheck = await pool.query(
       `SELECT tx_hash, from_address, to_address, value_usd, block_timestamp 
        FROM s402_payments 
@@ -54,11 +76,12 @@ app.post('/api/generate-image', async (req, res) => {
 
     const payment = paymentCheck.rows[0];
 
-    if (payment.from_address.toLowerCase() !== payer_address.toLowerCase()) {
+    if (payment.from_address.toLowerCase() !== authenticatedAddress.toLowerCase()) {
       return res.status(403).json({ 
-        error: 'Payment sender does not match payer address',
-        expected: payer_address,
-        actual: payment.from_address
+        error: 'Payment sender does not match authenticated wallet',
+        authenticated_wallet: authenticatedAddress,
+        payment_sender: payment.from_address,
+        message: 'The wallet that made the payment must match your authenticated wallet'
       });
     }
 
@@ -99,10 +122,10 @@ app.post('/api/generate-image', async (req, res) => {
     await pool.query(
       `INSERT INTO s402_proxy_usage (tx_hash, payer_address, service, request_data, created_at)
        VALUES ($1, $2, $3, $4, NOW())`,
-      [tx_hash, payer_address, 'replicate-seedream', JSON.stringify({ prompt, aspect_ratio })]
+      [tx_hash, authenticatedAddress, 'replicate-seedream', JSON.stringify({ prompt, aspect_ratio })]
     );
 
-    console.log(`✅ Payment verified for ${payer_address}: ${tx_hash}`);
+    console.log(`✅ Payment verified for ${authenticatedAddress}: ${tx_hash}`);
 
     const input = {
       prompt: prompt,
@@ -112,7 +135,16 @@ app.post('/api/generate-image', async (req, res) => {
     console.log(`🎨 Generating image with prompt: "${prompt}"`);
     const output = await replicate.run("bytedance/seedream-4", { input });
 
-    const imageUrl = output && output[0] ? output[0].url() : null;
+    let imageUrl = null;
+    if (output && output[0]) {
+      if (typeof output[0] === 'string') {
+        imageUrl = output[0];
+      } else if (output[0].url) {
+        imageUrl = typeof output[0].url === 'function' ? output[0].url() : output[0].url;
+      } else {
+        imageUrl = String(output[0]);
+      }
+    }
 
     await pool.query(
       `UPDATE s402_proxy_usage 

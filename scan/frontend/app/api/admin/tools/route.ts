@@ -78,3 +78,31 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to update tool' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const admin_address = searchParams.get('admin_address');
+
+    if (!id || !admin_address) {
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+    }
+
+    const adminCheck = await pool.query(
+      'SELECT address FROM s402_admin_wallets WHERE LOWER(address) = LOWER($1) AND is_active = true',
+      [admin_address]
+    );
+
+    if (adminCheck.rows.length === 0) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
+
+    await pool.query('DELETE FROM s402_tools WHERE id = $1', [id]);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete tool:', error);
+    return NextResponse.json({ error: 'Failed to delete tool' }, { status: 500 });
+  }
+}
