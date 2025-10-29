@@ -30,6 +30,46 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/tools/route.js"
+    ],
+    "/api/transactions/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/transactions/route.js"
+    ],
+    "/api/stats/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/stats/route.js"
+    ],
+    "/api/charts/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/charts/route.js"
+    ],
+    "/api/agents/[id]/sessions/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/agents/[id]/sessions/route.js"
+    ],
+    "/api/composers/top/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/composers/top/route.js"
+    ],
+    "/api/services/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/services/route.js"
+    ],
+    "/api/agents/[id]/sessions/[sessionId]/messages/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/agents/[id]/sessions/[sessionId]/messages/route.js"
+    ],
+    "/api/admin/check/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/admin/check/route.js"
     ]
   }
 }
