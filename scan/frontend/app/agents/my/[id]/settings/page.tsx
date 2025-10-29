@@ -46,6 +46,7 @@ export default function AgentSettings({ params }: { params: Promise<{ id: string
   // Tools
   const [availableTools, setAvailableTools] = useState<Tool[]>([]);
   const [agentTools, setAgentTools] = useState<AgentTool[]>([]);
+  const [toolsError, setToolsError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'danger'>('general');
 
   useEffect(() => {
@@ -92,8 +93,15 @@ export default function AgentSettings({ params }: { params: Promise<{ id: string
 
       // Load agent's tools
       const toolsResponse = await fetch(`/api/agents/${agentId}/tools`);
-      const toolsData = await toolsResponse.json();
-      setAgentTools(toolsData);
+      if (toolsResponse.ok) {
+        const toolsData = await toolsResponse.json();
+        setAgentTools(Array.isArray(toolsData) ? toolsData : []);
+        setToolsError(null);
+      } else {
+        console.error('Failed to load tools');
+        setAgentTools([]);
+        setToolsError('Failed to load tools');
+      }
     } catch (error) {
       console.error('Failed to load agent:', error);
     } finally {
@@ -342,7 +350,9 @@ export default function AgentSettings({ params }: { params: Promise<{ id: string
               {/* Current Tools */}
               <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-lg p-6">
                 <h3 className="text-lg font-bold mb-4">Current Tools</h3>
-                {agentTools.length === 0 ? (
+                {toolsError ? (
+                  <p className="text-red-500 text-sm">{toolsError}</p>
+                ) : agentTools.length === 0 ? (
                   <p className="text-gray-500 text-sm">No tools added yet</p>
                 ) : (
                   <div className="space-y-2">
