@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface Tool {
   id: string;
@@ -25,6 +26,7 @@ export default function AdminPage() {
   const [tools, setTools] = useState<Tool[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const [newTool, setNewTool] = useState({
     id: '',
@@ -277,16 +279,36 @@ export default function AdminPage() {
           </div>
 
           <div className="grid grid-cols-4 gap-4">
-            <div>
+            <div className="relative">
               <label className="block text-sm text-gray-400 mb-2">Icon (emoji)</label>
-              <input
-                type="text"
-                maxLength={2}
-                placeholder="🤖"
-                value={newTool.icon}
-                onChange={e => setNewTool({ ...newTool, icon: e.target.value })}
-                className="w-full bg-transparent border border-gray-800 rounded px-3 py-2 text-sm text-center text-2xl"
-              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="bg-transparent border border-gray-800 rounded px-3 py-2 text-2xl hover:border-s402-orange transition-colors"
+                >
+                  {newTool.icon || '🤖'}
+                </button>
+                <input
+                  type="text"
+                  maxLength={2}
+                  placeholder="🤖"
+                  value={newTool.icon}
+                  onChange={e => setNewTool({ ...newTool, icon: e.target.value })}
+                  className="flex-1 bg-transparent border border-gray-800 rounded px-3 py-2 text-sm text-center"
+                />
+              </div>
+              {showEmojiPicker && (
+                <div className="absolute z-50 mt-2">
+                  <EmojiPicker
+                    onEmojiClick={(emojiData: EmojiClickData) => {
+                      setNewTool({ ...newTool, icon: emojiData.emoji });
+                      setShowEmojiPicker(false);
+                    }}
+                    theme="dark"
+                  />
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm text-gray-400 mb-2">Category</label>

@@ -27,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${pressStart.variable}`}>
-      <body className="font-sans bg-white dark:bg-black text-gray-900 dark:text-white min-h-screen transition-colors">
+      <body className="font-sans bg-s402-light-bg dark:bg-s402-dark text-gray-800 dark:text-gray-100 min-h-screen transition-colors">
         <div className="flex flex-col min-h-screen">
           <ThemeProvider>
             <Header />

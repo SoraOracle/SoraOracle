@@ -126,7 +126,7 @@ export default function Header() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 dark:border-gray-800/50 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-gray-300 dark:border-gray-800/50 bg-s402-light-card/95 dark:bg-s402-dark-card/95 backdrop-blur-xl shadow-soft dark:shadow-none">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-8">
@@ -150,16 +150,16 @@ export default function Header() {
             {mounted && (
               <button
                 onClick={toggleTheme}
-                className="text-xl px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-800 hover:border-s402-orange transition-colors"
+                className="text-xl px-3 py-1.5 rounded-full bg-gray-200 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 hover:border-s402-orange transition-colors shadow-soft dark:shadow-none"
                 title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
               >
                 {theme === 'dark' ? '☀️' : '🌙'}
               </button>
             )}
-            <span className="text-sm text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-800">BNB Chain</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full bg-gray-200 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 shadow-soft dark:shadow-none">BNB Chain</span>
             {address ? (
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-800">
+                <span className="text-sm text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full bg-gray-200 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 shadow-soft dark:shadow-none">
                   {formatAddress(address)}
                 </span>
                 <button
