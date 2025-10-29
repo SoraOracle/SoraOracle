@@ -69,7 +69,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             input: {
               prompt: input.prompt,
               aspect_ratio: input.aspect_ratio || "16:9",
-              size: "regular",
+              size: "2K",
               num_images: 1,
             }
           }
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       [agentId, session_id]
     );
 
-    // Build conversation history, properly interleaving text and tool calls
+    // Build conversation history with proper tool_use/tool_result pairing
     const conversationHistory: any[] = [];
     
     for (let i = 0; i < historyResult.rows.length; i++) {
@@ -152,17 +152,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           content: row.content,
         });
       } else if (row.role === 'assistant') {
-        // Check if this is the pending tool call we're responding to
         if (row.tool_calls) {
+          // Assistant message with tool_use blocks
           const toolCallsArray = Array.isArray(row.tool_calls) ? row.tool_calls : [row.tool_calls];
-          const toolCall = toolCallsArray[0];
-          
-          // Skip this tool call - we'll provide its result as user message
-          if (toolCall.id === tool_call_id) {
-            continue;
-          }
-          
-          // Add past tool calls as assistant messages with tool blocks
           conversationHistory.push({
             role: 'assistant',
             content: toolCallsArray,
@@ -178,6 +170,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     // Add the tool result as a user message
+    // This pairs with the last assistant tool_use message
     conversationHistory.push({
       role: 'user',
       content: [
@@ -188,6 +181,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         },
       ],
     });
+    
+    console.log('📋 Conversation history length:', conversationHistory.length);
+    console.log('📋 Last 2 messages:', JSON.stringify(conversationHistory.slice(-2), null, 2));
 
     const agentResult = await pool.query(
       'SELECT description FROM s402_agents WHERE id = $1',
