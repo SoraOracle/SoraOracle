@@ -6,12 +6,13 @@
   "scripts": {
     "dev": "node index.js",
     "start": "node index.js",
-    "init-db": "psql $DATABASE_URL -f schema.sql"
+    "init-db": "node init-db.js"
   },
   "dependencies": {
     "dotenv": "^16.4.7",
     "ethers": "^6.11.1",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "psql": "^0.0.1"
   },
   "author": "Sora Oracle <soraoracle@proton.me>",
   "license": "MIT"
