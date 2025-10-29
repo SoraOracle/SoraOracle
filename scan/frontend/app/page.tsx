@@ -127,11 +127,15 @@ export default function Dashboard() {
         <div className="border border-gray-800 rounded p-4">
           <h3 className="font-pixel text-xs mb-4">TRANSACTION VOLUME</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={chartData} barGap={8} barCategoryGap="35%">
+            <BarChart data={chartData} barGap={8} barCategoryGap="45%">
               <defs>
                 <linearGradient id="barGradientVolume" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#F97316" stopOpacity={1}/>
                   <stop offset="100%" stopColor="#F97316" stopOpacity={0.3}/>
+                </linearGradient>
+                <linearGradient id="barGradientVolumeHover" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#F97316" stopOpacity={0.8}/>
+                  <stop offset="100%" stopColor="#F97316" stopOpacity={0.4}/>
                 </linearGradient>
               </defs>
               <XAxis dataKey="time" stroke="#444" style={{ fontSize: '10px' }} />
@@ -139,13 +143,14 @@ export default function Dashboard() {
               <Tooltip 
                 contentStyle={{ background: '#111', border: '1px solid #333', borderRadius: '4px', fontSize: '12px' }}
                 labelStyle={{ color: '#999' }}
+                cursor={false}
               />
               <Bar 
                 dataKey="volume" 
                 fill="url(#barGradientVolume)" 
                 radius={[4, 4, 0, 0]}
-                activeBar={{ fill: 'rgba(249, 115, 22, 0.6)' }}
-                maxBarSize={24}
+                activeBar={{ fill: 'url(#barGradientVolumeHover)' }}
+                maxBarSize={16}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -154,11 +159,15 @@ export default function Dashboard() {
         <div className="border border-gray-800 rounded p-4">
           <h3 className="font-pixel text-xs mb-4">TRANSACTIONS</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={chartData} barGap={8} barCategoryGap="35%">
+            <BarChart data={chartData} barGap={8} barCategoryGap="45%">
               <defs>
                 <linearGradient id="barGradientTxns" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#F97316" stopOpacity={1}/>
                   <stop offset="100%" stopColor="#F97316" stopOpacity={0.3}/>
+                </linearGradient>
+                <linearGradient id="barGradientTxnsHover" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#F97316" stopOpacity={0.8}/>
+                  <stop offset="100%" stopColor="#F97316" stopOpacity={0.4}/>
                 </linearGradient>
               </defs>
               <XAxis dataKey="time" stroke="#444" style={{ fontSize: '10px' }} />
@@ -166,13 +175,14 @@ export default function Dashboard() {
               <Tooltip 
                 contentStyle={{ background: '#111', border: '1px solid #333', borderRadius: '4px', fontSize: '12px' }}
                 labelStyle={{ color: '#999' }}
+                cursor={false}
               />
               <Bar 
                 dataKey="txns" 
                 fill="url(#barGradientTxns)" 
                 radius={[4, 4, 0, 0]}
-                activeBar={{ fill: 'rgba(249, 115, 22, 0.6)' }}
-                maxBarSize={24}
+                activeBar={{ fill: 'url(#barGradientTxnsHover)' }}
+                maxBarSize={16}
               />
             </BarChart>
           </ResponsiveContainer>
