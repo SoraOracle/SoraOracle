@@ -16,10 +16,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/stats/route.js"
     ],
-    "/_not-found/page": [
+    "/transactions/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
+      "static/chunks/app/transactions/page.js"
+    ],
+    "/data-sources/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/data-sources/page.js"
+    ],
+    "/composer/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/composer/page.js"
     ]
   }
 }

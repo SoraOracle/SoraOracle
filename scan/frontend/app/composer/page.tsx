@@ -52,12 +52,12 @@ export default function ComposerPage() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-2 mb-2">
-          <h1 className="text-2xl font-semibold">AI Agent Composer</h1>
+          <h1 className="text-xl font-pixel">AI AGENT COMPOSER</h1>
           <span className="text-xs px-2 py-0.5 bg-s402-orange/20 text-s402-orange rounded font-medium">
             BETA
           </span>
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-400">
           Build autonomous agents that pay oracles with s402 micropayments
         </p>
       </div>
