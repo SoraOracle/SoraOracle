@@ -140,7 +140,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       [agentId, session_id]
     );
 
-    // Build conversation history with proper tool_use/tool_result pairing
+    // Build conversation history, excluding orphaned tool_use blocks
     const conversationHistory: any[] = [];
     
     for (let i = 0; i < historyResult.rows.length; i++) {
@@ -153,12 +153,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         });
       } else if (row.role === 'assistant') {
         if (row.tool_calls) {
-          // Assistant message with tool_use blocks
+          // Skip tool_use blocks that aren't the current one we're responding to
           const toolCallsArray = Array.isArray(row.tool_calls) ? row.tool_calls : [row.tool_calls];
-          conversationHistory.push({
-            role: 'assistant',
-            content: toolCallsArray,
-          });
+          const toolCall = toolCallsArray[0];
+          
+          if (toolCall.id === tool_call_id) {
+            // This is the tool call we're providing a result for
+            conversationHistory.push({
+              role: 'assistant',
+              content: toolCallsArray,
+            });
+          }
+          // Skip other orphaned tool calls
         } else if (row.content) {
           // Regular assistant text response
           conversationHistory.push({
