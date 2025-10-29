@@ -11,6 +11,9 @@ interface Transaction {
   platformFeeUSD: number;
   blockNumber: number;
   timestamp: string;
+  serviceName?: string | null;
+  serviceCategory?: string | null;
+  serviceIcon?: string | null;
 }
 
 export default function TransactionsPage() {
@@ -35,7 +38,9 @@ export default function TransactionsPage() {
     tx =>
       tx.txHash.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tx.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      tx.to.toLowerCase().includes(searchTerm.toLowerCase())
+      tx.to.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (tx.serviceName && tx.serviceName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (tx.serviceCategory && tx.serviceCategory.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const totalVolume = filteredTransactions.reduce((sum, tx) => sum + tx.valueUSD, 0);
@@ -59,10 +64,10 @@ export default function TransactionsPage() {
       <div className="flex items-center gap-4">
         <input
           type="text"
-          placeholder="Search by hash, from, or to address..."
+          placeholder="Search by hash, service, from, or to address..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          className="flex-1 bg-transparent border border-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-700 transition-colors"
+          className="flex-1 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:border-s402-orange transition-colors"
         />
       </div>
 
@@ -79,10 +84,10 @@ export default function TransactionsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-800 text-xs text-gray-500 uppercase">
+              <tr className="border-b border-gray-300 dark:border-gray-800 text-xs text-gray-500 uppercase">
                 <th className="text-left py-3 font-medium">Tx Hash</th>
+                <th className="text-left py-3 font-medium">Service / To</th>
                 <th className="text-left py-3 font-medium">From</th>
-                <th className="text-left py-3 font-medium">To</th>
                 <th className="text-right py-3 font-medium">Value</th>
                 <th className="text-right py-3 font-medium">Fee</th>
                 <th className="text-right py-3 font-medium">Block</th>
@@ -93,7 +98,7 @@ export default function TransactionsPage() {
               {filteredTransactions.map(tx => (
                 <tr
                   key={tx.txHash}
-                  className="border-b border-gray-900 hover:bg-gray-950 transition-colors"
+                  className="border-b border-gray-300 dark:border-gray-900 hover:bg-gray-50 dark:hover:bg-gray-950 transition-colors"
                 >
                   <td className="py-3">
                     <a
@@ -105,24 +110,33 @@ export default function TransactionsPage() {
                       {tx.txHash.slice(0, 10)}...{tx.txHash.slice(-8)}
                     </a>
                   </td>
+                  <td className="py-3">
+                    {tx.serviceName ? (
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 bg-s402-orange/10 text-s402-orange text-xs rounded">
+                          {tx.serviceCategory}
+                        </span>
+                        <span className="font-medium text-sm">{tx.serviceName}</span>
+                      </div>
+                    ) : (
+                      <a
+                        href={`https://bscscan.com/address/${tx.to}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-mono text-xs text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors"
+                      >
+                        {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
+                      </a>
+                    )}
+                  </td>
                   <td className="font-mono text-xs text-gray-400">
                     <a
                       href={`https://bscscan.com/address/${tx.from}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-white transition-colors"
+                      className="hover:text-gray-600 dark:hover:text-white transition-colors"
                     >
                       {tx.from.slice(0, 6)}...{tx.from.slice(-4)}
-                    </a>
-                  </td>
-                  <td className="font-mono text-xs text-gray-400">
-                    <a
-                      href={`https://bscscan.com/address/${tx.to}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:text-white transition-colors"
-                    >
-                      {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
                     </a>
                   </td>
                   <td className="text-right tabular-nums font-medium">
@@ -143,7 +157,7 @@ export default function TransactionsPage() {
           </table>
         </div>
       ) : (
-        <div className="text-center py-12 text-gray-500 text-sm border border-gray-800 rounded">
+        <div className="text-center py-12 text-gray-500 text-sm border border-gray-300 dark:border-gray-800 rounded bg-s402-light-card dark:bg-transparent">
           {searchTerm ? 'No transactions found matching your search' : 'No transactions yet. Data will appear as the indexer syncs.'}
         </div>
       )}
@@ -153,7 +167,7 @@ export default function TransactionsPage() {
 
 function StatBox({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border border-gray-800 rounded p-3">
+    <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded p-3 shadow-soft dark:shadow-none">
       <div className="text-xs text-gray-500 mb-1">{label}</div>
       <div className="text-lg font-semibold tabular-nums">{value}</div>
     </div>

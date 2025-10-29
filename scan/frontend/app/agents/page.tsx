@@ -65,12 +65,20 @@ export default function AllAgentsPage() {
               Browse all public AI agents powered by S402 oracles
             </p>
           </div>
-          <Link
-            href="/composer"
-            className="px-4 py-2 bg-s402-orange hover:bg-orange-600 text-white font-medium rounded transition-colors"
-          >
-            + Create Agent
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/agents/my"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-800 hover:border-s402-orange text-sm font-medium rounded transition-colors"
+            >
+              👤 My Agents
+            </Link>
+            <Link
+              href="/composer"
+              className="px-4 py-2 bg-s402-orange hover:bg-orange-600 text-white font-medium rounded transition-colors"
+            >
+              + Create Agent
+            </Link>
+          </div>
         </div>
       </div>
 

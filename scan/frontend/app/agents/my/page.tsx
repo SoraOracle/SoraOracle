@@ -148,12 +148,20 @@ export default function MyAgentsPage() {
               Manage your AI agents - {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
             </p>
           </div>
-          <Link
-            href="/composer"
-            className="px-4 py-2 bg-s402-orange hover:bg-orange-600 text-white font-medium rounded transition-colors"
-          >
-            + Create Agent
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/agents"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-800 hover:border-s402-orange text-sm font-medium rounded transition-colors"
+            >
+              🌐 All Agents
+            </Link>
+            <Link
+              href="/composer"
+              className="px-4 py-2 bg-s402-orange hover:bg-orange-600 text-white font-medium rounded transition-colors"
+            >
+              + Create Agent
+            </Link>
+          </div>
         </div>
       </div>
 
