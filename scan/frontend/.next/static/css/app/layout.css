@@ -575,8 +575,8 @@ video {
 .inset-0 {
   inset: 0px;
 }
-.-right-8 {
-  right: -2rem;
+.-right-6 {
+  right: -1.5rem;
 }
 .-top-2 {
   top: -0.5rem;
@@ -1236,6 +1236,9 @@ video {
 .tabular-nums {
   --tw-numeric-spacing: tabular-nums;
   font-variant-numeric: var(--tw-ordinal) var(--tw-slashed-zero) var(--tw-numeric-figure) var(--tw-numeric-spacing) var(--tw-numeric-fraction);
+}
+.leading-none {
+  line-height: 1;
 }
 .text-gray-300 {
   --tw-text-opacity: 1;
