@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "@1inch/embedded-widget": "^0.0.2",
+    "@anthropic-ai/sdk": "^0.68.0",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^5.4.0",
     "cors": "^2.8.5",

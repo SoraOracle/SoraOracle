@@ -112,3 +112,74 @@ VALUES
   ('alphavantage', 'Alpha Vantage', 'finance', 'Stock market and financial data', '💹', 'https://www.alphavantage.co', 0.04),
   ('cryptocompare', 'CryptoCompare', 'crypto', 'Cryptocurrency market data', '💰', 'https://www.cryptocompare.com', 0.03)
 ON CONFLICT (id) DO NOTHING;
+
+-- ============================================
+-- COMPOSER TABLES (AI Agent Builder)
+-- ============================================
+
+-- Tools table: API endpoints that agents can call via 402 payments
+CREATE TABLE IF NOT EXISTS s402_tools (
+  id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT NOT NULL,
+  category VARCHAR(50) NOT NULL,
+  endpoint_url VARCHAR(500) NOT NULL,
+  http_method VARCHAR(10) DEFAULT 'GET',
+  auth_headers JSONB DEFAULT '{}', -- {"Authorization": "Bearer xxx"}
+  input_schema JSONB NOT NULL, -- JSON Schema for tool parameters
+  cost_usd NUMERIC(10, 6) NOT NULL,
+  provider_address VARCHAR(42) NOT NULL, -- Who receives the payment
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_tool_category ON s402_tools(category);
+CREATE INDEX IF NOT EXISTS idx_tool_active ON s402_tools(is_active);
+
+-- Agent chat history table: Conversation messages
+CREATE TABLE IF NOT EXISTS s402_agent_chats (
+  id BIGSERIAL PRIMARY KEY,
+  agent_id VARCHAR(66) NOT NULL REFERENCES s402_agents(id) ON DELETE CASCADE,
+  role VARCHAR(20) NOT NULL, -- 'user' or 'assistant'
+  content TEXT NOT NULL,
+  tool_calls JSONB, -- Array of tool call requests
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_chat_agent ON s402_agent_chats(agent_id);
+CREATE INDEX IF NOT EXISTS idx_chat_created ON s402_agent_chats(created_at);
+
+-- Admin wallets table: Addresses allowed to manage tools
+CREATE TABLE IF NOT EXISTS s402_admin_wallets (
+  address VARCHAR(42) PRIMARY KEY,
+  name VARCHAR(255),
+  added_by VARCHAR(42),
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Tool usage payments table: Track 402 payments for tool calls
+CREATE TABLE IF NOT EXISTS s402_tool_payments (
+  id BIGSERIAL PRIMARY KEY,
+  agent_id VARCHAR(66) NOT NULL REFERENCES s402_agents(id) ON DELETE CASCADE,
+  tool_id VARCHAR(50) NOT NULL REFERENCES s402_tools(id) ON DELETE CASCADE,
+  tx_hash VARCHAR(66) NOT NULL,
+  payer_address VARCHAR(42) NOT NULL,
+  amount_usd NUMERIC(10, 6) NOT NULL,
+  tool_input JSONB, -- Parameters passed to the tool
+  tool_output JSONB, -- Response from the tool
+  status VARCHAR(20) DEFAULT 'pending', -- 'pending', 'completed', 'failed'
+  created_at TIMESTAMP DEFAULT NOW(),
+  completed_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_tool_payment_agent ON s402_tool_payments(agent_id);
+CREATE INDEX IF NOT EXISTS idx_tool_payment_tx ON s402_tool_payments(tx_hash);
+CREATE INDEX IF NOT EXISTS idx_tool_payment_status ON s402_tool_payments(status);
+
+-- Insert initial admin wallet (replace with actual admin address)
+INSERT INTO s402_admin_wallets (address, name, added_by)
+VALUES 
+  ('0x0000000000000000000000000000000000000000', 'System Admin', '0x0000000000000000000000000000000000000000')
+ON CONFLICT (address) DO NOTHING;
