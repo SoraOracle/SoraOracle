@@ -140,7 +140,12 @@ export default function Dashboard() {
                 contentStyle={{ background: '#111', border: '1px solid #333', borderRadius: '4px', fontSize: '12px' }}
                 labelStyle={{ color: '#999' }}
               />
-              <Bar dataKey="volume" fill="url(#barGradientVolume)" radius={[4, 4, 0, 0]} />
+              <Bar 
+                dataKey="volume" 
+                fill="url(#barGradientVolume)" 
+                radius={[4, 4, 0, 0]}
+                activeBar={{ fill: 'rgba(249, 115, 22, 0.6)' }}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -161,7 +166,12 @@ export default function Dashboard() {
                 contentStyle={{ background: '#111', border: '1px solid #333', borderRadius: '4px', fontSize: '12px' }}
                 labelStyle={{ color: '#999' }}
               />
-              <Bar dataKey="txns" fill="url(#barGradientTxns)" radius={[4, 4, 0, 0]} />
+              <Bar 
+                dataKey="txns" 
+                fill="url(#barGradientTxns)" 
+                radius={[4, 4, 0, 0]}
+                activeBar={{ fill: 'rgba(249, 115, 22, 0.6)' }}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
