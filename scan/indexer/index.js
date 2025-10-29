@@ -13,7 +13,7 @@ const CONFIG = {
   FACILITATOR_ADDRESS: '0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3',
   USD1_DECIMALS: 18,
   CHAIN_ID: 56,
-  RPC_URL: 'https://bsc-dataseed.binance.org',
+  RPC_URL: 'https://flashy-few-bush.bsc.quiknode.pro/c803d56e46396f5b5b45025ac3ecdee74488fea9/',
   BSCSCAN_API_URL: 'https://api.bscscan.com/api',
   BSCSCAN_API_KEY: process.env.BSCSCAN_API_KEY || '',
   START_BLOCK: 44000000, // S402Facilitator v3 deployment block
@@ -253,12 +253,13 @@ async function sync() {
       return;
     }
 
-    const toBlock = Math.min(lastSyncedBlock + CONFIG.BLOCKS_PER_BATCH, safeBlock);
+    const fromBlock = lastSyncedBlock + 1;
+    const toBlock = Math.min(fromBlock + CONFIG.BLOCKS_PER_BATCH - 1, safeBlock);
 
-    console.log(`\n🔄 Syncing blocks ${lastSyncedBlock} → ${toBlock} (current: ${currentBlock})`);
+    console.log(`\n🔄 Syncing blocks ${fromBlock} → ${toBlock} (current: ${currentBlock})`);
 
     // Fetch events
-    const events = await fetchEventsBSCScan(lastSyncedBlock, toBlock);
+    const events = await fetchEventsBSCScan(fromBlock, toBlock);
 
     console.log(`📥 Found ${events.length} PaymentSettled events`);
 
