@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 interface WalletContextType {
   walletAddress: string | null;
   token: string | null;
+  isLoading: boolean;
   setWalletAddress: (address: string | null) => void;
   setToken: (token: string | null) => void;
   logout: () => void;
@@ -15,10 +16,9 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [walletAddress, setWalletAddressState] = useState<string | null>(null);
   const [token, setTokenState] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setMounted(true);
     // Load from localStorage on mount
     const storedToken = localStorage.getItem('composer_auth_token');
     if (storedToken) {
@@ -36,6 +36,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('composer_auth_token');
       }
     }
+    setIsLoading(false);
   }, []);
 
   const setWalletAddress = (address: string | null) => {
@@ -57,12 +58,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('composer_auth_token');
   };
 
-  if (!mounted) {
-    return null;
-  }
-
   return (
-    <WalletContext.Provider value={{ walletAddress, token, setWalletAddress, setToken, logout }}>
+    <WalletContext.Provider value={{ walletAddress, token, isLoading, setWalletAddress, setToken, logout }}>
       {children}
     </WalletContext.Provider>
   );

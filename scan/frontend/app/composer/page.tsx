@@ -27,7 +27,7 @@ interface Tool {
 
 export default function ComposerPage() {
   const router = useRouter();
-  const { walletAddress, token, setWalletAddress, setToken } = useWallet();
+  const { walletAddress, token, isLoading: walletLoading, setWalletAddress, setToken } = useWallet();
   const [config, setConfig] = useState<AgentConfig>({
     name: '',
     description: '',
@@ -165,6 +165,18 @@ export default function ComposerPage() {
       setIsDeploying(false);
     }
   };
+
+  // Show loading while checking wallet state
+  if (walletLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-s402-orange mx-auto"></div>
+          <p className="mt-3 text-sm text-gray-500 font-pixel">LOADING...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show authentication wall if not authenticated
   if (!token || !walletAddress) {

@@ -17,7 +17,7 @@ interface Agent {
 }
 
 export default function MyAgentsPage() {
-  const { walletAddress, token, setWalletAddress, setToken } = useWallet();
+  const { walletAddress, token, isLoading: walletLoading, setWalletAddress, setToken } = useWallet();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -25,10 +25,10 @@ export default function MyAgentsPage() {
   useEffect(() => {
     if (walletAddress && token) {
       loadAgents(walletAddress);
-    } else {
+    } else if (!walletLoading) {
       setLoading(false);
     }
-  }, [walletAddress, token]);
+  }, [walletAddress, token, walletLoading]);
 
   const loadAgents = async (address: string) => {
     try {
@@ -91,7 +91,7 @@ export default function MyAgentsPage() {
     }
   };
 
-  if (loading) {
+  if (loading || walletLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
@@ -102,7 +102,7 @@ export default function MyAgentsPage() {
     );
   }
 
-  if (!walletAddress) {
+  if (!walletAddress || !token) {
     return (
       <div className="max-w-md mx-auto mt-20 text-center space-y-6">
         <div className="space-y-2">
