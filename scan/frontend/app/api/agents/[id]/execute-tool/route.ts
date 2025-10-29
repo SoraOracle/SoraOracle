@@ -75,14 +75,30 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           }
         );
 
+        console.log('🔍 Raw Replicate output:', output);
+        console.log('🔍 Output type:', typeof output);
+        
+        // Replicate returns an array of URLs for Seedream 4
+        let imageUrls = output;
+        
+        // Handle different output formats
+        if (output && typeof output === 'object' && 'output' in output) {
+          imageUrls = output.output;
+        }
+        
+        // Ensure it's an array
+        if (!Array.isArray(imageUrls)) {
+          imageUrls = [imageUrls];
+        }
+
         toolOutput = {
           success: true,
-          images: Array.isArray(output) ? output : [output],
+          images: imageUrls,
           prompt: input.prompt,
-          aspect_ratio: input.aspect_ratio || "1:1",
+          aspect_ratio: input.aspect_ratio || "16:9",
         };
         
-        console.log('✅ Image generated successfully:', toolOutput.images[0]);
+        console.log('✅ Image generated successfully:', imageUrls[0]);
       } catch (error) {
         console.error('❌ Replicate API error:', error);
         toolOutput = { 
