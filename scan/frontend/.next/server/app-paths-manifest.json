@@ -1,3 +1,6 @@
 {
-  "/composer/page": "app/composer/page.js"
+  "/api/charts/route": "app/api/charts/route.js",
+  "/api/stats/route": "app/api/stats/route.js",
+  "/api/transactions/route": "app/api/transactions/route.js",
+  "/page": "app/page.js"
 }

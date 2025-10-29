@@ -12,16 +12,11 @@ const anthropic = new Anthropic({
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { tool_call_id, tool_id, tx_hash, input } = await request.json();
+    const { tool_call_id, tool_id, tx_hash, input, payer_address } = await request.json();
     const agentId = params.id;
 
-    const paymentResult = await pool.query(
-      'SELECT * FROM s402_payments WHERE tx_hash = $1',
-      [tx_hash]
-    );
-
-    if (paymentResult.rows.length === 0) {
-      return NextResponse.json({ error: 'Payment not found' }, { status: 404 });
+    if (!payer_address) {
+      return NextResponse.json({ error: 'Payer address required' }, { status: 400 });
     }
 
     const toolResult = await pool.query(
@@ -34,6 +29,28 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     const tool = toolResult.rows[0];
+
+    const usageCheck = await pool.query(
+      'SELECT id FROM s402_tool_payments WHERE tx_hash = $1',
+      [tx_hash]
+    );
+
+    if (usageCheck.rows.length > 0) {
+      return NextResponse.json({ error: 'Payment already used' }, { status: 400 });
+    }
+
+    const paymentResult = await pool.query(
+      'SELECT * FROM s402_payments WHERE tx_hash = $1 AND LOWER(to_address) = LOWER($2) AND LOWER(from_address) = LOWER($3) AND value_usd >= $4',
+      [tx_hash, tool.provider_address, payer_address, parseFloat(tool.cost_usd)]
+    );
+
+    if (paymentResult.rows.length === 0) {
+      return NextResponse.json({ 
+        error: 'Invalid payment: must be from your wallet to tool provider with correct amount' 
+      }, { status: 402 });
+    }
+
+    const payment = paymentResult.rows[0];
 
     let url = tool.endpoint_url;
     const headers: any = {
@@ -65,7 +82,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     await pool.query(
       `INSERT INTO s402_tool_payments (agent_id, tool_id, tx_hash, payer_address, amount_usd, tool_input, tool_output, status, completed_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
-      [agentId, tool_id, tx_hash, paymentResult.rows[0].from_address, parseFloat(tool.cost_usd), JSON.stringify(input), JSON.stringify(toolOutput), 'completed']
+      [agentId, tool_id, tx_hash, payment.from_address, parseFloat(payment.value_usd), JSON.stringify(input), JSON.stringify(toolOutput), 'completed']
     );
 
     const historyResult = await pool.query(
@@ -73,34 +90,46 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       [agentId]
     );
 
-    const conversationHistory = historyResult.rows.map(row => {
+    const conversationHistory: any[] = [];
+    
+    for (const row of historyResult.rows) {
       if (row.tool_calls) {
-        return {
+        const toolCallsArray = Array.isArray(row.tool_calls) ? row.tool_calls : [row.tool_calls];
+        conversationHistory.push({
           role: 'assistant',
-          content: row.tool_calls,
-        };
+          content: toolCallsArray,
+        });
+      } else if (row.content) {
+        conversationHistory.push({
+          role: row.role === 'user' ? 'user' : 'assistant',
+          content: row.content,
+        });
       }
-      return {
-        role: row.role === 'user' ? 'user' : 'assistant',
-        content: row.content,
-      };
-    });
+    }
 
     conversationHistory.push({
-      role: 'user' as const,
+      role: 'user',
       content: [
         {
-          type: 'tool_result' as const,
+          type: 'tool_result',
           tool_use_id: tool_call_id,
-          content: JSON.stringify(toolOutput),
+          content: typeof toolOutput === 'string' ? toolOutput : JSON.stringify(toolOutput),
         },
       ],
     });
 
+    const agentResult = await pool.query(
+      'SELECT description FROM s402_agents WHERE id = $1',
+      [agentId]
+    );
+
+    const systemPrompt = agentResult.rows[0]?.description || 'You are a helpful AI assistant powered by s402 oracle data.';
+
     const response = await anthropic.messages.create({
       model: DEFAULT_MODEL_STR,
       max_tokens: 2048,
-      messages: conversationHistory as any,
+      system: systemPrompt,
+      messages: conversationHistory,
     });
 
     const textContent = response.content.find(c => c.type === 'text');

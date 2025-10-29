@@ -132,6 +132,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           tool_id: paymentRequest.tool.id,
           tx_hash: txHash,
           input: paymentRequest.tool.input,
+          payer_address: from,
         }),
       });
 
