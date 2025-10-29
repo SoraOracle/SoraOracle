@@ -111,7 +111,10 @@ async function fetchEventsBSCScan(fromBlock, toBlock) {
  */
 async function fetchEventsRPC(fromBlock, toBlock) {
   const filter = contract.filters.PaymentSettled();
-  const events = await contract.queryFilter(filter, fromBlock, toBlock);
+  // Ensure blocks are numbers, not strings
+  const from = typeof fromBlock === 'string' ? parseInt(fromBlock) : fromBlock;
+  const to = typeof toBlock === 'string' ? parseInt(toBlock) : toBlock;
+  const events = await contract.queryFilter(filter, from, to);
 
   const eventsWithTimestamp = await Promise.all(
     events.map(async (event) => {
