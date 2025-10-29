@@ -15,6 +15,46 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/composer/admin/page.js"
+    ],
+    "/api/admin/check/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/admin/check/route.js"
+    ],
+    "/api/admin/verify/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/admin/verify/route.js"
+    ],
+    "/api/admin/tools/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/admin/tools/route.js"
+    ],
+    "/composer/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/composer/page.js"
+    ],
+    "/api/stats/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/stats/route.js"
+    ],
+    "/api/charts/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/charts/route.js"
+    ],
+    "/api/services/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/services/route.js"
+    ],
+    "/api/transactions/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/transactions/route.js"
     ]
   }
 }
