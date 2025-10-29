@@ -493,7 +493,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   return (
     <div className="fixed inset-0 top-16 flex overflow-hidden">
       {/* Sessions Sidebar */}
-      <div className="w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 flex flex-col">
+      <div className="w-64 border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-black flex flex-col">
         <div className="p-4 border-b border-gray-200 dark:border-gray-800">
           <Link href="/agents/my" className="text-xs text-gray-500 hover:text-s402-orange flex items-center gap-1 mb-3">
             ← Back to Agents
@@ -515,7 +515,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-950">
+        <div className="flex-1 overflow-y-auto bg-white dark:bg-black">
           {sessions.map(session => (
             <div
               key={session.id}
@@ -671,7 +671,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
         )}
 
         {/* Input Area */}
-        <div className="border-t border-gray-200 dark:border-gray-800 bg-s402-light-card dark:bg-gray-950 px-6 py-4 shadow-soft-lg dark:shadow-none">
+        <div className="border-t border-gray-200 dark:border-gray-800 bg-s402-light-card dark:bg-black px-6 py-4 shadow-soft-lg dark:shadow-none">
           <div className="flex gap-3">
             <input
               type="text"
@@ -680,7 +680,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
               onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="Ask your agent anything..."
               disabled={isLoading || !!paymentRequest || !currentSessionId}
-              className="flex-1 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-s402-orange focus:ring-1 focus:ring-s402-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-transparent border border-gray-700 dark:border-gray-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-s402-orange focus:ring-1 focus:ring-s402-orange transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
               onClick={sendMessage}
