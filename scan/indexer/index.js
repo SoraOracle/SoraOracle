@@ -18,13 +18,13 @@ const CONFIG = {
   BSCSCAN_API_KEY: process.env.BSCSCAN_API_KEY || '',
   START_BLOCK: 44000000, // S402Facilitator v3 deployment block
   POLL_INTERVAL: 60000, // 60 seconds
-  BLOCKS_PER_BATCH: 1000, // Smaller batches to avoid rate limits
+  BLOCKS_PER_BATCH: 500, // Smaller batches for RPC reliability
   CONFIRMATIONS: 12,
 };
 
 // S402Facilitator ABI (PaymentSettled event)
 const S402_ABI = [
-  'event PaymentSettled(address indexed from, address indexed to, uint256 value, uint256 platformFee, uint256 nonce)',
+  'event PaymentSettled(address indexed from, address indexed to, uint256 value, uint256 platformFee, bytes32 nonce)',
   'function getStats(address account) view returns (uint256 totalPaid, uint256 totalReceived)',
 ];
 
@@ -58,52 +58,12 @@ function httpGet(url) {
 }
 
 /**
- * Fetch events using BSCScan API (more reliable than RPC for historical data)
+ * Fetch events using BSCScan API (DEPRECATED - BSCScan API V1 no longer works)
+ * Falling back to RPC for all queries
  */
 async function fetchEventsBSCScan(fromBlock, toBlock) {
-  if (!CONFIG.BSCSCAN_API_KEY) {
-    console.warn('BSCSCAN_API_KEY not set, using RPC instead');
-    return fetchEventsRPC(fromBlock, toBlock);
-  }
-
-  const url = `${CONFIG.BSCSCAN_API_URL}?module=logs&action=getLogs` +
-    `&address=${CONFIG.FACILITATOR_ADDRESS}` +
-    `&fromBlock=${fromBlock}` +
-    `&toBlock=${toBlock}` +
-    `&topic0=${ethers.id('PaymentSettled(address,address,uint256,uint256,uint256)')}` +
-    `&apikey=${CONFIG.BSCSCAN_API_KEY}`;
-
-  const data = await httpGet(url);
-
-  // Status "0" with "No records found" is normal for empty ranges
-  if (data.status === '0' && data.message === 'No records found') {
-    return [];
-  }
-
-  if (data.status !== '1') {
-    // Other errors should fall back to RPC
-    console.warn(`BSCScan API error: ${data.message}, falling back to RPC`);
-    return fetchEventsRPC(fromBlock, toBlock);
-  }
-
-  return data.result.map(log => {
-    const iface = new ethers.Interface(S402_ABI);
-    const parsed = iface.parseLog({
-      topics: log.topics,
-      data: log.data,
-    });
-
-    return {
-      from: parsed.args.from,
-      to: parsed.args.to,
-      value: parsed.args.value,
-      platformFee: parsed.args.platformFee,
-      nonce: parsed.args.nonce,
-      transactionHash: log.transactionHash,
-      blockNumber: parseInt(log.blockNumber, 16),
-      blockTimestamp: parseInt(log.timeStamp, 16),
-    };
-  });
+  // BSCScan API V1 is deprecated, use RPC only
+  return fetchEventsRPC(fromBlock, toBlock);
 }
 
 /**
@@ -163,7 +123,7 @@ async function storePayment(event) {
       event.to,
       event.value.toString(),
       event.platformFee.toString(),
-      Number(event.nonce),
+      event.nonce, // Store bytes32 as hex string
       valueUSD,
       platformFeeUSD,
     ]
@@ -245,7 +205,7 @@ async function sync() {
       lastSyncedBlock = CONFIG.START_BLOCK;
       console.log(`✨ Initialized indexer state at block ${CONFIG.START_BLOCK}`);
     } else {
-      lastSyncedBlock = result.rows[0].last_synced_block;
+      lastSyncedBlock = parseInt(result.rows[0].last_synced_block);
     }
 
     if (lastSyncedBlock >= safeBlock) {

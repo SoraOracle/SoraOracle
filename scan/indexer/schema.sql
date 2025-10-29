@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS s402_payments (
   to_address VARCHAR(42) NOT NULL,
   value NUMERIC(78, 0) NOT NULL, -- BigInt stored as numeric
   platform_fee NUMERIC(78, 0) NOT NULL,
-  nonce BIGINT NOT NULL,
+  nonce VARCHAR(66) NOT NULL, -- bytes32 as hex string
   value_usd NUMERIC(20, 6) NOT NULL,
   platform_fee_usd NUMERIC(20, 6) NOT NULL,
   created_at TIMESTAMP DEFAULT NOW()

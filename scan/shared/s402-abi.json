@@ -28,9 +28,9 @@
       },
       {
         "indexed": false,
-        "internalType": "uint256",
+        "internalType": "bytes32",
         "name": "nonce",
-        "type": "uint256"
+        "type": "bytes32"
       }
     ],
     "name": "PaymentSettled",
