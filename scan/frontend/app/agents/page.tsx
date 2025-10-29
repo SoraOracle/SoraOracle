@@ -7,7 +7,7 @@ interface Agent {
   id: string;
   name: string;
   description: string;
-  creator_address: string;
+  owner_address: string;
   is_public: boolean;
   icon: string;
   query_count: number;
@@ -148,9 +148,11 @@ export default function AllAgentsPage() {
                 </div>
               </div>
 
-              <div className="mt-2 text-xs text-gray-400">
-                By {agent.creator_address.slice(0, 6)}...{agent.creator_address.slice(-4)}
-              </div>
+              {agent.owner_address && (
+                <div className="mt-2 text-xs text-gray-400">
+                  By {agent.owner_address.slice(0, 6)}...{agent.owner_address.slice(-4)}
+                </div>
+              )}
             </Link>
           ))}
         </div>
