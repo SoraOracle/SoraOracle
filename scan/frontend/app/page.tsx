@@ -39,6 +39,7 @@ export default function Dashboard() {
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [recentTxs, setRecentTxs] = useState<Transaction[]>([]);
   const [topServices, setTopServices] = useState<any[]>([]);
+  const [topComposers, setTopComposers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,12 +48,14 @@ export default function Dashboard() {
       fetch('/api/charts').then(res => res.json()),
       fetch('/api/transactions').then(res => res.json()),
       fetch('/api/services').then(res => res.json()),
+      fetch('/api/composers/top').then(res => res.json()).catch(() => []),
     ])
-      .then(([statsData, chartsData, txsData, servicesData]) => {
+      .then(([statsData, chartsData, txsData, servicesData, composersData]) => {
         setStats(statsData);
         setChartData(chartsData);
         setRecentTxs(txsData.slice(0, 5));
         setTopServices(servicesData);
+        setTopComposers(composersData);
         setLoading(false);
       })
       .catch(err => {
@@ -240,6 +243,50 @@ export default function Dashboard() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Top Composers */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-pixel text-sm">TOP COMPOSERS <span className="text-gray-600">Public Agent Creators</span></h2>
+          <Link href="/composers" className="text-sm text-gray-400 hover:text-white transition-colors">
+            View all →
+          </Link>
+        </div>
+        
+        {topComposers.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {topComposers.slice(0, 6).map((composer, i) => (
+              <Link 
+                key={i}
+                href={`/composers/${composer.address}`}
+                className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-4 hover:border-s402-orange transition-all shadow-soft dark:shadow-none group"
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <div className="font-mono text-xs text-gray-400 group-hover:text-white transition-colors">
+                      {composer.address.slice(0, 6)}...{composer.address.slice(-4)}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      {composer.agent_count} public {composer.agent_count === 1 ? 'agent' : 'agents'}
+                    </div>
+                  </div>
+                  <div className="text-2xl opacity-70 group-hover:opacity-100 transition-opacity">
+                    👨‍💻
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-gray-500">Total queries:</span>
+                  <span className="font-medium text-s402-orange">{composer.total_queries?.toLocaleString() || 0}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 text-gray-500 text-sm bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded shadow-soft dark:shadow-none">
+            No public agents yet. Create yours in the <Link href="/composer" className="text-s402-orange hover:underline">Composer</Link>.
+          </div>
+        )}
       </div>
 
       {/* Recent Transactions - REAL DATA */}

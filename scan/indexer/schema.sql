@@ -68,6 +68,8 @@ CREATE TABLE IF NOT EXISTS s402_agents (
   query_count INT DEFAULT 0,
   total_spent_usd NUMERIC(20, 6) DEFAULT 0,
   is_active BOOLEAN DEFAULT TRUE,
+  is_public BOOLEAN DEFAULT TRUE, -- Public/private visibility
+  icon VARCHAR(10) DEFAULT '🤖', -- Agent emoji icon
   created_at TIMESTAMP DEFAULT NOW(),
   last_active_at TIMESTAMP
 );
@@ -75,6 +77,7 @@ CREATE TABLE IF NOT EXISTS s402_agents (
 -- Indexes for s402_agents table
 CREATE INDEX IF NOT EXISTS idx_owner_address ON s402_agents(owner_address);
 CREATE INDEX IF NOT EXISTS idx_is_active ON s402_agents(is_active);
+CREATE INDEX IF NOT EXISTS idx_agents_public ON s402_agents(is_public) WHERE is_public = TRUE;
 
 -- Daily stats table: Aggregated metrics per day
 CREATE TABLE IF NOT EXISTS s402_daily_stats (

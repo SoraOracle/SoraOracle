@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 
 interface AgentConfig {
   name: string;
@@ -10,6 +11,8 @@ interface AgentConfig {
   queryInterval: number;
   maxPaymentUSD: number;
   webhook: string;
+  isPublic: boolean;
+  icon: string;
 }
 
 interface Tool {
@@ -30,6 +33,8 @@ export default function ComposerPage() {
     queryInterval: 60,
     maxPaymentUSD: 1.0,
     webhook: '',
+    isPublic: true,
+    icon: '🤖',
   });
 
   const [step, setStep] = useState(1);
@@ -38,6 +43,7 @@ export default function ComposerPage() {
   const [loadingTools, setLoadingTools] = useState(true);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   useEffect(() => {
     loadTools();
@@ -63,7 +69,7 @@ export default function ComposerPage() {
     if (token) {
       try {
         setAuthToken(token);
-        const { jwtDecode } = require('jwt-decode');
+        const jwtDecode = require('jwt-decode').jwtDecode || require('jwt-decode');
         const payload: any = jwtDecode(token);
         if (payload.exp && payload.exp > Date.now() / 1000) {
           setWalletAddress(payload.address);
@@ -154,6 +160,8 @@ export default function ComposerPage() {
           name: config.name,
           description: config.description,
           data_sources: config.dataSources,
+          is_public: config.isPublic,
+          icon: config.icon,
         }),
       });
 
@@ -234,6 +242,64 @@ export default function ComposerPage() {
               rows={3}
               className="w-full bg-transparent border border-gray-800 rounded px-3 py-2 text-sm focus:outline-none focus:border-gray-700 transition-colors resize-none"
             />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="relative">
+              <label className="block text-sm text-gray-400 mb-2">Agent Icon</label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="bg-transparent border border-gray-800 rounded px-3 py-2 text-2xl hover:border-s402-orange transition-colors"
+                >
+                  {config.icon || '🤖'}
+                </button>
+                <input
+                  type="text"
+                  maxLength={2}
+                  placeholder="🤖"
+                  value={config.icon}
+                  onChange={e => setConfig({ ...config, icon: e.target.value })}
+                  className="flex-1 bg-transparent border border-gray-800 rounded px-3 py-2 text-sm text-center focus:outline-none focus:border-gray-700"
+                />
+              </div>
+              {showEmojiPicker && (
+                <div className="absolute z-50 mt-2">
+                  <EmojiPicker
+                    onEmojiClick={(emojiData: EmojiClickData) => {
+                      setConfig({ ...config, icon: emojiData.emoji });
+                      setShowEmojiPicker(false);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm text-gray-400 mb-2">Visibility</label>
+              <div className="flex items-center gap-4 h-full">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    checked={config.isPublic}
+                    onChange={() => setConfig({ ...config, isPublic: true })}
+                    className="w-4 h-4 text-s402-orange"
+                  />
+                  <span className="text-sm">🌍 Public (visible in marketplace)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    checked={!config.isPublic}
+                    onChange={() => setConfig({ ...config, isPublic: false })}
+                    className="w-4 h-4 text-s402-orange"
+                  />
+                  <span className="text-sm">🔒 Private (only you can see)</span>
+                </label>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

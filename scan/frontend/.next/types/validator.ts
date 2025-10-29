@@ -74,6 +74,24 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
   type __Unused = __Check
 }
 
+// Validate ../../app/composers/[address]/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/composers/[address]">> = Specific
+  const handler = {} as typeof import("../../app/composers/[address]/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/composers/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/composers">> = Specific
+  const handler = {} as typeof import("../../app/composers/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../app/data-sources/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/data-sources">> = Specific
@@ -168,6 +186,15 @@ type RouteHandlerConfig<Route extends AppRouteHandlerRoutes = AppRouteHandlerRou
 {
   type __IsExpected<Specific extends RouteHandlerConfig<"/api/charts">> = Specific
   const handler = {} as typeof import("../../app/api/charts/route.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../app/api/composers/top/route.ts
+{
+  type __IsExpected<Specific extends RouteHandlerConfig<"/api/composers/top">> = Specific
+  const handler = {} as typeof import("../../app/api/composers/top/route.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
