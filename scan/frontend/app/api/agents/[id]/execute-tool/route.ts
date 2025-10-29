@@ -92,6 +92,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       // Generic HTTP tool execution
       try {
         let url = tool.endpoint_url;
+        
+        if (!url || url === 'your_replit_url' || url.includes('placeholder')) {
+          throw new Error('Tool endpoint URL not configured');
+        }
+
         const headers: any = {
           'Content-Type': 'application/json',
           'X-S402-TxID': tx_hash,
@@ -112,8 +117,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           toolOutput = await response.json();
         }
       } catch (error) {
-        console.error('Tool execution error:', error);
-        toolOutput = { error: 'Failed to execute tool' };
+        console.error('❌ Tool execution error:', error);
+        toolOutput = { 
+          success: false,
+          error: 'Failed to execute tool',
+          details: String(error)
+        };
       }
     }
 
@@ -128,23 +137,44 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       [agentId, session_id]
     );
 
+    // Build conversation history, properly interleaving text and tool calls
     const conversationHistory: any[] = [];
     
-    for (const row of historyResult.rows) {
-      if (row.tool_calls) {
-        const toolCallsArray = Array.isArray(row.tool_calls) ? row.tool_calls : [row.tool_calls];
+    for (let i = 0; i < historyResult.rows.length; i++) {
+      const row = historyResult.rows[i];
+      
+      if (row.role === 'user' && row.content) {
         conversationHistory.push({
-          role: 'assistant',
-          content: toolCallsArray,
-        });
-      } else if (row.content) {
-        conversationHistory.push({
-          role: row.role === 'user' ? 'user' : 'assistant',
+          role: 'user',
           content: row.content,
         });
+      } else if (row.role === 'assistant') {
+        // Check if this is the pending tool call we're responding to
+        if (row.tool_calls) {
+          const toolCallsArray = Array.isArray(row.tool_calls) ? row.tool_calls : [row.tool_calls];
+          const toolCall = toolCallsArray[0];
+          
+          // Skip this tool call - we'll provide its result as user message
+          if (toolCall.id === tool_call_id) {
+            continue;
+          }
+          
+          // Add past tool calls as assistant messages with tool blocks
+          conversationHistory.push({
+            role: 'assistant',
+            content: toolCallsArray,
+          });
+        } else if (row.content) {
+          // Regular assistant text response
+          conversationHistory.push({
+            role: 'assistant',
+            content: row.content,
+          });
+        }
       }
     }
 
+    // Add the tool result as a user message
     conversationHistory.push({
       role: 'user',
       content: [
