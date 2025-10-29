@@ -120,6 +120,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/agents/[id]/tools/route.js"
+    ],
+    "/api/agents/[id]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/agents/[id]/route.js"
     ]
   }
 }
