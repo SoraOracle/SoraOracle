@@ -247,25 +247,15 @@ export default function ComposerPage() {
           <div className="grid grid-cols-3 gap-4">
             <div className="relative">
               <label className="block text-sm text-gray-400 mb-2">Agent Icon</label>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                  className="bg-transparent border border-gray-800 rounded px-3 py-2 text-2xl hover:border-s402-orange transition-colors"
-                >
-                  {config.icon || '🤖'}
-                </button>
-                <input
-                  type="text"
-                  maxLength={2}
-                  placeholder="🤖"
-                  value={config.icon}
-                  onChange={e => setConfig({ ...config, icon: e.target.value })}
-                  className="flex-1 bg-transparent border border-gray-800 rounded px-3 py-2 text-sm text-center focus:outline-none focus:border-gray-700"
-                />
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                className="w-full bg-white dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded px-4 py-2.5 text-2xl hover:border-s402-orange focus:outline-none focus:border-s402-orange transition-colors text-center"
+              >
+                {config.icon || '🤖'}
+              </button>
               {showEmojiPicker && (
-                <div className="absolute z-50 mt-2">
+                <div className="absolute z-50 mt-2 left-0">
                   <EmojiPicker
                     onEmojiClick={(emojiData: EmojiClickData) => {
                       setConfig({ ...config, icon: emojiData.emoji });
@@ -277,26 +267,44 @@ export default function ComposerPage() {
             </div>
             <div className="col-span-2">
               <label className="block text-sm text-gray-400 mb-2">Visibility</label>
-              <div className="flex items-center gap-4 h-full">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    checked={config.isPublic}
-                    onChange={() => setConfig({ ...config, isPublic: true })}
-                    className="w-4 h-4 text-s402-orange"
-                  />
-                  <span className="text-sm">🌍 Public (visible in marketplace)</span>
+              <div className="flex items-center gap-3 h-full">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="radio"
+                      name="visibility"
+                      checked={config.isPublic}
+                      onChange={() => setConfig({ ...config, isPublic: true })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-700 rounded-full peer-checked:border-s402-orange peer-checked:bg-s402-orange/10 transition-all flex items-center justify-center">
+                      {config.isPublic && (
+                        <div className="w-2.5 h-2.5 bg-s402-orange rounded-full"></div>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                    🌍 Public
+                  </span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    checked={!config.isPublic}
-                    onChange={() => setConfig({ ...config, isPublic: false })}
-                    className="w-4 h-4 text-s402-orange"
-                  />
-                  <span className="text-sm">🔒 Private (only you can see)</span>
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="radio"
+                      name="visibility"
+                      checked={!config.isPublic}
+                      onChange={() => setConfig({ ...config, isPublic: false })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-5 h-5 border-2 border-gray-300 dark:border-gray-700 rounded-full peer-checked:border-s402-orange peer-checked:bg-s402-orange/10 transition-all flex items-center justify-center">
+                      {!config.isPublic && (
+                        <div className="w-2.5 h-2.5 bg-s402-orange rounded-full"></div>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-sm group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                    🔒 Private
+                  </span>
                 </label>
               </div>
             </div>
