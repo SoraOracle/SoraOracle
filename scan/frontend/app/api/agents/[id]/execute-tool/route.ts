@@ -46,12 +46,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // For demo purposes, skip strict payment verification
     // In production, you'd verify the payment on-chain
-    console.log('Payment verified:', tx_hash);
+    console.log('💰 Payment verified:', tx_hash);
+    console.log('🔧 Tool ID:', tool_id);
+    console.log('🔧 Tool Name:', tool.name);
 
     let toolOutput: any;
     
-    // Handle specific tool types
-    if (tool_id === 'replicate_seedream4') {
+    // Handle specific tool types (check both id and name for robustness)
+    if (tool_id === 'replicate_seedream4' || tool.name?.toLowerCase().includes('seedream')) {
       // Use Replicate for image generation
       try {
         const Replicate = require('replicate');
