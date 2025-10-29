@@ -11,9 +11,11 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "ethers": "^6.11.1",
-    "pg": "^8.16.3",
-    "psql": "^0.0.1"
+    "pg": "^8.16.3"
   },
   "author": "Sora Oracle <soraoracle@proton.me>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "psql": "^0.0.1"
+  }
 }
