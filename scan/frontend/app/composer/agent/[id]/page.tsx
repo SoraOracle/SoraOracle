@@ -27,6 +27,8 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   const [isLoading, setIsLoading] = useState(false);
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null);
   const [agent, setAgent] = useState<any>(null);
+  const [loadingAgent, setLoadingAgent] = useState(true);
+  const [agentNotFound, setAgentNotFound] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,12 +42,22 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
 
   const loadAgent = async () => {
     try {
+      setLoadingAgent(true);
       const response = await fetch(`/api/agents?owner=all`);
       const agents = await response.json();
       const currentAgent = agents.find((a: any) => a.id === agentId);
-      setAgent(currentAgent);
+      
+      if (currentAgent) {
+        setAgent(currentAgent);
+        setAgentNotFound(false);
+      } else {
+        setAgentNotFound(true);
+      }
     } catch (error) {
       console.error('Failed to load agent:', error);
+      setAgentNotFound(true);
+    } finally {
+      setLoadingAgent(false);
     }
   };
 
@@ -162,10 +174,45 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
     }]);
   };
 
-  if (!agent) {
+  if (loadingAgent) {
     return (
-      <div className="max-w-4xl mx-auto mt-20 text-center">
-        <div className="animate-pulse text-gray-500">Loading agent...</div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-s402-orange mx-auto"></div>
+          <p className="mt-3 text-sm text-gray-500 font-pixel">LOADING AGENT...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (agentNotFound || !agent) {
+    return (
+      <div className="max-w-md mx-auto mt-20 text-center space-y-6">
+        <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-8 space-y-4 shadow-soft-lg dark:shadow-none">
+          <div className="w-20 h-20 mx-auto bg-red-500/10 rounded-full flex items-center justify-center">
+            <span className="text-4xl">❌</span>
+          </div>
+          <div>
+            <h2 className="text-lg font-medium mb-2">Agent Not Found</h2>
+            <p className="text-sm text-gray-400">
+              This agent doesn't exist or is set to private.
+            </p>
+          </div>
+          <div className="flex gap-3 justify-center">
+            <a
+              href="/agents"
+              className="px-4 py-2 bg-s402-orange hover:bg-orange-600 text-white font-medium rounded transition-colors"
+            >
+              Browse Agents
+            </a>
+            <a
+              href="/composer"
+              className="px-4 py-2 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-800 hover:border-s402-orange text-gray-900 dark:text-white font-medium rounded transition-colors"
+            >
+              Create Agent
+            </a>
+          </div>
+        </div>
       </div>
     );
   }

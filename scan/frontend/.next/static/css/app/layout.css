@@ -944,6 +944,9 @@ video {
 .bg-green-900\/30 {
   background-color: rgb(20 83 45 / 0.3);
 }
+.bg-red-500\/10 {
+  background-color: rgb(239 68 68 / 0.1);
+}
 .bg-red-900\/30 {
   background-color: rgb(127 29 29 / 0.3);
 }
@@ -1153,6 +1156,10 @@ video {
 .text-gray-800 {
   --tw-text-opacity: 1;
   color: rgb(31 41 55 / var(--tw-text-opacity, 1));
+}
+.text-gray-900 {
+  --tw-text-opacity: 1;
+  color: rgb(17 24 39 / var(--tw-text-opacity, 1));
 }
 .text-green-400 {
   --tw-text-opacity: 1;
@@ -1430,6 +1437,11 @@ video {
 .dark\:text-red-400:is(.dark *) {
   --tw-text-opacity: 1;
   color: rgb(248 113 113 / var(--tw-text-opacity, 1));
+}
+
+.dark\:text-white:is(.dark *) {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
 
 .dark\:shadow-none:is(.dark *) {
