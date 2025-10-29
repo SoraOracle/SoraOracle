@@ -1,5 +1,5 @@
 {
   "/api/tools/route": "app/api/tools/route.js",
-  "/page": "app/page.js",
-  "/composer/page": "app/composer/page.js"
+  "/composer/page": "app/composer/page.js",
+  "/page": "app/page.js"
 }

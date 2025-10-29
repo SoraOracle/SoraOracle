@@ -44,6 +44,8 @@ export default function ComposerPage() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     loadTools();
@@ -73,27 +75,33 @@ export default function ComposerPage() {
         const payload: any = jwtDecode(token);
         if (payload.exp && payload.exp > Date.now() / 1000) {
           setWalletAddress(payload.address);
+          setIsCheckingAuth(false);
         } else {
           localStorage.removeItem('composer_auth_token');
+          setIsCheckingAuth(false);
         }
       } catch (error) {
         console.error('Invalid token:', error);
         localStorage.removeItem('composer_auth_token');
+        setIsCheckingAuth(false);
       }
+    } else {
+      setIsCheckingAuth(false);
     }
   };
 
   const authenticateWallet = async () => {
     if (typeof window.ethereum === 'undefined') {
-      alert('Please install MetaMask to create an agent');
+      alert('Please install MetaMask to access the Composer');
       return false;
     }
 
     try {
+      setIsAuthenticating(true);
       const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
       const address = accounts[0];
 
-      const message = `Sign this message to create an agent on S402 Scan.\n\nAddress: ${address}\nTimestamp: ${Date.now()}`;
+      const message = `Sign this message to access S402 Composer.\n\nAddress: ${address}\nTimestamp: ${Date.now()}`;
       const signature = await window.ethereum.request({
         method: 'personal_sign',
         params: [message, address],
@@ -112,13 +120,19 @@ export default function ComposerPage() {
         setWalletAddress(address);
         return true;
       } else {
-        alert('Authentication failed');
+        alert('Authentication failed. Please try again.');
         return false;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Authentication error:', error);
-      alert('Failed to authenticate wallet');
+      if (error.code === 4001) {
+        alert('Signature rejected. You must sign the message to access the Composer.');
+      } else {
+        alert('Failed to authenticate wallet');
+      }
       return false;
+    } finally {
+      setIsAuthenticating(false);
     }
   };
 
@@ -178,6 +192,70 @@ export default function ComposerPage() {
       setIsDeploying(false);
     }
   };
+
+  // Show loading state while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-s402-orange mx-auto"></div>
+          <p className="mt-3 text-sm text-gray-500 font-pixel">LOADING...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show authentication wall if not authenticated
+  if (!authToken || !walletAddress) {
+    return (
+      <div className="max-w-md mx-auto mt-20 text-center space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-pixel">COMPOSER ACCESS</h1>
+          <p className="text-sm text-gray-400">Wallet authentication required</p>
+        </div>
+
+        <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-8 space-y-6 shadow-soft-lg dark:shadow-none">
+          <div className="w-20 h-20 mx-auto bg-s402-orange/10 rounded-full flex items-center justify-center">
+            <span className="text-4xl">🔐</span>
+          </div>
+          
+          <div>
+            <h2 className="text-lg font-medium mb-2">Authentication Required</h2>
+            <p className="text-sm text-gray-400">
+              Connect your wallet and sign a message to prove ownership. This ensures only you can create and manage agents.
+            </p>
+          </div>
+
+          <div className="space-y-3 text-left bg-gray-100 dark:bg-gray-900 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <span className="text-s402-orange">✓</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">Wallet connection via MetaMask</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-s402-orange">✓</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">Cryptographic signature for proof of ownership</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-s402-orange">✓</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">Secure JWT token issued for your session</span>
+            </div>
+          </div>
+
+          <button
+            onClick={authenticateWallet}
+            disabled={isAuthenticating}
+            className="w-full bg-s402-orange hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 rounded transition-colors"
+          >
+            {isAuthenticating ? 'Authenticating...' : 'Connect & Sign Message'}
+          </button>
+
+          <p className="text-xs text-gray-500">
+            By connecting, you'll be asked to sign a message to prove you own this wallet. No gas fees required.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -244,7 +322,7 @@ export default function ComposerPage() {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-4 items-end">
             <div className="relative">
               <label className="block text-sm text-gray-400 mb-2">Agent Icon</label>
               <button
@@ -267,7 +345,7 @@ export default function ComposerPage() {
             </div>
             <div className="col-span-2">
               <label className="block text-sm text-gray-400 mb-2">Visibility</label>
-              <div className="flex items-center gap-3 h-full">
+              <div className="flex items-center gap-3 h-[42px]">
                 <label className="flex items-center gap-2 cursor-pointer group">
                   <div className="relative">
                     <input
