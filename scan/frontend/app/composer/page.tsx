@@ -315,7 +315,7 @@ export default function ComposerPage() {
                   </div>
                 </div>
               </button>
-            )))}
+            ))}
             </div>
           )}
 
