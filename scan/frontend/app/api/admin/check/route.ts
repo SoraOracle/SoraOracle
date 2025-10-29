@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await pool.query(
-      'SELECT id FROM s402_admin_wallets WHERE LOWER(address) = LOWER($1)',
+      'SELECT address FROM s402_admin_wallets WHERE LOWER(address) = LOWER($1) AND is_active = true',
       [address]
     );
 
