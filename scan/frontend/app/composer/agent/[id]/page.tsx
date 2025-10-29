@@ -598,7 +598,49 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
                         : 'bg-s402-light-card dark:bg-gray-900 border border-gray-200 dark:border-gray-800'
                     }`}
                   >
-                    <div className="text-sm whitespace-pre-wrap">{msg.content}</div>
+                    <div className="text-sm whitespace-pre-wrap">
+                      {/* Check if message contains image URLs */}
+                      {(msg.content.includes('/api/images/') || (msg.content.includes('https://') && msg.content.includes('replicate.delivery'))) ? (
+                        <div className="space-y-2">
+                          {msg.content.split('\n').map((line, lineIdx) => {
+                            // Match both our API URLs and external URLs
+                            const urlMatch = line.match(/(https?:\/\/[^\s]+|\/api\/images\/[^\s]+)/);
+                            if (urlMatch) {
+                              const imageUrl = urlMatch[1];
+                              return (
+                                <div key={lineIdx} className="space-y-2">
+                                  <img 
+                                    src={imageUrl} 
+                                    alt="Generated image" 
+                                    className="rounded-lg max-w-full h-auto shadow-lg"
+                                  />
+                                  <div className="flex gap-2 items-center">
+                                    <a 
+                                      href={imageUrl} 
+                                      download 
+                                      className="text-xs px-3 py-1 bg-s402-orange text-white rounded hover:bg-s402-orange/90 transition-colors"
+                                    >
+                                      ⬇ Download
+                                    </a>
+                                    <a 
+                                      href={imageUrl} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-s402-orange hover:underline"
+                                    >
+                                      Open in new tab →
+                                    </a>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return <div key={lineIdx}>{line}</div>;
+                          })}
+                        </div>
+                      ) : (
+                        msg.content
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}

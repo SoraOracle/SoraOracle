@@ -79,7 +79,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         console.log('🔍 Output type:', typeof output);
         
         // Replicate returns FileOutput objects for Seedream 4
-        let imageUrls: string[] = [];
+        let replicateUrls: string[] = [];
         
         if (Array.isArray(output)) {
           // Convert FileOutput objects to URLs
@@ -87,32 +87,65 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             if (item && typeof item === 'object') {
               // FileOutput has a url() method or direct URL
               if (typeof item.url === 'function') {
-                imageUrls.push(await item.url());
+                replicateUrls.push(await item.url());
               } else if (typeof item === 'string') {
-                imageUrls.push(item);
+                replicateUrls.push(item);
               } else {
                 // Convert stream/object to string
                 const urlStr = String(item);
                 if (urlStr.startsWith('http')) {
-                  imageUrls.push(urlStr);
+                  replicateUrls.push(urlStr);
                 }
               }
             } else if (typeof item === 'string') {
-              imageUrls.push(item);
+              replicateUrls.push(item);
             }
           }
         } else if (typeof output === 'string') {
-          imageUrls = [output];
+          replicateUrls = [output];
+        }
+
+        console.log('✅ Replicate URLs extracted:', replicateUrls);
+        
+        // Download and rehost images from our own domain
+        const fs = require('fs/promises');
+        const path = require('path');
+        const hostedUrls: string[] = [];
+        
+        for (const replicateUrl of replicateUrls) {
+          try {
+            console.log('📥 Downloading image from Replicate...');
+            const response = await fetch(replicateUrl);
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            
+            // Generate unique filename
+            const ext = replicateUrl.includes('.png') ? 'png' : 'jpg';
+            const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
+            const filePath = path.join(process.cwd(), 'public', 'generated-images', filename);
+            
+            // Save to filesystem
+            await fs.writeFile(filePath, buffer);
+            console.log('💾 Image saved:', filename);
+            
+            // Return our own URL
+            const hostedUrl = `/api/images/${filename}`;
+            hostedUrls.push(hostedUrl);
+          } catch (error) {
+            console.error('❌ Failed to download/save image:', error);
+            // Fallback to Replicate URL if download fails
+            hostedUrls.push(replicateUrl);
+          }
         }
 
         toolOutput = {
           success: true,
-          images: imageUrls,
+          images: hostedUrls,
           prompt: input.prompt,
           aspect_ratio: input.aspect_ratio || "16:9",
         };
         
-        console.log('✅ Image URLs extracted:', imageUrls);
+        console.log('✅ Hosted URLs:', hostedUrls);
       } catch (error) {
         console.error('❌ Replicate API error:', error);
         toolOutput = { 
