@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useWallet } from '../../providers/WalletProvider';
 
 interface Agent {
   id: string;
@@ -16,41 +17,21 @@ interface Agent {
 }
 
 export default function MyAgentsPage() {
+  const { walletAddress, token, setWalletAddress, setToken } = useWallet();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = () => {
-    const token = localStorage.getItem('composer_auth_token');
-    if (token) {
-      try {
-        const jwtDecode = require('jwt-decode').jwtDecode || require('jwt-decode');
-        const payload: any = jwtDecode(token);
-        if (payload.exp && payload.exp > Date.now() / 1000) {
-          setWalletAddress(payload.address);
-          loadAgents(payload.address);
-        } else {
-          localStorage.removeItem('composer_auth_token');
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Invalid token:', error);
-        localStorage.removeItem('composer_auth_token');
-        setLoading(false);
-      }
+    if (walletAddress && token) {
+      loadAgents(walletAddress);
     } else {
       setLoading(false);
     }
-  };
+  }, [walletAddress, token]);
 
   const loadAgents = async (address: string) => {
     try {
-      const token = localStorage.getItem('composer_auth_token');
       const response = await fetch(`/api/agents?owner=${address}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -91,8 +72,8 @@ export default function MyAgentsPage() {
       });
 
       if (response.ok) {
-        const { token } = await response.json();
-        localStorage.setItem('composer_auth_token', token);
+        const { token: authToken } = await response.json();
+        setToken(authToken);
         setWalletAddress(address);
         loadAgents(address);
       } else {

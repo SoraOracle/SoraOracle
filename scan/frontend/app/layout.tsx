@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Press_Start_2P, Inter } from 'next/font/google';
 import Header from './components/Header';
 import { ThemeProvider } from './providers/ThemeProvider';
+import { WalletProvider } from './providers/WalletProvider';
 
 const pressStart = Press_Start_2P({ 
   weight: '400',
@@ -44,7 +45,8 @@ export default function RootLayout({
       <body className="font-sans bg-s402-light-bg dark:bg-s402-dark text-gray-800 dark:text-gray-100 min-h-screen transition-colors">
         <div className="flex flex-col min-h-screen">
           <ThemeProvider>
-            <Header />
+            <WalletProvider>
+              <Header />
             <div className="h-16"></div>
             <main className="container mx-auto px-4 py-8 flex-1">
               {children}
@@ -55,6 +57,7 @@ export default function RootLayout({
                 <p className="mt-2">Built by <a href="https://github.com/sora-oracle" className="text-s402-orange hover:underline">Sora Oracle</a></p>
               </div>
             </footer>
+            </WalletProvider>
           </ThemeProvider>
         </div>
       </body>

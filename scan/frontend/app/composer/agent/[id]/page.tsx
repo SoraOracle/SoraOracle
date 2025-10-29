@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { use } from 'react';
 import Link from 'next/link';
+import { useWallet } from '../../../providers/WalletProvider';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -36,6 +37,7 @@ interface Tool {
 
 export default function AgentDashboard({ params }: { params: Promise<{ id: string }> }) {
   const { id: agentId } = use(params);
+  const { walletAddress } = useWallet();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -48,12 +50,10 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   const [showToolsPanel, setShowToolsPanel] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const MODEL_NAME = "Claude Sonnet 4";
 
   useEffect(() => {
-    checkAuth();
     loadAgent();
     loadTools();
   }, [agentId]);
@@ -73,21 +73,6 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  const checkAuth = () => {
-    const token = localStorage.getItem('composer_auth_token');
-    if (token) {
-      try {
-        const jwtDecode = require('jwt-decode').jwtDecode || require('jwt-decode');
-        const payload: any = jwtDecode(token);
-        if (payload.exp && payload.exp > Date.now() / 1000) {
-          setWalletAddress(payload.address);
-        }
-      } catch (error) {
-        console.error('Invalid token:', error);
-      }
-    }
-  };
 
   const loadTools = async () => {
     try {

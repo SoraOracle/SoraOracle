@@ -136,9 +136,13 @@ export default function Header() {
             <div className="hidden md:flex space-x-6 text-sm">
               <a href="/" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Dashboard</a>
               <a href="/transactions" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Transactions</a>
-              <a href="/providers" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Providers</a>
-              <a href="/data-sources" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Data Sources</a>
-              <a href="/composer" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Composer</a>
+              <a href="/marketplace" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Marketplace</a>
+              <a href="/agents/my" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Agents</a>
+              <a href="/ecosystem" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Ecosystem</a>
+              <a href="/composer" className="relative hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">
+                Composer
+                <span className="absolute -top-2 -right-8 bg-s402-orange text-white text-[9px] px-1.5 py-0.5 rounded font-bold">NEW</span>
+              </a>
               {isAdmin && (
                 <a href="/composer/admin" className="text-s402-orange font-bold border border-s402-orange px-3 py-1 rounded hover:bg-s402-orange hover:text-white transition-all duration-300 hover:shadow-[0_0_12px_rgba(249,115,22,0.6)]">
                   ⚙️ Admin Panel

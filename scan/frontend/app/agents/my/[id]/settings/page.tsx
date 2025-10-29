@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { use } from 'react';
 import Link from 'next/link';
+import { useWallet } from '../../../providers/WalletProvider';
 import { useRouter } from 'next/navigation';
 
 interface Agent {
@@ -32,10 +33,10 @@ interface AgentTool {
 export default function AgentSettings({ params }: { params: Promise<{ id: string }> }) {
   const { id: agentId } = use(params);
   const router = useRouter();
+  const { walletAddress } = useWallet();
   const [agent, setAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   
   // Form fields
   const [name, setName] = useState('');
@@ -50,29 +51,15 @@ export default function AgentSettings({ params }: { params: Promise<{ id: string
   const [activeTab, setActiveTab] = useState<'general' | 'tools' | 'danger'>('general');
 
   useEffect(() => {
-    checkAuth();
     loadAgent();
     loadTools();
   }, [agentId]);
 
-  const checkAuth = async () => {
-    if (typeof window.ethereum === 'undefined') {
-      router.push('/');
-      return;
+  useEffect(() => {
+    if (!walletAddress) {
+      router.push('/agents/my');
     }
-
-    try {
-      const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-      if (accounts.length === 0) {
-        router.push('/');
-        return;
-      }
-      setWalletAddress(accounts[0]);
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      router.push('/');
-    }
-  };
+  }, [walletAddress]);
 
   const loadAgent = async () => {
     try {
@@ -81,6 +68,12 @@ export default function AgentSettings({ params }: { params: Promise<{ id: string
       const foundAgent = agents.find((a: Agent) => a.id === agentId);
       
       if (!foundAgent) {
+        router.push('/agents/my');
+        return;
+      }
+
+      // Check if user has access
+      if (walletAddress && foundAgent.owner_address.toLowerCase() !== walletAddress.toLowerCase()) {
         router.push('/agents/my');
         return;
       }
