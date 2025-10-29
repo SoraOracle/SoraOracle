@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     let query = 'SELECT * FROM s402_agents';
     let params: any[] = [];
 
-    if (owner) {
+    if (owner && owner.toLowerCase() !== 'all') {
       const ownerLower = owner.toLowerCase();
       // If querying specific owner, check if requester is authenticated as that owner
       if (authenticatedAddress === ownerLower) {
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
         params = [ownerLower];
       }
     } else {
-      // General listing - only show public agents or agents owned by the authenticated user
+      // General listing (owner=all or no owner param) - only show public agents or agents owned by the authenticated user
       if (authenticatedAddress) {
         query += ' WHERE (is_public = TRUE OR LOWER(owner_address) = $1)';
         params = [authenticatedAddress];
