@@ -5,7 +5,12 @@
 @layer base {
   body {
     @apply antialiased bg-black text-white;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  }
+  .font-pixel {
+    font-family: var(--font-press-start), monospace;
+  }
+  .font-sans {
+    font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 }
 

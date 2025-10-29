@@ -1,8 +1,17 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Press_Start_2P, Inter } from 'next/font/google';
 
-const inter = Inter({ subsets: ['latin'] });
+const pressStart = Press_Start_2P({ 
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-press-start'
+});
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter'
+});
 
 export const metadata: Metadata = {
   title: 'S402 Scan - Oracle Ecosystem Explorer for BNB Chain',
@@ -15,14 +24,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-s402-dark text-white min-h-screen`}>
+    <html lang="en" className={`${inter.variable} ${pressStart.variable}`}>
+      <body className="font-sans bg-black text-white min-h-screen">
         <nav className="border-b border-gray-800 bg-s402-gray">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-8">
-                <h1 className="text-2xl font-bold">
-                  <span className="text-s402-orange">S402</span> Scan
+                <h1 className="text-xl font-pixel">
+                  <span className="text-s402-orange">S402</span>SCAN
                 </h1>
                 <div className="hidden md:flex space-x-6">
                   <a href="/" className="hover:text-s402-orange transition">Dashboard</a>
