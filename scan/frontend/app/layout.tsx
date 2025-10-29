@@ -57,7 +57,7 @@ export default function RootLayout({
                 <div className="flex items-center justify-center gap-2 mt-4">
                   <span className="text-xs uppercase tracking-wider text-gray-500">Powered by</span>
                   <a 
-                    href="https://github.com/sora-oracle" 
+                    href="https://soraoracle.com" 
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 hover:opacity-80 transition-opacity"
