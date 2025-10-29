@@ -1,21 +1,16 @@
 {
+  "/api/transactions/route": "app/api/transactions/route.js",
   "/api/tools/route": "app/api/tools/route.js",
-  "/api/agents/route": "app/api/agents/route.js",
-  "/api/agents/[id]/sessions/route": "app/api/agents/[id]/sessions/route.js",
-  "/api/agents/[id]/sessions/[sessionId]/messages/route": "app/api/agents/[id]/sessions/[sessionId]/messages/route.js",
-  "/api/admin/check/route": "app/api/admin/check/route.js",
-  "/api/agents/[id]/tools/route": "app/api/agents/[id]/tools/route.js",
-  "/api/agents/[id]/route": "app/api/agents/[id]/route.js",
   "/api/stats/route": "app/api/stats/route.js",
   "/api/services/route": "app/api/services/route.js",
-  "/api/composers/top/route": "app/api/composers/top/route.js",
   "/api/charts/route": "app/api/charts/route.js",
-  "/api/transactions/route": "app/api/transactions/route.js",
-  "/marketplace/page": "app/marketplace/page.js",
+  "/api/composers/top/route": "app/api/composers/top/route.js",
   "/agents/my/page": "app/agents/my/page.js",
   "/composer/page": "app/composer/page.js",
-  "/ecosystem/page": "app/ecosystem/page.js",
   "/agents/my/[id]/settings/page": "app/agents/my/[id]/settings/page.js",
   "/page": "app/page.js",
-  "/composer/agent/[id]/page": "app/composer/agent/[id]/page.js"
+  "/composers/[address]/page": "app/composers/[address]/page.js",
+  "/transactions/page": "app/transactions/page.js",
+  "/marketplace/page": "app/marketplace/page.js",
+  "/ecosystem/page": "app/ecosystem/page.js"
 }
