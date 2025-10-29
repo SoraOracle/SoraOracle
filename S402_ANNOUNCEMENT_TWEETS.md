@@ -1429,3 +1429,336 @@ S402 development stats:
 
 Building in public. Shipping in production.
 ```
+
+---
+
+## 🔍 S402 Scan - Infrastructure for the BNB Ecosystem
+
+### Main Announcement Tweet
+
+```
+ANNOUNCEMENT: Building S402 Scan 🔍
+
+A dedicated explorer for 402-style micropayments on BNB Chain.
+
+Track every gasless payment, monitor oracle settlements, analyze data sources — all in real-time.
+
+Much like x402 brought 402 payments to Base, we're bringing the infrastructure to BSC.
+
+Thread on why this matters 👇
+```
+
+### Follow-up Thread
+
+**Tweet 2: The Problem**
+```
+Right now, S402 payments are invisible.
+
+You can see them on BSCScan, but they're buried in regular transactions.
+
+No way to:
+• Track total 402 volume on BSC
+• Monitor oracle payment patterns
+• Debug failed settlements
+• Discover active data providers
+
+We need dedicated infrastructure. Enter S402 Scan.
+```
+
+**Tweet 3: What S402 Scan Will Show**
+```
+S402 Scan will track:
+
+📊 Real-time 402 payment volume on BSC
+🔍 Individual payment details & proofs
+🤖 Oracle query history & settlements
+💰 Provider earnings & reputation
+📈 Network growth metrics
+🌐 API discovery patterns
+
+Everything transparent. Everything verifiable.
+```
+
+**Tweet 4: Why This Helps BNB Chain**
+```
+S402 Scan benefits the entire BNB ecosystem:
+
+1. Visibility: Show the world BSC has 402 payments
+2. Adoption: Make it easy to discover & integrate S402
+3. Analytics: Track micropayment growth on-chain
+4. Trust: Transparent settlement verification
+5. Innovation: Inspire new 402-based applications
+
+Base has x402. BSC gets S402. 🎯
+```
+
+**Tweet 5: Driving 402 Transaction Growth**
+```
+Our thesis: Infrastructure drives adoption.
+
+x402 scan made 402 payments discoverable on Base.
+S402 scan will do the same for BSC.
+
+When developers can:
+• See 402 payments in action
+• Track settlement patterns
+• Monitor gas savings
+• Discover integration examples
+
+They build. Adoption follows. Network grows.
+```
+
+**Tweet 6: Features Roadmap**
+```
+S402 Scan v1 features:
+
+✅ Payment explorer (search by tx, address, amount)
+✅ Live settlement feed
+✅ Oracle query analytics
+✅ Provider leaderboard
+✅ API source directory
+✅ Gas savings calculator
+
+v2 (planned):
+• Real-time WebSocket feeds
+• GraphQL API
+• Custom alerts
+• SDK analytics dashboard
+```
+
+**Tweet 7: The Bigger Vision**
+```
+S402 Scan isn't just for Sora Oracle.
+
+It's infrastructure for ANY 402-style payment on BSC.
+
+Other protocols building on EIP-2612 payments?
+Your transactions show up too.
+
+We're building public goods for the BNB ecosystem.
+
+Rising tide lifts all boats. 🌊
+```
+
+### Thesis Document
+
+**Tweet Thread: The Strategic Importance of S402 Scan**
+
+```
+Why we're building S402 Scan - A thesis 🧵
+
+1/ Infrastructure creates markets.
+
+Etherscan didn't just track transactions - it made Ethereum *understandable*.
+
+Block explorers turn invisible blockchain activity into tangible, discoverable data.
+
+S402 Scan does this for 402 micropayments on BSC.
+
+2/ Right now, 402 payments exist in two places:
+• Base (via x402)
+• BSC (via S402)
+
+Base has infrastructure (x402 scan).
+BSC doesn't.
+
+If we want 402 payments to thrive on BNB Chain, we need to make them visible, trackable, and discoverable.
+
+3/ Visibility drives adoption.
+
+When developers see:
+• $50,000 in daily S402 volume
+• 10,000 oracle settlements/day
+• 100 active data providers
+• 98% gas savings vs alternatives
+
+They think: "I should build on this."
+
+Metrics create FOMO. FOMO creates builders.
+
+4/ S402 Scan solves real problems:
+
+For users:
+→ Track their payment history
+→ Verify oracle proofs
+→ Monitor gas savings
+
+For developers:
+→ Debug integration issues
+→ Discover popular data sources
+→ Analyze settlement patterns
+
+For researchers:
+→ Study micropayment economics
+→ Track 402 adoption metrics
+
+5/ The BNB ecosystem needs this.
+
+BSC has DeFi, NFTs, gaming - but lacks micropayment infrastructure visibility.
+
+S402 Scan positions BNB Chain as:
+• A serious 402 payment network (competing with Base)
+• A hub for permissionless oracle data
+• A showcase for gasless micropayment innovation
+
+6/ Network effects compound.
+
+As S402 volume grows:
+→ More developers integrate
+→ More oracles provide data
+→ More users benefit from cheap queries
+→ More analytics available on S402 Scan
+→ More visibility attracts more developers
+
+The flywheel begins.
+
+7/ We're not just building for Sora Oracle.
+
+S402 Scan will index ALL EIP-2612 micropayments on BSC.
+
+Other projects using similar patterns? You're included.
+
+This is ecosystem infrastructure - open, public, and beneficial to all.
+
+8/ Comparison: x402 vs S402
+
+Base + x402:
+• x402 payments on Base
+• x402 scan for visibility
+• Circle USDC native
+
+BSC + S402:
+• S402 payments on BSC
+• S402 scan for visibility (shipping soon)
+• USD1 + any EIP-2612 token
+
+Parallel ecosystems. Mutual innovation.
+
+9/ The data will tell stories:
+
+"S402 processed 1M oracle queries this month"
+"Average query cost: $0.027"
+"Total gas saved: $49,850"
+"Top data source: CoinGecko (342k queries)"
+
+These narratives attract:
+• Media attention
+• Developer interest
+• Ecosystem grants
+• User adoption
+
+10/ Our commitment:
+
+S402 Scan will be:
+✅ Open source
+✅ Free to use
+✅ Community-driven
+✅ Ecosystem-first
+
+We're not building a moat.
+We're building a bridge.
+
+For BNB Chain. For 402 payments. For permissionless oracles.
+
+Let's make micropayments visible. 🔍
+```
+
+### Short Punchy Versions
+
+**Version 1: Direct**
+```
+Building S402 Scan - a dedicated explorer for 402 micropayments on BNB Chain.
+
+Track settlements, analyze providers, monitor oracle queries.
+
+If x402 scan showed Base how 402 payments work, S402 Scan will do the same for BSC.
+
+Infrastructure drives adoption. 🔍
+```
+
+**Version 2: Ecosystem Focus**
+```
+S402 Scan is coming to BNB Chain 🔍
+
+Real-time 402 payment analytics
+Oracle settlement tracking
+Provider reputation system
+Gas savings calculator
+
+Goal: Make BSC the go-to chain for micropayment infrastructure.
+
+Base has x402. We're bringing that energy to BNB. 🚀
+```
+
+**Version 3: Problem/Solution**
+```
+Problem: 402 payments on BSC are invisible
+
+You can't:
+• Track total volume
+• Discover data providers  
+• Monitor settlement success
+• Calculate gas savings
+
+Solution: S402 Scan
+
+Making micropayments transparent, discoverable, and measurable on BNB Chain. 📊
+```
+
+**Version 4: Growth Thesis**
+```
+Hot take: S402 Scan will 10x the number of 402 transactions on BSC.
+
+Why? Infrastructure creates visibility.
+Visibility drives discovery.
+Discovery drives adoption.
+
+When devs see real 402 volume on BNB Chain, they build.
+
+x402 proved this on Base. Now it's BSC's turn. 🎯
+```
+
+**Version 5: Community Call**
+```
+We're building S402 Scan - the first 402 payment explorer for BNB Chain.
+
+What features do you want to see?
+
+Reply with your wishlist:
+• Payment search?
+• Real-time feeds?
+• Provider analytics?
+• Custom alerts?
+
+Community-driven infrastructure. Let's build together. 🏗️
+```
+
+### Visual Content Ideas
+
+**Infographic 1: S402 Scan Dashboard Mockup**
+- Dark theme (#0A0A0A background)
+- Orange accents (#F97316)
+- Shows: Live payment feed, total volume chart, top providers list
+- "S402 Scan - 402 Payments on BNB Chain"
+
+**Infographic 2: Comparison Chart**
+```
+Base Ecosystem:
+✅ x402 protocol
+✅ x402 scan
+✅ Circle USDC
+
+BSC Ecosystem:
+✅ S402 protocol
+🚧 S402 scan (building)
+✅ USD1 + EIP-2612
+
+Parallel innovation. Different chains. Same vision.
+```
+
+**Infographic 3: Growth Flywheel**
+```
+S402 Scan → Visibility → Discovery → Adoption → Volume Growth → More Data → Better Analytics → S402 Scan (improved)
+
+The infrastructure flywheel for 402 payments on BSC.
+```
