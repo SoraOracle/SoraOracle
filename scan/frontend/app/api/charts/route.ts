@@ -14,20 +14,33 @@ export async function GET() {
       ORDER BY hour ASC
     `);
 
-    const chartData = result.rows.map(row => ({
-      time: new Date(row.hour).toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      }),
-      txns: parseInt(row.txn_count),
-      volume: parseFloat(row.volume),
-    }));
+    const dataMap = new Map();
+    result.rows.forEach(row => {
+      const hour = new Date(row.hour);
+      dataMap.set(hour.getTime(), {
+        txns: parseInt(row.txn_count),
+        volume: parseFloat(row.volume),
+      });
+    });
 
-    if (chartData.length === 0) {
-      return NextResponse.json([
-        { time: '00:00', txns: 0, volume: 0 }
-      ]);
+    const now = new Date();
+    const chartData = [];
+    
+    for (let i = 23; i >= 0; i--) {
+      const hour = new Date(now);
+      hour.setHours(now.getHours() - i, 0, 0, 0);
+      
+      const data = dataMap.get(hour.getTime()) || { txns: 0, volume: 0 };
+      
+      chartData.push({
+        time: hour.toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: false 
+        }),
+        txns: data.txns,
+        volume: data.volume,
+      });
     }
 
     return NextResponse.json(chartData);
