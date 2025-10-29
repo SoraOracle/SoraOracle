@@ -375,7 +375,7 @@ export default function AdminPage() {
                     </div>
                     <div>
                       <span className="text-gray-500">Cost:</span>
-                      <span className="text-s402-orange ml-2 font-medium">${tool.cost_usd.toFixed(3)}</span>
+                      <span className="text-s402-orange ml-2 font-medium">${parseFloat(tool.cost_usd).toFixed(3)}</span>
                     </div>
                   </div>
                 </div>
