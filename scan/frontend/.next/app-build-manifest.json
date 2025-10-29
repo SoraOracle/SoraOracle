@@ -95,6 +95,31 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/agents/[id]/chat/route.js"
+    ],
+    "/api/agents/[id]/execute-tool/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/agents/[id]/execute-tool/route.js"
+    ],
+    "/composer/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/composer/page.js"
+    ],
+    "/ecosystem/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/ecosystem/page.js"
+    ],
+    "/agents/my/[id]/settings/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/agents/my/[id]/settings/page.js"
+    ],
+    "/api/agents/[id]/tools/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/agents/[id]/tools/route.js"
     ]
   }
 }
