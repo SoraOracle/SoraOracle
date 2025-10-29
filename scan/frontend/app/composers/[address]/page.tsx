@@ -23,7 +23,11 @@ export default function ComposerProfilePage() {
   
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<{
+    totalAgents: number;
+    totalQueries: number;
+    totalSpent: number;
+  }>({
     totalAgents: 0,
     totalQueries: 0,
     totalSpent: 0,
@@ -125,7 +129,7 @@ export default function ComposerProfilePage() {
         </div>
         <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-4 shadow-soft dark:shadow-none">
           <div className="text-xs text-gray-500 uppercase mb-2">Total Spent</div>
-          <div className="text-2xl font-bold">${(stats.totalSpent || 0).toFixed(2)}</div>
+          <div className="text-2xl font-bold">${Number(stats.totalSpent || 0).toFixed(2)}</div>
         </div>
       </div>
 
