@@ -200,7 +200,7 @@ export default function AdminPage() {
           <p className="text-sm text-gray-400">Manage s402 tool APIs and permissions</p>
         </div>
 
-        <div className="bg-s402-light-card dark:bg-s402-dark-card border border-gray-300 dark:border-gray-800 rounded-lg p-8 space-y-4 shadow-soft-lg dark:shadow-none">
+        <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-8 space-y-4 shadow-soft-lg dark:shadow-none">
           <div className="w-16 h-16 mx-auto bg-s402-orange/10 rounded-full flex items-center justify-center">
             <span className="text-3xl">🔐</span>
           </div>
@@ -241,7 +241,7 @@ export default function AdminPage() {
       </div>
 
       {showAddForm && (
-        <div className="bg-s402-light-card dark:bg-s402-dark-card border border-gray-300 dark:border-gray-800 rounded-lg p-6 space-y-4 shadow-soft-lg dark:shadow-none">
+        <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-6 space-y-4 shadow-soft-lg dark:shadow-none">
           <h2 className="text-lg font-medium">Add New API Tool</h2>
           
           <div className="grid grid-cols-2 gap-4">
@@ -416,14 +416,14 @@ export default function AdminPage() {
         <h2 className="text-lg font-medium">{tools.length} Active Tools</h2>
         
         {tools.length === 0 ? (
-          <div className="bg-s402-light-card dark:bg-s402-dark-card border border-gray-300 dark:border-gray-800 rounded-lg p-8 text-center text-gray-500 shadow-soft dark:shadow-none">
+          <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-8 text-center text-gray-500 shadow-soft dark:shadow-none">
             No tools added yet. Click &quot;Add New Tool&quot; to get started.
           </div>
         ) : (
           tools.map(tool => (
             <div
               key={tool.id}
-              className="bg-s402-light-card dark:bg-s402-dark-card border border-gray-300 dark:border-gray-800 rounded-lg p-4 space-y-3 shadow-soft dark:shadow-none"
+              className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-4 space-y-3 shadow-soft dark:shadow-none"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">

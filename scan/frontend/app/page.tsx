@@ -129,7 +129,7 @@ export default function Dashboard() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-s402-light-card dark:bg-s402-dark-card border border-gray-300 dark:border-gray-800 rounded-lg p-4 shadow-soft dark:shadow-none">
+        <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded p-4 shadow-soft dark:shadow-none">
           <h3 className="font-pixel text-xs mb-4">TRANSACTION VOLUME</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} barGap={8} barCategoryGap="45%">
@@ -161,7 +161,7 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-s402-light-card dark:bg-s402-dark-card border border-gray-300 dark:border-gray-800 rounded-lg p-4 shadow-soft dark:shadow-none">
+        <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded p-4 shadow-soft dark:shadow-none">
           <h3 className="font-pixel text-xs mb-4">TRANSACTIONS</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={chartData} barGap={8} barCategoryGap="45%">
@@ -296,7 +296,7 @@ export default function Dashboard() {
             </table>
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500 text-sm bg-s402-light-card dark:bg-s402-dark-card border border-gray-300 dark:border-gray-800 rounded-lg shadow-soft dark:shadow-none">
+          <div className="text-center py-8 text-gray-500 text-sm bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded shadow-soft dark:shadow-none">
             No transactions yet. Data will appear as the indexer syncs.
           </div>
         )}
@@ -307,8 +307,8 @@ export default function Dashboard() {
 
 function StatCard({ label, value, change, total }: { label: string; value: string; change?: number; total?: string }) {
   return (
-    <div className="bg-s402-light-card dark:bg-s402-dark-card border border-gray-300 dark:border-gray-800 rounded-lg p-4 hover:border-s402-orange dark:hover:border-s402-orange transition-all shadow-soft dark:shadow-none">
-      <div className="text-xs text-gray-500 dark:text-gray-400 mb-2 uppercase">{label}</div>
+    <div className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-4 hover:border-s402-orange dark:hover:border-gray-700 transition-all shadow-soft dark:shadow-none">
+      <div className="text-xs text-gray-500 mb-2 uppercase">{label}</div>
       <div className="text-2xl font-bold tabular-nums mb-1">{value}</div>
       {change !== undefined && (
         <div className={`text-xs font-medium ${change >= 0 ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
