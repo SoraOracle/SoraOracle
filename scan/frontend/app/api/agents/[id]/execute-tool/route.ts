@@ -64,12 +64,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         console.log('🎨 Generating image with prompt:', input.prompt);
         
         const output = await replicate.run(
-          "lucataco/seedream-4",
+          "bytedance/seedream-4",
           {
             input: {
               prompt: input.prompt,
-              aspect_ratio: input.aspect_ratio || "1:1",
-              num_outputs: 1,
+              aspect_ratio: input.aspect_ratio || "16:9",
+              size: "regular",
+              num_images: 1,
             }
           }
         );

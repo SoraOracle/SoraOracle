@@ -39,6 +39,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null);
   const [agent, setAgent] = useState<any>(null);
   const [loadingAgent, setLoadingAgent] = useState(true);
@@ -375,6 +376,18 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       const receipt = await tx.wait();
       const txHash = receipt.hash;
 
+      // Show generating indicator for image generation tools
+      const isImageTool = paymentRequest.tool.name?.toLowerCase().includes('image') || 
+                          paymentRequest.tool.name?.toLowerCase().includes('seedream');
+      
+      if (isImageTool) {
+        setIsGeneratingImage(true);
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '🎨 Generating image... This may take 10-30 seconds.',
+        }]);
+      }
+
       const response = await fetch(`/api/agents/${agentId}/execute-tool`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -389,6 +402,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       });
 
       const data = await response.json();
+      setIsGeneratingImage(false);
 
       if (data.type === 'message') {
         setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
@@ -404,6 +418,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       }
     } catch (error: any) {
       console.error('Payment error:', error);
+      setIsGeneratingImage(false);
       if (error.code === 4001 || error.code === 'ACTION_REJECTED') {
         setMessages(prev => [...prev, {
           role: 'assistant',
@@ -594,6 +609,17 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <div className="animate-pulse">●</div>
                       <div>Thinking...</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {isGeneratingImage && (
+                <div className="flex justify-start">
+                  <div className="bg-s402-light-card dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 shadow-soft dark:shadow-none">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <div className="animate-spin">🎨</div>
+                      <div>Generating image... (10-30 seconds)</div>
                     </div>
                   </div>
                 </div>

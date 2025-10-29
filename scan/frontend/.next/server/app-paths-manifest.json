@@ -1,10 +1,3 @@
 {
-  "/api/tools/route": "app/api/tools/route.js",
-  "/api/agents/route": "app/api/agents/route.js",
-  "/api/admin/check/route": "app/api/admin/check/route.js",
-  "/api/agents/[id]/sessions/[sessionId]/messages/route": "app/api/agents/[id]/sessions/[sessionId]/messages/route.js",
-  "/api/agents/[id]/sessions/route": "app/api/agents/[id]/sessions/route.js",
-  "/composer/page": "app/composer/page.js",
-  "/agents/my/page": "app/agents/my/page.js",
-  "/composer/agent/[id]/page": "app/composer/agent/[id]/page.js"
+  "/page": "app/page.js"
 }
