@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
+import { useWallet } from '../providers/WalletProvider';
 
 interface AgentConfig {
   name: string;
@@ -26,6 +27,7 @@ interface Tool {
 
 export default function ComposerPage() {
   const router = useRouter();
+  const { walletAddress, token, setWalletAddress, setToken } = useWallet();
   const [config, setConfig] = useState<AgentConfig>({
     name: '',
     description: '',
@@ -41,15 +43,11 @@ export default function ComposerPage() {
   const [isDeploying, setIsDeploying] = useState(false);
   const [availableTools, setAvailableTools] = useState<Tool[]>([]);
   const [loadingTools, setLoadingTools] = useState(true);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [authToken, setAuthToken] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
     loadTools();
-    checkAuthToken();
   }, []);
 
   const loadTools = async () => {
@@ -63,30 +61,6 @@ export default function ComposerPage() {
       console.error('Failed to load tools:', error);
     } finally {
       setLoadingTools(false);
-    }
-  };
-
-  const checkAuthToken = () => {
-    const token = localStorage.getItem('composer_auth_token');
-    if (token) {
-      try {
-        setAuthToken(token);
-        const jwtDecode = require('jwt-decode').jwtDecode || require('jwt-decode');
-        const payload: any = jwtDecode(token);
-        if (payload.exp && payload.exp > Date.now() / 1000) {
-          setWalletAddress(payload.address);
-          setIsCheckingAuth(false);
-        } else {
-          localStorage.removeItem('composer_auth_token');
-          setIsCheckingAuth(false);
-        }
-      } catch (error) {
-        console.error('Invalid token:', error);
-        localStorage.removeItem('composer_auth_token');
-        setIsCheckingAuth(false);
-      }
-    } else {
-      setIsCheckingAuth(false);
     }
   };
 
@@ -114,9 +88,8 @@ export default function ComposerPage() {
       });
 
       if (response.ok) {
-        const { token } = await response.json();
-        localStorage.setItem('composer_auth_token', token);
-        setAuthToken(token);
+        const { token: authToken } = await response.json();
+        setToken(authToken);
         setWalletAddress(address);
         return true;
       } else {
@@ -156,7 +129,7 @@ export default function ComposerPage() {
     try {
       setIsDeploying(true);
 
-      if (!authToken) {
+      if (!token) {
         const authenticated = await authenticateWallet();
         if (!authenticated) {
           setIsDeploying(false);
@@ -168,7 +141,7 @@ export default function ComposerPage() {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken || localStorage.getItem('composer_auth_token')}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: config.name,
@@ -193,20 +166,8 @@ export default function ComposerPage() {
     }
   };
 
-  // Show loading state while checking authentication
-  if (isCheckingAuth) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-s402-orange mx-auto"></div>
-          <p className="mt-3 text-sm text-gray-500 font-pixel">LOADING...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Show authentication wall if not authenticated
-  if (!authToken || !walletAddress) {
+  if (!token || !walletAddress) {
     return (
       <div className="max-w-md mx-auto mt-20 text-center space-y-6">
         <div className="space-y-2">

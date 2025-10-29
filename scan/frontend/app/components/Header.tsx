@@ -141,7 +141,7 @@ export default function Header() {
               <a href="/ecosystem" className="hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">Ecosystem</a>
               <a href="/composer" className="relative hover:text-s402-orange transition-all duration-300 hover:drop-shadow-[0_0_8px_rgba(249,115,22,0.6)]">
                 Composer
-                <span className="absolute top-0 -right-1.5 bg-s402-orange text-white text-[9px] px-1.5 py-0.5 leading-none rounded font-bold">NEW</span>
+                <span className="absolute top-0 -right-10 bg-s402-orange text-white text-[9px] px-1.5 py-0.5 leading-none rounded font-bold">NEW</span>
               </a>
               {isAdmin && (
                 <a href="/composer/admin" className="text-s402-orange font-bold border border-s402-orange px-3 py-1 rounded hover:bg-s402-orange hover:text-white transition-all duration-300 hover:shadow-[0_0_12px_rgba(249,115,22,0.6)]">
