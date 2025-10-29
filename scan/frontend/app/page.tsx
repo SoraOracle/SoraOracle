@@ -127,7 +127,7 @@ export default function Dashboard() {
         <div className="border border-gray-800 rounded p-4">
           <h3 className="font-pixel text-xs mb-4">TRANSACTION VOLUME</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={chartData}>
+            <BarChart data={chartData} barGap={8} barCategoryGap="35%">
               <defs>
                 <linearGradient id="barGradientVolume" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#F97316" stopOpacity={1}/>
@@ -145,6 +145,7 @@ export default function Dashboard() {
                 fill="url(#barGradientVolume)" 
                 radius={[4, 4, 0, 0]}
                 activeBar={{ fill: 'rgba(249, 115, 22, 0.6)' }}
+                maxBarSize={24}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -153,7 +154,7 @@ export default function Dashboard() {
         <div className="border border-gray-800 rounded p-4">
           <h3 className="font-pixel text-xs mb-4">TRANSACTIONS</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={chartData}>
+            <BarChart data={chartData} barGap={8} barCategoryGap="35%">
               <defs>
                 <linearGradient id="barGradientTxns" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#F97316" stopOpacity={1}/>
@@ -171,6 +172,7 @@ export default function Dashboard() {
                 fill="url(#barGradientTxns)" 
                 radius={[4, 4, 0, 0]}
                 activeBar={{ fill: 'rgba(249, 115, 22, 0.6)' }}
+                maxBarSize={24}
               />
             </BarChart>
           </ResponsiveContainer>
