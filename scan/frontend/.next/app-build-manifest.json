@@ -11,10 +11,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
-    "/marketplace/page": [
+    "/agents/my/[id]/settings/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/marketplace/page.js"
+      "static/chunks/app/agents/my/[id]/settings/page.js"
+    ],
+    "/api/agents/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/agents/route.js"
     ],
     "/api/tools/route": [
       "static/chunks/webpack.js",
@@ -26,55 +31,40 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/admin/check/route.js"
     ],
-    "/transactions/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/transactions/page.js"
-    ],
-    "/api/transactions/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/transactions/route.js"
-    ],
     "/agents/my/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/agents/my/page.js"
     ],
-    "/api/agents/route": [
+    "/api/agents/[id]/tools/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/agents/route.js"
+      "static/chunks/app/api/agents/[id]/tools/route.js"
     ],
     "/agents/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/agents/page.js"
     ],
-    "/api/composers/top/route": [
+    "/composer/agent/[id]/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/composers/top/route.js"
+      "static/chunks/app/composer/agent/[id]/layout.js"
     ],
-    "/api/services/route": [
+    "/composer/agent/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/services/route.js"
+      "static/chunks/app/composer/agent/[id]/page.js"
     ],
-    "/api/stats/route": [
+    "/api/agents/[id]/sessions/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/stats/route.js"
+      "static/chunks/app/api/agents/[id]/sessions/route.js"
     ],
-    "/api/charts/route": [
+    "/api/agents/[id]/sessions/[sessionId]/messages/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/charts/route.js"
-    ],
-    "/composer/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/composer/page.js"
+      "static/chunks/app/api/agents/[id]/sessions/[sessionId]/messages/route.js"
     ]
   }
 }

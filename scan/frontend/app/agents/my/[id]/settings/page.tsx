@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { use } from 'react';
 import Link from 'next/link';
-import { useWallet } from '../../../providers/WalletProvider';
+import { useWallet } from '@/app/providers/WalletProvider';
 import { useRouter } from 'next/navigation';
 
 interface Agent {
