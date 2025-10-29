@@ -528,6 +528,14 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           >
             + New Chat
           </button>
+          {walletAddress && agent.owner_address.toLowerCase() === walletAddress.toLowerCase() && (
+            <Link
+              href={`/agents/my/${agentId}/settings`}
+              className="w-full mt-2 px-3 py-2 border border-gray-300 dark:border-gray-700 hover:border-s402-orange dark:hover:border-s402-orange text-sm font-medium rounded-lg transition-colors text-center block"
+            >
+              ⚙️ Settings
+            </Link>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto bg-white dark:bg-black">
