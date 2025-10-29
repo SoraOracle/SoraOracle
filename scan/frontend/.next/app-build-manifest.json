@@ -10,6 +10,21 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
+    ],
+    "/agents/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/agents/page.js"
+    ],
+    "/api/agents/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/agents/route.js"
+    ],
+    "/composers/[address]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/composers/[address]/page.js"
     ]
   }
 }
