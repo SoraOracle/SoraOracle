@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface AgentConfig {
   name: string;
@@ -20,6 +21,7 @@ const AVAILABLE_SOURCES = [
 ];
 
 export default function ComposerPage() {
+  const router = useRouter();
   const [config, setConfig] = useState<AgentConfig>({
     name: '',
     description: '',
@@ -30,6 +32,7 @@ export default function ComposerPage() {
   });
 
   const [step, setStep] = useState(1);
+  const [isDeploying, setIsDeploying] = useState(false);
 
   const toggleDataSource = (sourceId: string) => {
     setConfig(prev => ({
@@ -46,6 +49,43 @@ export default function ComposerPage() {
       return sum + (source?.costUSD || 0);
     }, 0) *
     ((30 * 24 * 60 * 60) / config.queryInterval);
+
+  const deployAgent = async () => {
+    if (typeof window.ethereum === 'undefined') {
+      alert('Please install MetaMask to create an agent');
+      return;
+    }
+
+    try {
+      setIsDeploying(true);
+
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const owner = accounts[0];
+
+      const response = await fetch('/api/agents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: config.name,
+          description: config.description,
+          owner_address: owner,
+          data_sources: config.dataSources,
+        }),
+      });
+
+      if (response.ok) {
+        const agent = await response.json();
+        router.push(`/composer/agent/${agent.id}`);
+      } else {
+        alert('Failed to create agent');
+      }
+    } catch (error) {
+      console.error('Failed to deploy agent:', error);
+      alert('Failed to deploy agent');
+    } finally {
+      setIsDeploying(false);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -272,12 +312,11 @@ export default function ComposerPage() {
             </div>
           </div>
 
-          <div className="border border-yellow-900/30 bg-yellow-900/10 rounded p-3">
+          <div className="border border-s402-orange/30 bg-s402-orange/10 rounded p-3">
             <div className="flex items-start gap-2">
-              <span className="text-yellow-500 text-sm">⚠️</span>
+              <span className="text-s402-orange text-sm">🤖</span>
               <div className="text-xs text-gray-400">
-                <span className="text-yellow-500 font-medium">Beta Feature:</span> Agent deployment is coming soon.
-                Contact the team to enable early access.
+                Your agent will be created with Claude AI. It can use s402 tools with micropayments for oracle data.
               </div>
             </div>
           </div>
@@ -285,15 +324,17 @@ export default function ComposerPage() {
           <div className="flex gap-3">
             <button
               onClick={() => setStep(2)}
-              className="flex-1 border border-gray-800 hover:border-gray-700 text-sm font-medium py-2.5 rounded transition-colors"
+              disabled={isDeploying}
+              className="flex-1 border border-gray-800 hover:border-gray-700 text-sm font-medium py-2.5 rounded transition-colors disabled:opacity-50"
             >
               Back
             </button>
             <button
-              disabled
-              className="flex-1 bg-gray-800 text-gray-600 cursor-not-allowed text-sm font-medium py-2.5 rounded"
+              onClick={deployAgent}
+              disabled={isDeploying}
+              className="flex-1 bg-s402-orange hover:bg-orange-600 disabled:bg-gray-800 disabled:text-gray-600 text-white text-sm font-medium py-2.5 rounded transition-colors"
             >
-              Deploy Agent (Coming Soon)
+              {isDeploying ? 'Deploying...' : 'Deploy Agent'}
             </button>
           </div>
         </div>
