@@ -261,11 +261,27 @@ export default function ComposerPage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <h1 className="text-xl font-pixel">AI AGENT COMPOSER</h1>
-          <span className="text-xs px-2 py-0.5 bg-s402-orange/20 text-s402-orange rounded font-medium">
-            BETA
-          </span>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-pixel">AI AGENT COMPOSER</h1>
+            <span className="text-xs px-2 py-0.5 bg-s402-orange/20 text-s402-orange rounded font-medium">
+              BETA
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <a
+              href="/agents/my"
+              className="text-xs px-3 py-1.5 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-800 hover:border-s402-orange rounded transition-colors"
+            >
+              📝 My Agents
+            </a>
+            <a
+              href="/agents"
+              className="text-xs px-3 py-1.5 bg-white dark:bg-transparent border border-gray-300 dark:border-gray-800 hover:border-s402-orange rounded transition-colors"
+            >
+              🌐 All Agents
+            </a>
+          </div>
         </div>
         <p className="text-sm text-gray-400">
           Build autonomous agents that pay oracles with s402 micropayments

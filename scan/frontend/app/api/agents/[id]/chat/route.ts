@@ -10,11 +10,12 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const result = await pool.query(
       'SELECT * FROM s402_agent_chats WHERE agent_id = $1 ORDER BY created_at ASC',
-      [params.id]
+      [id]
     );
     return NextResponse.json(result.rows);
   } catch (error) {
@@ -23,10 +24,11 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const { message, payment_proof } = await request.json();
-    const agentId = params.id;
+    const agentId = id;
 
     const agentResult = await pool.query(
       'SELECT * FROM s402_agents WHERE id = $1',
