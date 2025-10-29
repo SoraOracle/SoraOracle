@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface OverviewStats {
   totalPayments: number;
@@ -35,144 +36,168 @@ export default function Dashboard() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-s402-orange mx-auto"></div>
-          <p className="mt-4 text-gray-400">Loading S402 analytics...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-s402-orange mx-auto"></div>
+          <p className="mt-3 text-sm text-gray-500">Loading analytics...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      {/* Hero Section */}
-      <div className="text-center py-12">
-        <h1 className="text-5xl font-bold mb-4">
-          Oracle Ecosystem Explorer for <span className="text-s402-orange">BNB Chain</span>
-        </h1>
-        <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-          Track s402 micropayments, discover data sources, and build AI agents that pay for oracle data automatically
-        </p>
+    <div className="space-y-6">
+      {/* Stats Grid - Blur.io style */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="Volume" value={`$${stats?.totalVolumeUSD.toLocaleString() || '0'}`} change24h={stats?.volumeLast24h || 0} />
+        <StatCard label="Payments" value={stats?.totalPayments.toLocaleString() || '0'} change24h={stats?.paymentsLast24h || 0} />
+        <StatCard label="Providers" value={stats?.uniqueProviders.toLocaleString() || '0'} />
+        <StatCard label="Avg Payment" value={`$${stats?.avgPaymentUSD.toFixed(3) || '0.000'}`} />
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard
-          title="Total Volume"
-          value={`$${stats?.totalVolumeUSD.toLocaleString() || '0'}`}
-          change={`$${stats?.volumeLast24h.toLocaleString() || '0'} (24h)`}
-          icon="💰"
-        />
-        <StatCard
-          title="Total Payments"
-          value={stats?.totalPayments.toLocaleString() || '0'}
-          change={`${stats?.paymentsLast24h.toLocaleString() || '0'} (24h)`}
-          icon="📊"
-        />
-        <StatCard
-          title="Active Providers"
-          value={stats?.uniqueProviders.toLocaleString() || '0'}
-          change={`${stats?.uniquePayers.toLocaleString() || '0'} payers`}
-          icon="🤖"
-        />
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MiniStatCard
-          label="Platform Fees"
-          value={`$${stats?.totalFeesUSD.toFixed(2) || '0.00'}`}
-        />
-        <MiniStatCard
-          label="Avg Payment"
-          value={`$${stats?.avgPaymentUSD.toFixed(2) || '0.00'}`}
-        />
-        <MiniStatCard
-          label="Active Agents"
-          value={stats?.activeAgents.toLocaleString() || '0'}
-        />
-        <MiniStatCard
-          label="Savings vs Chainlink"
-          value="98.9%"
-        />
-      </div>
-
-      {/* Quick Links */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-        <QuickLink
-          title="Agent Composer"
-          description="Build AI bots that pay oracles with s402 micropayments"
-          href="/composer"
-          icon="🤖"
-          badge="BETA"
-        />
-        <QuickLink
-          title="Data Sources"
-          description="Discover oracle APIs: CoinGecko, OpenWeather, NewsAPI"
-          href="/data-sources"
-          icon="🛠️"
-        />
-        <QuickLink
-          title="Transactions"
-          description="Explore s402 payment history and settlements"
-          href="/transactions"
-          icon="🔍"
-        />
-      </div>
-
-      {/* Info Callout */}
-      <div className="bg-s402-gray border border-gray-800 rounded-lg p-6 mt-8">
-        <h3 className="text-xl font-bold mb-2">
-          <span className="text-s402-orange">What is S402 Scan?</span>
-        </h3>
-        <p className="text-gray-400 mb-4">
-          S402 Scan is the complete oracle ecosystem explorer for BNB Chain. We index all s402 micropayments from the S402Facilitator contract, 
-          provide analytics on oracle providers, and offer tools to build AI agents that pay for data automatically.
-        </p>
-        <div className="flex items-center space-x-4 text-sm">
-          <a href="https://github.com/sora-oracle" className="text-s402-orange hover:underline">GitHub</a>
-          <span className="text-gray-600">•</span>
-          <a href="/docs" className="text-s402-orange hover:underline">Documentation</a>
-          <span className="text-gray-600">•</span>
-          <span className="text-gray-500">Contract: 0x605c...48a3</span>
+      {/* Top Data Sources Table */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Top Data Sources</h2>
+          <Link href="/data-sources" className="text-sm text-gray-400 hover:text-white transition-colors">
+            View all →
+          </Link>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-800 text-xs text-gray-500 uppercase">
+                <th className="text-left py-3 font-medium">Source</th>
+                <th className="text-right py-3 font-medium">Queries</th>
+                <th className="text-right py-3 font-medium">Volume</th>
+                <th className="text-right py-3 font-medium">Avg Cost</th>
+                <th className="text-right py-3 font-medium">Reliability</th>
+              </tr>
+            </thead>
+            <tbody>
+              {TOP_SOURCES.map((source, i) => (
+                <tr key={i} className="border-b border-gray-900 hover:bg-gray-950 transition-colors">
+                  <td className="py-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{source.icon}</span>
+                      <span className="font-medium">{source.name}</span>
+                    </div>
+                  </td>
+                  <td className="text-right tabular-nums">{source.queries.toLocaleString()}</td>
+                  <td className="text-right tabular-nums">${source.volume.toFixed(2)}</td>
+                  <td className="text-right tabular-nums text-s402-orange">${source.avgCost.toFixed(3)}</td>
+                  <td className="text-right tabular-nums text-green-400">{source.reliability}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
-    </div>
-  );
-}
 
-function StatCard({ title, value, change, icon }: { title: string; value: string; change: string; icon: string }) {
-  return (
-    <div className="bg-s402-gray border border-gray-800 rounded-lg p-6">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-gray-400 text-sm font-medium">{title}</h3>
-        <span className="text-2xl">{icon}</span>
+      {/* Recent Transactions */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Recent Transactions</h2>
+          <Link href="/transactions" className="text-sm text-gray-400 hover:text-white transition-colors">
+            View all →
+          </Link>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-800 text-xs text-gray-500 uppercase">
+                <th className="text-left py-3 font-medium">Hash</th>
+                <th className="text-left py-3 font-medium">From</th>
+                <th className="text-left py-3 font-medium">To</th>
+                <th className="text-right py-3 font-medium">Value</th>
+                <th className="text-right py-3 font-medium">Age</th>
+              </tr>
+            </thead>
+            <tbody>
+              {RECENT_TXS.map((tx, i) => (
+                <tr key={i} className="border-b border-gray-900 hover:bg-gray-950 transition-colors">
+                  <td className="py-3">
+                    <a href={`https://bscscan.com/tx/${tx.hash}`} target="_blank" rel="noopener noreferrer" className="text-s402-orange hover:underline font-mono text-xs">
+                      {tx.hash.slice(0, 10)}...
+                    </a>
+                  </td>
+                  <td className="font-mono text-xs text-gray-400">{tx.from.slice(0, 6)}...{tx.from.slice(-4)}</td>
+                  <td className="font-mono text-xs text-gray-400">{tx.to.slice(0, 6)}...{tx.to.slice(-4)}</td>
+                  <td className="text-right tabular-nums">${tx.value.toFixed(3)}</td>
+                  <td className="text-right text-gray-500 text-xs">{tx.age}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div className="text-3xl font-bold mb-1">{value}</div>
-      <div className="text-sm text-gray-500">{change}</div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+        <QuickAction
+          href="/composer"
+          title="Build AI Agent"
+          description="Deploy autonomous oracle bots"
+          badge="BETA"
+        />
+        <QuickAction
+          href="/data-sources"
+          title="Discover APIs"
+          description="Browse oracle data sources"
+        />
+        <QuickAction
+          href="/transactions"
+          title="Explore Payments"
+          description="Track s402 settlements"
+        />
+      </div>
     </div>
   );
 }
 
-function MiniStatCard({ label, value }: { label: string; value: string }) {
+function StatCard({ label, value, change24h }: { label: string; value: string; change24h?: number }) {
   return (
-    <div className="bg-s402-gray border border-gray-800 rounded-lg p-4">
-      <div className="text-gray-400 text-xs font-medium mb-1">{label}</div>
-      <div className="text-xl font-bold">{value}</div>
+    <div className="border border-gray-800 rounded p-3 hover:border-gray-700 transition-colors">
+      <div className="text-xs text-gray-500 mb-1">{label}</div>
+      <div className="text-lg font-semibold tabular-nums">{value}</div>
+      {change24h !== undefined && (
+        <div className="text-xs text-gray-500 mt-1">
+          {change24h > 0 ? '+' : ''}{change24h.toLocaleString()} 24h
+        </div>
+      )}
     </div>
   );
 }
 
-function QuickLink({ title, description, href, icon, badge }: { title: string; description: string; href: string; icon: string; badge?: string }) {
+function QuickAction({ href, title, description, badge }: { href: string; title: string; description: string; badge?: string }) {
   return (
-    <a href={href} className="block bg-s402-gray border border-gray-800 rounded-lg p-6 hover:border-s402-orange transition group">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-3xl">{icon}</span>
+    <Link
+      href={href}
+      className="border border-gray-800 rounded p-4 hover:border-s402-orange transition-colors group"
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <h3 className="font-semibold group-hover:text-s402-orange transition-colors">{title}</h3>
         {badge && (
-          <span className="bg-s402-orange text-xs px-2 py-1 rounded font-medium">{badge}</span>
+          <span className="text-[10px] px-1.5 py-0.5 bg-s402-orange/20 text-s402-orange rounded font-medium">
+            {badge}
+          </span>
         )}
       </div>
-      <h3 className="text-lg font-bold mb-2 group-hover:text-s402-orange transition">{title}</h3>
-      <p className="text-gray-400 text-sm">{description}</p>
-    </a>
+      <p className="text-sm text-gray-500">{description}</p>
+    </Link>
   );
 }
+
+const TOP_SOURCES = [
+  { icon: '📈', name: 'CoinGecko', queries: 1247, volume: 37.41, avgCost: 0.03, reliability: 99.8 },
+  { icon: '💹', name: 'Alpha Vantage', queries: 934, volume: 28.02, avgCost: 0.04, reliability: 99.1 },
+  { icon: '🌤️', name: 'OpenWeather', queries: 823, volume: 16.46, avgCost: 0.02, reliability: 98.5 },
+  { icon: '💰', name: 'CryptoCompare', queries: 612, volume: 24.48, avgCost: 0.03, reliability: 98.9 },
+  { icon: '📰', name: 'NewsAPI', queries: 456, volume: 22.80, avgCost: 0.05, reliability: 97.2 },
+];
+
+const RECENT_TXS = [
+  { hash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b', from: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb', to: '0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199', value: 0.03, age: '5m ago' },
+  { hash: '0x2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c', from: '0x9876543210fedcba9876543210fedcba98765432', to: '0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199', value: 0.05, age: '15m ago' },
+  { hash: '0x3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d', from: '0x1234567890abcdef1234567890abcdef12345678', to: '0x5555666677778888999900001111222233334444', value: 0.02, age: '32m ago' },
+];

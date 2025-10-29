@@ -87,7 +87,7 @@ module.exports = require("next/dist/server/app-render/after-task-async-storage.e
 
 /***/ }),
 
-/***/ "../app-render/work-async-storage.external":
+/***/ "./work-async-storage.external":
 /*!*****************************************************************************!*\
   !*** external "next/dist/server/app-render/work-async-storage.external.js" ***!
   \*****************************************************************************/
