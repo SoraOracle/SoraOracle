@@ -65,7 +65,7 @@ export default function RootLayout({
                     <img 
                       src="/sora-logo.png" 
                       alt="Sora Oracle" 
-                      className="h-8 object-contain"
+                      className="h-12 object-contain"
                     />
                   </a>
                 </div>
