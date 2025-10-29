@@ -30,12 +30,15 @@ interface Transaction {
   platformFeeUSD: number;
   blockNumber: number;
   timestamp: string;
+  serviceName?: string | null;
+  serviceCategory?: string | null;
 }
 
 export default function Dashboard() {
   const [stats, setStats] = useState<OverviewStats | null>(null);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [recentTxs, setRecentTxs] = useState<Transaction[]>([]);
+  const [topServices, setTopServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,11 +46,13 @@ export default function Dashboard() {
       fetch('/api/stats').then(res => res.json()),
       fetch('/api/charts').then(res => res.json()),
       fetch('/api/transactions').then(res => res.json()),
+      fetch('/api/services').then(res => res.json()),
     ])
-      .then(([statsData, chartsData, txsData]) => {
+      .then(([statsData, chartsData, txsData, servicesData]) => {
         setStats(statsData);
         setChartData(chartsData);
         setRecentTxs(txsData.slice(0, 5));
+        setTopServices(servicesData);
         setLoading(false);
       })
       .catch(err => {
@@ -192,7 +197,7 @@ export default function Dashboard() {
       {/* Top Data Sources - KEEP AS PLACEHOLDER */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-pixel text-sm">TOP DATA SOURCES <span className="text-gray-600">Past 24 Hours</span></h2>
+          <h2 className="font-pixel text-sm">TOP S402 SERVICES <span className="text-gray-600">Past 24 Hours</span></h2>
           <Link href="/data-sources" className="text-sm text-gray-400 hover:text-white transition-colors">
             View all →
           </Link>
@@ -210,20 +215,28 @@ export default function Dashboard() {
               </tr>
             </thead>
             <tbody>
-              {TOP_SOURCES.map((source, i) => (
-                <tr key={i} className="border-b border-gray-900 hover:bg-gray-950 transition-colors">
-                  <td className="py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{source.icon}</span>
-                      <span className="font-medium">{source.name}</span>
-                    </div>
+              {topServices.length > 0 ? (
+                topServices.map((service, i) => (
+                  <tr key={i} className="border-b border-gray-900 hover:bg-gray-950 transition-colors">
+                    <td className="py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 bg-s402-orange/10 text-s402-orange text-xs rounded">{service.category}</span>
+                        <span className="font-medium">{service.name}</span>
+                      </div>
+                    </td>
+                    <td className="text-right tabular-nums">{service.queries.toLocaleString()}</td>
+                    <td className="text-right tabular-nums">${service.volume.toFixed(2)}</td>
+                    <td className="text-right tabular-nums text-s402-orange">${service.avgCost.toFixed(3)}</td>
+                    <td className="text-right tabular-nums text-green-400">{service.reliability}%</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-gray-500 text-sm">
+                    No services available yet. Add tools via the Admin Panel.
                   </td>
-                  <td className="text-right tabular-nums">{source.queries.toLocaleString()}</td>
-                  <td className="text-right tabular-nums">${source.volume.toFixed(2)}</td>
-                  <td className="text-right tabular-nums text-s402-orange">${source.avgCost.toFixed(3)}</td>
-                  <td className="text-right tabular-nums text-green-400">{source.reliability}%</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -254,9 +267,16 @@ export default function Dashboard() {
                 {recentTxs.map((tx, i) => (
                   <tr key={i} className="border-b border-gray-900 hover:bg-gray-950 transition-colors">
                     <td className="py-3">
-                      <a href={`https://bscscan.com/address/${tx.to}`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-gray-400 hover:text-white">
-                        {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
-                      </a>
+                      {tx.serviceName ? (
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 bg-s402-orange/10 text-s402-orange text-xs rounded">{tx.serviceCategory}</span>
+                          <span className="font-medium text-sm">{tx.serviceName}</span>
+                        </div>
+                      ) : (
+                        <a href={`https://bscscan.com/address/${tx.to}`} target="_blank" rel="noopener noreferrer" className="font-mono text-xs text-gray-400 hover:text-white">
+                          {tx.to.slice(0, 6)}...{tx.to.slice(-4)}
+                        </a>
+                      )}
                     </td>
                     <td className="text-right tabular-nums">${tx.valueUSD.toFixed(2)}</td>
                     <td>
@@ -302,10 +322,3 @@ function StatCard({ label, value, change, total }: { label: string; value: strin
   );
 }
 
-const TOP_SOURCES = [
-  { icon: '📈', name: 'CoinGecko', queries: 1247, volume: 37.41, avgCost: 0.03, reliability: 99.8 },
-  { icon: '💹', name: 'Alpha Vantage', queries: 934, volume: 28.02, avgCost: 0.04, reliability: 99.1 },
-  { icon: '🌤️', name: 'OpenWeather', queries: 823, volume: 16.46, avgCost: 0.02, reliability: 98.5 },
-  { icon: '💰', name: 'CryptoCompare', queries: 612, volume: 24.48, avgCost: 0.03, reliability: 98.9 },
-  { icon: '📰', name: 'NewsAPI', queries: 456, volume: 22.80, avgCost: 0.05, reliability: 97.2 },
-];

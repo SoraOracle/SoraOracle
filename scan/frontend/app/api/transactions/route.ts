@@ -5,15 +5,18 @@ export async function GET() {
   try {
     const result = await db.query(`
       SELECT 
-        tx_hash,
-        from_address,
-        to_address,
-        value_usd,
-        platform_fee_usd,
-        block_number,
-        block_timestamp
-      FROM s402_payments
-      ORDER BY block_timestamp DESC
+        p.tx_hash,
+        p.from_address,
+        p.to_address,
+        p.value_usd,
+        p.platform_fee_usd,
+        p.block_number,
+        p.block_timestamp,
+        t.name as service_name,
+        t.category as service_category
+      FROM s402_payments p
+      LEFT JOIN s402_tools t ON LOWER(p.to_address) = LOWER(t.provider_address)
+      ORDER BY p.block_timestamp DESC
       LIMIT 100
     `);
 
@@ -25,6 +28,8 @@ export async function GET() {
       platformFeeUSD: parseFloat(row.platform_fee_usd),
       blockNumber: parseInt(row.block_number),
       timestamp: row.block_timestamp,
+      serviceName: row.service_name || null,
+      serviceCategory: row.service_category || null,
     }));
 
     return NextResponse.json(transactions);
