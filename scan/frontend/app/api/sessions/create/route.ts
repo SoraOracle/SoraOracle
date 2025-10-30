@@ -59,11 +59,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Deactivate any existing active sessions for this user
+    // Check if user already has an active funded session
+    const existingSession = await db.query(
+      `SELECT id, session_address, max_usd1_amount, spent_amount
+       FROM s402_sessions 
+       WHERE user_address = $1 
+         AND is_active = true
+         AND usd1_tx_hash IS NOT NULL
+         AND bnb_tx_hash IS NOT NULL
+       LIMIT 1`,
+      [userAddress.toLowerCase()]
+    );
+
+    if (existingSession.rows.length > 0) {
+      return NextResponse.json(
+        { 
+          error: 'You already have an active session. Please close it before creating a new one.',
+          existingSession: existingSession.rows[0]
+        },
+        { status: 400 }
+      );
+    }
+
+    // Deactivate any existing unfunded/partial sessions for this user
     await db.query(
       `UPDATE s402_sessions 
        SET is_active = false 
-       WHERE user_address = $1 AND is_active = true`,
+       WHERE user_address = $1 
+         AND is_active = true
+         AND (usd1_tx_hash IS NULL OR bnb_tx_hash IS NULL)`,
       [userAddress.toLowerCase()]
     );
 
