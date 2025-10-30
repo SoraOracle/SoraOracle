@@ -16,28 +16,34 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
   const { createSession } = useSession();
   const { walletAddress, token } = useWallet();
   const [maxUsd1Amount, setMaxUsd1Amount] = useState('0.50');
-  const [durationMinutes, setDurationMinutes] = useState('60');
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
   const [fundingStep, setFundingStep] = useState<FundingStep>('configure');
   const [sessionAddress, setSessionAddress] = useState('');
-  const [estimatedGas] = useState('0.01'); // 0.01 BNB for 10-15 payments (activation ~50k + settlePayment ~150-165k, with safe buffer)
+  
+  // Dynamic BNB calculation: (usd1Amount / 0.02) * 0.0000075
+  const calculateGas = (usd1Amount: number) => {
+    const transactions = usd1Amount / 0.02;
+    const bnbNeeded = transactions * 0.0000075;
+    return bnbNeeded.toFixed(6); // Round to 6 decimals
+  };
+  
+  const estimatedGas = calculateGas(parseFloat(maxUsd1Amount) || 0.5);
 
   if (!isOpen) return null;
 
   const handleCreate = async () => {
     setError('');
     const amount = parseFloat(maxUsd1Amount);
-    const minutes = parseInt(durationMinutes);
 
     // Validation
     if (isNaN(amount) || amount <= 0) {
       setError('Please enter a valid spending limit');
       return;
     }
-
-    if (isNaN(minutes) || minutes <= 0) {
-      setError('Please enter a valid duration');
+    
+    if (amount > 10) {
+      setError('Maximum session limit is 10 USD1');
       return;
     }
 
@@ -60,7 +66,6 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
         body: JSON.stringify({
           userAddress: walletAddress,
           maxUsd1Amount: amount,
-          durationSeconds: minutes * 60,
         }),
       });
 
@@ -131,7 +136,7 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
       setFundingStep('complete');
       
       // Refresh session data
-      await createSession(amount, minutes * 60);
+      await createSession(amount, 0); // No duration - sessions don't expire
       
       setTimeout(() => {
         onSuccess();
@@ -201,16 +206,19 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-s402-light-card dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
-        <h2 className="text-2xl font-bold mb-2">Create Session</h2>
-        <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
-          One-time setup: transfer USD1 + BNB to session wallet
-        </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="bg-s402-light-card dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg max-w-md w-full shadow-2xl flex flex-col max-h-[90vh]">
+        <div className="p-8 pb-4">
+          <h2 className="text-2xl font-bold mb-2">Create Session</h2>
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-6">
+            One-time setup: transfer USD1 + BNB to session wallet
+          </p>
+        </div>
 
-        {renderStepIndicator()}
+        <div className="px-8 overflow-y-auto flex-1">
+          {renderStepIndicator()}
 
-        <div className="space-y-6">
+          <div className="space-y-6 pb-6">
           {/* Spending Limit */}
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -220,46 +228,14 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
               type="number"
               step="0.01"
               min="0"
+              max="10"
               value={maxUsd1Amount}
               onChange={(e) => setMaxUsd1Amount(e.target.value)}
               className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-s402-orange"
               placeholder="0.50"
             />
             <p className="text-xs text-gray-500 mt-1">
-              Maximum amount of USD1 this session can spend
-            </p>
-          </div>
-
-          {/* Duration */}
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Session Duration (minutes)
-            </label>
-            <div className="grid grid-cols-4 gap-2 mb-2">
-              {[15, 30, 60, 120].map((mins) => (
-                <button
-                  key={mins}
-                  onClick={() => setDurationMinutes(mins.toString())}
-                  className={`px-3 py-2 text-sm rounded-lg border transition-colors ${
-                    durationMinutes === mins.toString()
-                      ? 'bg-s402-orange text-white border-s402-orange'
-                      : 'bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:border-s402-orange'
-                  }`}
-                >
-                  {mins}m
-                </button>
-              ))}
-            </div>
-            <input
-              type="number"
-              min="1"
-              value={durationMinutes}
-              onChange={(e) => setDurationMinutes(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-s402-orange"
-              placeholder="60"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              How long the session will remain active
+              Maximum amount of USD1 this session can spend (max 10 USD1)
             </p>
           </div>
 
@@ -278,7 +254,7 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
               <span className="font-bold">${maxUsd1Amount} + {estimatedGas} BNB</span>
             </div>
             <p className="text-xs text-gray-500 pt-1">
-              💡 Unused USD1 and BNB refunded when session expires
+              💡 Unused USD1 and BNB refunded when you close session
             </p>
           </div>
 
@@ -292,7 +268,7 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
                   <li>• Zero signatures for every tool call</li>
                   <li>• Instant payments from session wallet</li>
                   <li>• Auto spending tracking & limits</li>
-                  <li>• Gas refund when session ends</li>
+                  <li>• Close session anytime to get refunds</li>
                 </ul>
               </div>
             </div>
@@ -304,8 +280,11 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
               {error}
             </div>
           )}
+          </div>
+        </div>
 
-          {/* Action Buttons */}
+        {/* Action Buttons - Fixed at bottom */}
+        <div className="p-8 pt-4 border-t border-gray-300 dark:border-gray-800">
           <div className="flex gap-3">
             <button
               onClick={onClose}

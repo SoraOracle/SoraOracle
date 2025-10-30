@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get active session with encrypted private key
+    // Get active session with encrypted private key (no expiry check - manual close only)
     const sessionResult = await db.query(
       `SELECT 
         id,
@@ -52,8 +52,7 @@ export async function POST(request: NextRequest) {
         spent_amount
       FROM s402_sessions
       WHERE user_address = $1 
-        AND is_active = true 
-        AND expires_at > NOW()
+        AND is_active = true
       LIMIT 1`,
       [userAddress.toLowerCase()]
     );
