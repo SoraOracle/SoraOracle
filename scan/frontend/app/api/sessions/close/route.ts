@@ -33,18 +33,18 @@ const S402_ABI = [
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userAddress } = await request.json();
-
     // Verify JWT and authenticate user
     const authHeader = request.headers.get('authorization');
     const authenticatedAddress = verifyJWT(authHeader);
     
-    if (!authenticatedAddress || !validateSessionAccess(authenticatedAddress, userAddress)) {
+    if (!authenticatedAddress) {
       return NextResponse.json(
         { error: 'Unauthorized: Invalid or missing token' },
         { status: 401 }
       );
     }
+
+    const userAddress = authenticatedAddress;
 
     // Get active session with encrypted private key
     const sessionResult = await db.query(
