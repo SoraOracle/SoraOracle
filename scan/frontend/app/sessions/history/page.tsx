@@ -31,6 +31,7 @@ export default function SessionHistoryPage() {
   const [toppingUp, setToppingUp] = useState<string | null>(null);
   const [topUpAmount, setTopUpAmount] = useState('0.001');
   const [activating, setActivating] = useState(false);
+  const [sendingBnb, setSendingBnb] = useState(false);
 
   useEffect(() => {
     // Wait for wallet provider to initialize
@@ -236,7 +237,7 @@ export default function SessionHistoryPage() {
       return;
     }
 
-    setToppingUp(sessionAddress);
+    setSendingBnb(true);
     setError('');
 
     try {
@@ -253,6 +254,7 @@ export default function SessionHistoryPage() {
       await tx.wait();
       alert(`Successfully added ${topUpAmount} BNB to session wallet!`);
       setTopUpAmount('0.001');
+      setToppingUp(null); // Close the form
       loadSessions(); // Refresh to show new balance
     } catch (err: any) {
       if (err.code === 4001 || err.code === 'ACTION_REJECTED') {
@@ -261,7 +263,7 @@ export default function SessionHistoryPage() {
         setError(err.message || 'Failed to top up gas');
       }
     } finally {
-      setToppingUp(null);
+      setSendingBnb(false);
     }
   };
 
@@ -470,10 +472,10 @@ export default function SessionHistoryPage() {
                           />
                           <button
                             onClick={() => handleTopUpGas(session.sessionAddress)}
-                            disabled={!!toppingUp}
-                            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm font-medium py-2 rounded transition-colors"
+                            disabled={sendingBnb}
+                            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white text-sm font-medium py-2 rounded transition-colors"
                           >
-                            Send BNB
+                            {sendingBnb ? 'Sending...' : 'Send BNB'}
                           </button>
                         </div>
                       )}
