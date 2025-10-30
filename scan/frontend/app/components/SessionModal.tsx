@@ -10,7 +10,7 @@ interface SessionModalProps {
   onSuccess: () => void;
 }
 
-type FundingStep = 'configure' | 'approving' | 'funding' | 'complete';
+type FundingStep = 'configure' | 'approving' | 'funding' | 'activating' | 'complete';
 
 export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModalProps) {
   const { createSession } = useSession();
@@ -21,7 +21,7 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
   const [error, setError] = useState('');
   const [fundingStep, setFundingStep] = useState<FundingStep>('configure');
   const [sessionAddress, setSessionAddress] = useState('');
-  const [estimatedGas] = useState('0.01'); // 0.01 BNB for ~20 transactions
+  const [estimatedGas] = useState('0.002'); // 0.002 BNB for ~10-20 transactions on BSC
 
   if (!isOpen) return null;
 
@@ -94,8 +94,6 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
       });
       const bnbReceipt = await gasTx.wait();
 
-      setFundingStep('complete');
-      
       // Record funding transaction hashes
       await fetch('/api/sessions/fund', {
         method: 'POST',
@@ -110,6 +108,27 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
           bnbTxHash: bnbReceipt?.hash || '',
         }),
       });
+
+      // Step 4: Activate session (pre-approve USD1 to S402Facilitator)
+      setFundingStep('activating');
+      const activateResponse = await fetch('/api/sessions/activate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userAddress: walletAddress,
+          sessionId: data.session.id,
+        }),
+      });
+
+      if (!activateResponse.ok) {
+        const activateError = await activateResponse.json();
+        throw new Error(activateError.error || 'Failed to activate session');
+      }
+
+      setFundingStep('complete');
       
       // Refresh session data
       await createSession(amount, minutes * 60);
@@ -144,7 +163,7 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
             <>
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
               <div className="text-sm">
-                <p className="font-medium text-blue-600 dark:text-blue-400">Step 1/2: Transferring USD1</p>
+                <p className="font-medium text-blue-600 dark:text-blue-400">Step 1/3: Transferring USD1</p>
                 <p className="text-gray-600 dark:text-gray-400">Sending ${maxUsd1Amount} USD1 to session wallet</p>
               </div>
             </>
@@ -153,8 +172,17 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
             <>
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
               <div className="text-sm">
-                <p className="font-medium text-blue-600 dark:text-blue-400">Step 2/2: Sending Gas BNB</p>
+                <p className="font-medium text-blue-600 dark:text-blue-400">Step 2/3: Sending Gas BNB</p>
                 <p className="text-gray-600 dark:text-gray-400">Funding session wallet with {estimatedGas} BNB for gas</p>
+              </div>
+            </>
+          )}
+          {fundingStep === 'activating' && (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+              <div className="text-sm">
+                <p className="font-medium text-blue-600 dark:text-blue-400">Step 3/3: Activating Session</p>
+                <p className="text-gray-600 dark:text-gray-400">Pre-approving USD1 for zero-signature payments</p>
               </div>
             </>
           )}
