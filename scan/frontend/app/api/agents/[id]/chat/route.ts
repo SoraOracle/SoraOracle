@@ -180,18 +180,27 @@ If no tools are needed, return: {"summary": "response", "tasks": []}`;
       })
     );
 
+    console.log('📡 Planner response:', JSON.stringify(plannerResponse, null, 2));
+
     const planText = plannerResponse.content.find((c: any) => c.type === 'text');
     let plan;
     
-    try {
-      const planContent = (planText as any).text.trim();
-      // Remove markdown code blocks if present
-      const jsonMatch = planContent.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) || planContent.match(/(\{[\s\S]*\})/);
-      plan = JSON.parse(jsonMatch ? jsonMatch[1] : planContent);
-    } catch (e) {
-      console.error('Failed to parse planner response:', e);
+    if (!planText) {
+      console.error('❌ No text content in planner response, full response:', plannerResponse);
       // Fallback to simple response
       plan = { summary: 'I can help with that.', tasks: [] };
+    } else {
+      try {
+        const planContent = (planText as any).text.trim();
+        console.log('📝 Raw plan content:', planContent);
+        // Remove markdown code blocks if present
+        const jsonMatch = planContent.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) || planContent.match(/(\{[\s\S]*\})/);
+        plan = JSON.parse(jsonMatch ? jsonMatch[1] : planContent);
+      } catch (e) {
+        console.error('Failed to parse planner response:', e);
+        // Fallback to simple response
+        plan = { summary: 'I can help with that.', tasks: [] };
+      }
     }
 
     console.log('📋 Plan:', JSON.stringify(plan, null, 2));
