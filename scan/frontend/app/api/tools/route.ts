@@ -4,7 +4,7 @@ import { db } from '@/lib/db';
 export async function GET() {
   try {
     const result = await db.query(`
-      SELECT id, name, description, category, icon, cost_usd
+      SELECT id, name, description, category, COALESCE(icon_url, icon) as icon, cost_usd
       FROM s402_tools
       WHERE is_active = true
       ORDER BY name ASC

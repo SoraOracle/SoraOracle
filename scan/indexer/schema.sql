@@ -127,11 +127,12 @@ CREATE TABLE IF NOT EXISTS s402_tools (
   description TEXT NOT NULL,
   category VARCHAR(50) NOT NULL,
   endpoint_url VARCHAR(500) NOT NULL,
-  http_method VARCHAR(10) DEFAULT 'GET',
+  http_method VARCHAR(10) DEFAULT 'POST',
   auth_headers JSONB DEFAULT '{}', -- {"Authorization": "Bearer xxx"}
   input_schema JSONB NOT NULL, -- JSON Schema for tool parameters
   cost_usd NUMERIC(10, 6) NOT NULL,
   provider_address VARCHAR(42) NOT NULL, -- Who receives the payment
+  icon_url VARCHAR(500), -- Emoji or image URL for tool icon
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()

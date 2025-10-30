@@ -157,7 +157,7 @@ export default function MarketplacePage() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="w-10 h-10 bg-s402-orange/10 rounded-full flex items-center justify-center text-xl">
-                  🛠️
+                  {tool.icon || '🛠️'}
                 </div>
                 <div className="text-right">
                   <div className="text-xs text-gray-500">Price</div>
