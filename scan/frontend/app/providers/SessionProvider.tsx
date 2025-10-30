@@ -28,42 +28,42 @@ interface SessionContextType {
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const { address, jwt } = useWallet();
+  const { walletAddress, token } = useWallet();
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   // Check for active session when wallet connects
   useEffect(() => {
-    if (address && jwt) {
+    if (walletAddress && token) {
       refreshSession();
     } else {
       setSession(null);
       setIsLoading(false);
     }
-  }, [address, jwt]);
+  }, [walletAddress, token]);
 
   // Auto-refresh session every 30 seconds
   useEffect(() => {
-    if (!address || !jwt) return;
+    if (!walletAddress || !token) return;
 
     const interval = setInterval(() => {
       refreshSession();
     }, 30000); // 30 seconds
 
     return () => clearInterval(interval);
-  }, [address, jwt]);
+  }, [walletAddress, token]);
 
   const refreshSession = async () => {
-    if (!address || !jwt) {
+    if (!walletAddress || !token) {
       setSession(null);
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch(`/api/sessions/active?userAddress=${address}`, {
+      const response = await fetch(`/api/sessions/active?userAddress=${walletAddress}`, {
         headers: {
-          'Authorization': `Bearer ${jwt}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
 
@@ -86,7 +86,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   };
 
   const createSession = async (maxUsd1Amount: number, durationSeconds: number) => {
-    if (!address || !jwt) {
+    if (!walletAddress || !token) {
       throw new Error('Wallet not connected');
     }
 
@@ -96,10 +96,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${jwt}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          userAddress: address,
+          userAddress: walletAddress,
           maxUsd1Amount,
           durationSeconds,
         }),
@@ -123,7 +123,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   };
 
   const deactivateSession = async () => {
-    if (!session || !address || !jwt) return;
+    if (!session || !walletAddress || !token) return;
 
     setIsLoading(true);
     try {
@@ -131,11 +131,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${jwt}`,
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           sessionId: session.id,
-          userAddress: address,
+          userAddress: walletAddress,
         }),
       });
 

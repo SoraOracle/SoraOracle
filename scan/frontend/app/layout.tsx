@@ -4,6 +4,7 @@ import { Press_Start_2P, Inter } from 'next/font/google';
 import Header from './components/Header';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { WalletProvider } from './providers/WalletProvider';
+import { SessionProvider } from './providers/SessionProvider';
 
 const pressStart = Press_Start_2P({ 
   weight: '400',
@@ -46,7 +47,8 @@ export default function RootLayout({
         <div className="flex flex-col min-h-screen">
           <ThemeProvider>
             <WalletProvider>
-              <Header />
+              <SessionProvider>
+                <Header />
             <div className="h-16"></div>
             <main className="container mx-auto px-4 py-8 flex-1">
               {children}
@@ -71,6 +73,7 @@ export default function RootLayout({
                 </div>
               </div>
             </footer>
+              </SessionProvider>
             </WalletProvider>
           </ThemeProvider>
         </div>

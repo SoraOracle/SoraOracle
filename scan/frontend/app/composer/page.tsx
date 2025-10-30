@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useWallet } from '../providers/WalletProvider';
+import { useSession } from '../providers/SessionProvider';
+import SessionModal from '../components/SessionModal';
+import SessionStatus from '../components/SessionStatus';
 
 interface AgentConfig {
   name: string;
@@ -28,6 +31,7 @@ interface Tool {
 export default function ComposerPage() {
   const router = useRouter();
   const { walletAddress, token, isLoading: walletLoading, setWalletAddress, setToken } = useWallet();
+  const { hasActiveSession, session } = useSession();
   const [config, setConfig] = useState<AgentConfig>({
     name: '',
     description: '',
@@ -45,10 +49,22 @@ export default function ComposerPage() {
   const [loadingTools, setLoadingTools] = useState(true);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [showSessionModal, setShowSessionModal] = useState(false);
 
   useEffect(() => {
     loadTools();
   }, []);
+
+  // Prompt for session creation when authenticated but no active session
+  useEffect(() => {
+    if (token && walletAddress && !hasActiveSession && !showSessionModal) {
+      // Give a slight delay for better UX
+      const timer = setTimeout(() => {
+        setShowSessionModal(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [token, walletAddress, hasActiveSession]);
 
   const loadTools = async () => {
     try {
@@ -232,6 +248,13 @@ export default function ComposerPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
+      {/* Session Modal */}
+      <SessionModal
+        isOpen={showSessionModal}
+        onClose={() => setShowSessionModal(false)}
+        onSuccess={() => setShowSessionModal(false)}
+      />
+
       {/* Header */}
       <div>
         <div className="flex items-center justify-between mb-2">
@@ -260,6 +283,32 @@ export default function ComposerPage() {
           Build autonomous agents that pay oracles with s402 micropayments
         </p>
       </div>
+
+      {/* Session Status */}
+      {hasActiveSession && <SessionStatus />}
+
+      {/* Session Warning */}
+      {!hasActiveSession && (
+        <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div className="flex-1">
+              <h3 className="font-medium text-orange-600 dark:text-orange-400 mb-1">
+                No Active Session
+              </h3>
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                Create a session to enable seamless API calls without repeated wallet signatures. Sessions have spending limits and auto-expire for security.
+              </p>
+              <button
+                onClick={() => setShowSessionModal(true)}
+                className="text-sm px-4 py-2 bg-s402-orange hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
+              >
+                Create Session
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Progress */}
       <div className="flex items-center gap-4 py-4 border-b border-gray-800">
