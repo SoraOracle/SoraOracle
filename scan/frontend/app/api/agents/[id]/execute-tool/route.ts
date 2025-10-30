@@ -230,8 +230,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Store current tool output as user message (tool_result)
     await pool.query(
-      'INSERT INTO s402_agent_chats (agent_id, session_id, role, tool_output) VALUES ($1, $2, $3, $4)',
-      [agentId, chat_session_id, 'user', JSON.stringify({ tool_use_id: tool_call_id, result: toolOutput })]
+      'INSERT INTO s402_agent_chats (agent_id, session_id, role, content, tool_output) VALUES ($1, $2, $3, $4, $5)',
+      [agentId, chat_session_id, 'user', '', JSON.stringify({ tool_use_id: tool_call_id, result: toolOutput })]
     );
 
     // Check if more tools are pending
