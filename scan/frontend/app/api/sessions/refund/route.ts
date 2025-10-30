@@ -150,28 +150,37 @@ export async function POST(request: NextRequest) {
     const bnbBalance = await provider.getBalance(session.session_address);
     
     if (bnbBalance > 0n) {
-      // BNB transfer uses exactly 21000 gas (standard transfer)
-      const gasLimit = 21000n;
+      // Check if recipient is a contract (might reject transfers)
+      const recipientCode = await provider.getCode(userAddress);
+      const isContract = recipientCode !== '0x';
       
-      // Get current gas price
-      const feeData = await provider.getFeeData();
-      const gasPrice = feeData.gasPrice || ethers.parseUnits('3', 'gwei'); // Default 3 gwei if null
-      
-      // Calculate gas cost with 20% buffer for safety
-      const gasCost = gasLimit * gasPrice * 120n / 100n;
-      
-      // Only refund if balance exceeds gas cost
-      if (bnbBalance > gasCost) {
-        const refundAmount = bnbBalance - gasCost;
-        const bnbTx = await sessionWallet.sendTransaction({
-          to: userAddress,
-          value: refundAmount,
-          gasLimit: gasLimit,
-          gasPrice: gasPrice
-        });
-        const receipt = await bnbTx.wait();
-        refundedBNB = ethers.formatUnits(refundAmount, 18);
-        bnbTxHash = receipt?.hash || null;
+      if (isContract) {
+        console.log('⚠️ Recipient is a smart contract wallet - skipping BNB refund to avoid revert');
+        // Leave BNB in session wallet, don't attempt transfer
+      } else {
+        // BNB transfer uses exactly 21000 gas (standard transfer)
+        const gasLimit = 21000n;
+        
+        // Get current gas price
+        const feeData = await provider.getFeeData();
+        const gasPrice = feeData.gasPrice || ethers.parseUnits('3', 'gwei'); // Default 3 gwei if null
+        
+        // Calculate gas cost with 20% buffer for safety
+        const gasCost = gasLimit * gasPrice * 120n / 100n;
+        
+        // Only refund if balance exceeds gas cost
+        if (bnbBalance > gasCost) {
+          const refundAmount = bnbBalance - gasCost;
+          const bnbTx = await sessionWallet.sendTransaction({
+            to: userAddress,
+            value: refundAmount,
+            gasLimit: gasLimit,
+            gasPrice: gasPrice
+          });
+          const receipt = await bnbTx.wait();
+          refundedBNB = ethers.formatUnits(refundAmount, 18);
+          bnbTxHash = receipt?.hash || null;
+        }
       }
     }
 
