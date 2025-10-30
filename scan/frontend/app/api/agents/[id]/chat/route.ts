@@ -122,35 +122,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       input_schema: tool.input_schema,
     }));
 
-    const systemPrompt = `You are "${agent.name}" - ${agent.description}
-
-Available Tools (paid via S402 micropayments):
-${tools.map(t => `- ${t.name}: ${t.description}`).join('\n')}
-
-**How to Use Tools:**
-- You can call MULTIPLE tools in a SINGLE response to handle complex requests
-- Each tool requires automatic payment (already handled)
-- Present results conversationally and naturally
-
-**Formatting Guidelines:**
-
-Images & Media:
-- Automatically embed images with markdown: ![title](url)
-- Use hdurl for high-res, fallback to url
-- Add engaging captions
-
-Text Presentation:
-- Write like a helpful AI assistant, not a robot
-- Use **bold** for emphasis and titles
-- Format long text into clean, readable paragraphs
-- Use lists when showing multiple items
-
-Example (NASA APOD):
-✅ GOOD: "Here's today's Astronomy Picture! [embed image] The Witch's Broom Nebula is a stunning supernova remnant..."
-❌ BAD: "Tool executed successfully! Result: {success: true, data: {...}}"
-
-**Be conversational, helpful, and make data easy to understand. If a user asks for multiple things, handle them all at once using multiple tools.**`;
-
     // Retry helper with exponential backoff for transient errors
     const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3) => {
       const delays = [1000, 2000, 4000]; // 1s, 2s, 4s
@@ -178,82 +149,102 @@ Example (NASA APOD):
       throw lastError;
     };
 
-    const response = await retryWithBackoff(() =>
+    // === PHASE 1: PLANNER ===
+    // Claude analyzes the request and returns a structured plan
+    const plannerPrompt = `You are a task planner for "${agent.name}".
+
+Available Tools:
+${tools.map(t => `- ${t.name}: ${t.description}`).join('\n')}
+
+Analyze the user's request and create a plan. Return ONLY valid JSON (no markdown, no explanation):
+
+{
+  "summary": "brief description of what you'll do",
+  "tasks": [
+    {
+      "tool_id": "tool_name",
+      "input": {...},
+      "reason": "why this tool is needed"
+    }
+  ]
+}
+
+If no tools are needed, return: {"summary": "response", "tasks": []}`;
+
+    const plannerResponse = await retryWithBackoff(() =>
       anthropic.messages.create({
         model: DEFAULT_MODEL_STR,
-        max_tokens: 2048,
-        system: systemPrompt,
+        max_tokens: 1024,
+        system: plannerPrompt,
         messages: conversationHistory as any,
-        tools: tools as any,
       })
     );
 
-    // Check for tool_use in ANY content block (Claude can return text + tool_use)
-    const toolUseBlock = response.content.find((c: any) => c.type === 'tool_use');
-    const textContent = response.content.find((c: any) => c.type === 'text');
-    const textReply = textContent ? (textContent as any).text : '';
+    const planText = plannerResponse.content.find((c: any) => c.type === 'text');
+    let plan;
+    
+    try {
+      const planContent = (planText as any).text.trim();
+      // Remove markdown code blocks if present
+      const jsonMatch = planContent.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/) || planContent.match(/(\{[\s\S]*\})/);
+      plan = JSON.parse(jsonMatch ? jsonMatch[1] : planContent);
+    } catch (e) {
+      console.error('Failed to parse planner response:', e);
+      // Fallback to simple response
+      plan = { summary: 'I can help with that.', tasks: [] };
+    }
 
-    if (toolUseBlock) {
-      const toolCall = toolUseBlock as any;
+    console.log('📋 Plan:', JSON.stringify(plan, null, 2));
 
-      const toolResult = await pool.query(
-        'SELECT * FROM s402_tools WHERE id = $1',
-        [toolCall.name]
-      );
-
-      if (toolResult.rows.length === 0) {
-        return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
-      }
-
-      const tool = toolResult.rows[0];
-
-      // Store the text reply if present, then store the tool call
-      if (textReply) {
-        await pool.query(
-          'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
-          [agentId, session_id, 'assistant', textReply]
-        );
-      }
-
+    // If no tools needed, return simple text response
+    if (!plan.tasks || plan.tasks.length === 0) {
       await pool.query(
-        'INSERT INTO s402_agent_chats (agent_id, session_id, role, content, tool_calls) VALUES ($1, $2, $3, $4, $5)',
-        [agentId, session_id, 'assistant', '', JSON.stringify([toolCall])]
+        'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
+        [agentId, session_id, 'assistant', plan.summary || 'How can I help you?']
       );
-
+      
       return NextResponse.json({
-        type: 'payment_required',
-        assistant_message: textReply || null,
-        tool: {
-          id: tool.id,
-          name: tool.name,
-          cost_usd: parseFloat(tool.cost_usd),
-          provider_address: tool.provider_address || '0x0000000000000000000000000000000000000000',
-          input: toolCall.input,
-        },
-        tool_call_id: toolCall.id,
+        type: 'text',
+        content: plan.summary || 'How can I help you?'
       });
     }
 
-    const reply = textReply || 'I apologize, but I could not generate a response.';
+    // === PHASE 2: EXECUTION ===
+    // Return all tools that need payment
+    const toolsToExecute = [];
+    
+    for (const task of plan.tasks) {
+      const toolResult = await pool.query(
+        'SELECT * FROM s402_tools WHERE id = $1',
+        [task.tool_id]
+      );
 
+      if (toolResult.rows.length === 0) {
+        console.error(`Tool not found: ${task.tool_id}`);
+        continue;
+      }
+
+      const tool = toolResult.rows[0];
+      toolsToExecute.push({
+        id: tool.id,
+        name: tool.name,
+        cost_usd: parseFloat(tool.cost_usd),
+        provider_address: tool.provider_address || '0x0000000000000000000000000000000000000000',
+        input: task.input,
+      });
+    }
+
+    // Store the plan
     await pool.query(
       'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
-      [agentId, session_id, 'assistant', reply]
+      [agentId, session_id, 'assistant', JSON.stringify({ type: 'plan', plan })]
     );
 
-    // Update session timestamp
-    await pool.query(
-      'UPDATE s402_chat_sessions SET updated_at = NOW() WHERE id = $1',
-      [session_id]
-    );
-
-    // Note: query_count is incremented in execute-tool route when tool is actually used
-    await pool.query(
-      'UPDATE s402_agents SET last_active_at = NOW() WHERE id = $1',
-      [agentId]
-    );
-
-    return NextResponse.json({ type: 'message', content: reply });
+    return NextResponse.json({
+      type: 'multi_tool_payment_required',
+      summary: plan.summary,
+      tools: toolsToExecute
+    });
   } catch (error) {
     console.error('Chat error:', error);
     return NextResponse.json({ error: 'Failed to process message' }, { status: 500 });
