@@ -157,17 +157,21 @@ export async function POST(request: NextRequest) {
       const feeData = await provider.getFeeData();
       const gasPrice = feeData.gasPrice || ethers.parseUnits('3', 'gwei'); // Default 3 gwei if null
       
-      // Calculate gas cost with 20% buffer for safety
-      const gasCost = gasLimit * gasPrice * 120n / 100n;
+      // Calculate exact gas cost for this transaction
+      const exactGasCost = gasLimit * gasPrice;
       
-      // Only refund if balance exceeds gas cost
-      if (bnbBalance > gasCost) {
-        const refundAmount = bnbBalance - gasCost;
+      // Add 50% buffer for safety (gas price fluctuations)
+      const gasCostWithBuffer = exactGasCost * 150n / 100n;
+      
+      // Only refund if balance exceeds buffered gas cost
+      if (bnbBalance > gasCostWithBuffer) {
+        // Send everything except the gas cost (no buffer on the send amount)
+        const refundAmount = bnbBalance - exactGasCost;
+        
         const bnbTx = await sessionWallet.sendTransaction({
           to: session.user_address,
           value: refundAmount,
           gasLimit: gasLimit,
-          gasPrice: gasPrice
         });
         const receipt = await bnbTx.wait();
         refundedBNB = ethers.formatUnits(refundAmount, 18);
