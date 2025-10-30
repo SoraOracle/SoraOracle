@@ -263,11 +263,10 @@ export async function POST(request: NextRequest) {
       END $$;
     `);
 
-    // Step 4: Delete private key and mark session as closed
+    // Step 4: Mark session as closed (keep private key - empty wallet = no security risk)
     await db.query(
       `UPDATE s402_sessions 
        SET is_active = false,
-           session_private_key = NULL,
            refund_usd1_tx_hash = $1,
            refund_bnb_tx_hash = $2,
            refunded_usd1_amount = $3,
@@ -278,18 +277,18 @@ export async function POST(request: NextRequest) {
     );
 
     // Create message based on what was refunded
-    let message = 'Session closed successfully.';
+    let message = 'Session closed successfully. Private key retained for records.';
     if (parseFloat(refundedUSD1) > 0 && parseFloat(refundedBNB) > 0) {
-      message = `Session closed. Refunded ${refundedUSD1} USD1 and ${refundedBNB} BNB.`;
+      message = `Session closed. Refunded ${refundedUSD1} USD1 and ${refundedBNB} BNB. Private key retained.`;
     } else if (parseFloat(refundedUSD1) > 0) {
-      message = `Session closed. Refunded ${refundedUSD1} USD1.`;
+      message = `Session closed. Refunded ${refundedUSD1} USD1. Private key retained.`;
       if (finalBnbBalance > 0n) {
         message += ` (${ethers.formatUnits(finalBnbBalance, 18)} BNB remains as gas dust)`;
       }
     } else if (parseFloat(refundedBNB) > 0) {
-      message = `Session closed. Refunded ${refundedBNB} BNB.`;
+      message = `Session closed. Refunded ${refundedBNB} BNB. Private key retained.`;
     } else if (finalBnbBalance > 0n) {
-      message = `Session closed. (${ethers.formatUnits(finalBnbBalance, 18)} BNB remains as gas dust)`;
+      message = `Session closed. ${ethers.formatUnits(finalBnbBalance, 18)} BNB remains as gas dust. Private key retained.`;
     }
 
     return NextResponse.json({
