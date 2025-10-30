@@ -1,3 +1,4 @@
 {
-  "/api/sessions/active/route": "app/api/sessions/active/route.js"
+  "/api/sessions/active/route": "app/api/sessions/active/route.js",
+  "/api/sessions/cleanup/route": "app/api/sessions/cleanup/route.js"
 }

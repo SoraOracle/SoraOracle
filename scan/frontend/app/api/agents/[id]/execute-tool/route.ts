@@ -276,8 +276,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       [agentId, session_id, 'assistant', reply]
     );
 
+    // Update agent stats: increment query count and total spent
     await pool.query(
-      'UPDATE s402_agents SET total_spent_usd = total_spent_usd + $1 WHERE id = $2',
+      'UPDATE s402_agents SET total_spent_usd = total_spent_usd + $1, query_count = query_count + 1, last_active_at = NOW() WHERE id = $2',
       [parseFloat(tool.cost_usd), agentId]
     );
 

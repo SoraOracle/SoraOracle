@@ -151,8 +151,9 @@ Focus on providing valuable insights using s402 oracle data. Be concise and help
       [session_id]
     );
 
+    // Note: query_count is incremented in execute-tool route when tool is actually used
     await pool.query(
-      'UPDATE s402_agents SET query_count = query_count + 1, last_active_at = NOW() WHERE id = $1',
+      'UPDATE s402_agents SET last_active_at = NOW() WHERE id = $1',
       [agentId]
     );
 

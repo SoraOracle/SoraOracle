@@ -4,6 +4,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/sessions/active/route.js"
+    ],
+    "/api/sessions/cleanup/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/sessions/cleanup/route.js"
     ]
   }
 }
