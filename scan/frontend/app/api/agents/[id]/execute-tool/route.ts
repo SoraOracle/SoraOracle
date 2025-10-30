@@ -309,11 +309,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       
       // Build fallback response with tool output details
       if (toolOutput && typeof toolOutput === 'object' && 'images' in toolOutput && toolOutput.images) {
-        const imageUrls = Array.isArray(toolOutput.images) ? toolOutput.images : [toolOutput.images];
-        const imageLinks = imageUrls.map((url: string) => `![Generated Image](${url})`).join('\n\n');
-        reply = `✅ Your image has been generated successfully!\n\n${imageLinks}\n\n_Note: Claude is temporarily experiencing high load and couldn't provide a detailed response. Your image is ready above._`;
+        // Images will be rendered from tool_output, no need for markdown links
+        reply = `✅ Your image has been generated successfully!`;
       } else if (toolOutput) {
-        reply = `✅ Tool executed successfully!\n\nResult: ${JSON.stringify(toolOutput, null, 2)}\n\n_Note: Claude is temporarily experiencing high load and couldn't provide a detailed response._`;
+        reply = `✅ Tool executed successfully!\n\nResult: ${JSON.stringify(toolOutput, null, 2)}`;
       } else {
         reply = `⚠️ The tool was executed successfully, but I'm temporarily experiencing high load and can't provide a detailed response right now. Please try again in a moment.`;
       }
