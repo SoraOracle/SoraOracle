@@ -202,11 +202,10 @@ export async function POST(request: NextRequest) {
       END $$;
     `);
 
-    // Mark session as refunded, delete private key, and record refund details
+    // Mark session as refunded and record refund details (tx hashes + amounts)
     await db.query(
       `UPDATE s402_sessions 
        SET is_active = false,
-           session_private_key = NULL,
            refund_usd1_tx_hash = $1,
            refund_bnb_tx_hash = $2,
            refunded_usd1_amount = $3,
