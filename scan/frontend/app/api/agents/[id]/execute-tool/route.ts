@@ -140,47 +140,72 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     );
 
     const historyResult = await pool.query(
-      'SELECT role, content, tool_calls FROM s402_agent_chats WHERE agent_id = $1 AND session_id = $2 ORDER BY created_at ASC LIMIT 20',
+      'SELECT role, content, tool_calls, tool_output FROM s402_agent_chats WHERE agent_id = $1 AND session_id = $2 ORDER BY created_at ASC LIMIT 50',
       [agentId, chat_session_id]
     );
 
-    // Build conversation history, excluding orphaned tool_use blocks
+    // Build conversation history with ALL tool results
     const conversationHistory: any[] = [];
+    const rows = historyResult.rows;
     
-    for (let i = 0; i < historyResult.rows.length; i++) {
-      const row = historyResult.rows[i];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
       
-      if (row.role === 'user' && row.content) {
+      // User text messages
+      if (row.role === 'user' && row.content && !row.tool_output) {
         conversationHistory.push({
           role: 'user',
           content: row.content,
         });
-      } else if (row.role === 'assistant') {
+      }
+      
+      // Assistant messages
+      else if (row.role === 'assistant') {
+        // Tool use blocks
         if (row.tool_calls) {
-          // JSONB columns are already parsed objects
-          const toolCallsArray = Array.isArray(row.tool_calls) ? row.tool_calls : [row.tool_calls];
-          const toolCall = toolCallsArray[0];
+          // Parse tool_calls if it's a string
+          const toolCalls = typeof row.tool_calls === 'string' 
+            ? JSON.parse(row.tool_calls) 
+            : row.tool_calls;
+          const toolCallsArray = Array.isArray(toolCalls) ? toolCalls : [toolCalls];
           
-          if (toolCall.id === tool_call_id) {
-            // This is the tool call we're providing a result for
-            conversationHistory.push({
-              role: 'assistant',
-              content: toolCallsArray,
-            });
-          }
-          // Skip other orphaned tool calls
-        } else if (row.content) {
-          // Regular assistant text response
+          conversationHistory.push({
+            role: 'assistant',
+            content: toolCallsArray.map((tc: any) => ({
+              type: 'tool_use',
+              id: tc.id,
+              name: tc.name,
+              input: tc.input
+            }))
+          });
+        }
+        // Regular text responses
+        else if (row.content) {
           conversationHistory.push({
             role: 'assistant',
             content: row.content,
           });
         }
       }
+      
+      // Tool result blocks (user role with tool_output)
+      else if (row.role === 'user' && row.tool_output) {
+        const toolOutputData = typeof row.tool_output === 'string' 
+          ? JSON.parse(row.tool_output) 
+          : row.tool_output;
+        
+        conversationHistory.push({
+          role: 'user',
+          content: [{
+            type: 'tool_result',
+            tool_use_id: toolOutputData.tool_use_id,
+            content: JSON.stringify(toolOutputData.result)
+          }]
+        });
+      }
     }
 
-    // Add the tool result as a user message
-    // This pairs with the last assistant tool_use message
+    // Add current tool result
     conversationHistory.push({
       role: 'user',
       content: [
@@ -193,7 +218,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     });
     
     console.log('📋 Conversation history length:', conversationHistory.length);
-    console.log('📋 Last 2 messages:', JSON.stringify(conversationHistory.slice(-2), null, 2));
+    console.log('📋 Tool use count:', conversationHistory.filter(m => m.role === 'assistant' && Array.isArray(m.content) && m.content[0]?.type === 'tool_use').length);
+    console.log('📋 Tool result count:', conversationHistory.filter(m => m.role === 'user' && Array.isArray(m.content) && m.content[0]?.type === 'tool_result').length);
+    console.log('📋 Full history:', JSON.stringify(conversationHistory, null, 2));
 
     // === CRITICAL: Check for multi-tool plan BEFORE calling Claude ===
     const sessionMetaResult = await pool.query(
