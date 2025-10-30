@@ -204,7 +204,7 @@ If no tools are needed, return: {"summary": "response", "tasks": []}`;
       );
       
       return NextResponse.json({
-        type: 'text',
+        type: 'message',
         content: plan.summary || 'How can I help you?'
       });
     }
