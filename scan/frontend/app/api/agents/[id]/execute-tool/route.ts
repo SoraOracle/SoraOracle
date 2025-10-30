@@ -166,16 +166,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         // Get session wallet address for JWT authentication
+        console.log('🔍 Looking up session:', session_id);
         const sessionResult = await pool.query(
           'SELECT session_address FROM s402_sessions WHERE id = $1',
           [session_id]
         );
 
+        console.log('🔍 Session query result:', sessionResult.rows.length, 'rows');
         if (sessionResult.rows.length === 0) {
-          throw new Error('Session not found');
+          // Try to find any active session for debugging
+          const debugResult = await pool.query(
+            'SELECT id, session_address, user_address FROM s402_sessions WHERE is_active = true LIMIT 5'
+          );
+          console.log('🔍 Active sessions in DB:', debugResult.rows);
+          throw new Error(`Session not found: ${session_id}`);
         }
 
         const sessionAddress = sessionResult.rows[0].session_address;
+        console.log('✅ Session address:', sessionAddress);
 
         // Generate JWT token for proxy authentication
         const jwtToken = jwt.sign(

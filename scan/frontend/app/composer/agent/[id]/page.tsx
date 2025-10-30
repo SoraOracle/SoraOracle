@@ -43,7 +43,7 @@ interface Tool {
 export default function AgentDashboard({ params }: { params: Promise<{ id: string }> }) {
   const { id: agentId } = use(params);
   const { walletAddress, token } = useWallet();
-  const { hasActiveSession } = useSession();
+  const { hasActiveSession, session: paymentSession } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -437,7 +437,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           tx_hash: txHash,
           input: request.tool.input,
           payer_address: payer,
-          session_id: currentSessionId,
+          session_id: paymentSession?.id, // Use payment session ID, not chat session ID
         }),
       });
 
