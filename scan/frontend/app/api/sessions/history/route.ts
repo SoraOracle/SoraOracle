@@ -76,9 +76,10 @@ export async function GET(request: NextRequest) {
           currentUsd1Balance: currentUsd1,
           currentBnbBalance: currentBnb,
           // Only allow refund if balance exceeds gas costs
-          // BSC gas: ~21,000 * 3 gwei = 0.000063 BNB (~$0.013)
-          // Set threshold at 0.0001 BNB and 0.01 USD1 to ensure refund > gas cost
-          canRefund: currentUsd1 >= 0.01 || currentBnb >= 0.0001,
+          // BSC gas: BNB transfer = 21,000 * 0.05 Gwei = 0.00000105 BNB
+          // S402 refund = ~100,000 * 0.05 Gwei = 0.000005 BNB
+          // Set safe thresholds with 3x buffer: 0.000015 BNB, 0.01 USD1
+          canRefund: currentUsd1 >= 0.01 || currentBnb >= 0.000015,
         };
       })
     );
