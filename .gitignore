@@ -33,6 +33,15 @@ attached_assets/
 *.tmp
 .git.backup*
 
+# Cleanup scripts
+clean-commits.sh
+cleanup-git-history.sh
+
+# Git cleanup artifacts
+.git-rewrite/
+.git/refs/original/
+backup-*/
+
 # Replit-specific files and metadata
 .replit
 .replit.*
@@ -68,3 +77,8 @@ coverage/
 
 # Flattened contracts
 *-flattened.sol
+
+# Irrelevant markdown files
+*.md
+!replit.md
+!README.md
