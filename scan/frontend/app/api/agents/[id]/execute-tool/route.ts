@@ -218,8 +218,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     });
     
     // Clean up orphaned blocks (Claude requires matching tool_use/tool_result pairs)
-    // First pass: collect valid tool_use IDs (those with matching tool_results)
+    // CRITICAL: Always preserve the current tool execution
     const validToolUseIds = new Set<string>();
+    validToolUseIds.add(tool_call_id); // Current tool is always valid
+    
+    // First pass: collect valid tool_use IDs (those with matching tool_results)
     for (let i = 0; i < conversationHistory.length; i++) {
       const msg = conversationHistory[i];
       if (msg.role === 'assistant' && Array.isArray(msg.content)) {
