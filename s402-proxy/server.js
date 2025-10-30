@@ -27,7 +27,7 @@ const S402_FACILITATOR = '0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3';
 
 // S402 Facilitator ABI (PaymentSettled event only)
 const S402_ABI = [
-  'event PaymentSettled(address indexed from, address indexed to, uint256 value, bytes32 nonce, uint256 timestamp)'
+  'event PaymentSettled(address indexed from, address indexed to, uint256 value, uint256 platformFee, bytes32 nonce)'
 ];
 
 app.use(cors());
