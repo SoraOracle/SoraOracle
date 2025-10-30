@@ -191,7 +191,8 @@ ON CONFLICT (address) DO NOTHING;
 -- SESSION KEYS (Temporary spending authorization)
 -- ============================================
 
--- Sessions table: Time-limited spending sessions with ephemeral keys
+-- Sessions table: Manual spending sessions with ephemeral keys
+-- Sessions persist until manually closed by user (no automatic expiry)
 CREATE TABLE IF NOT EXISTS s402_sessions (
   id VARCHAR(66) PRIMARY KEY,
   user_address VARCHAR(42) NOT NULL,
@@ -199,8 +200,8 @@ CREATE TABLE IF NOT EXISTS s402_sessions (
   session_private_key TEXT NOT NULL, -- Encrypted private key (AES-256)
   max_usd1_amount NUMERIC(20, 6) NOT NULL, -- Spending limit in USD1
   spent_amount NUMERIC(20, 6) DEFAULT 0, -- Amount spent so far
-  duration_seconds INT NOT NULL, -- Session duration
-  expires_at TIMESTAMP NOT NULL,
+  duration_seconds INT, -- Legacy field, nullable (sessions don't expire)
+  expires_at TIMESTAMP, -- Legacy field, nullable (sessions don't expire)
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW(),
   last_used_at TIMESTAMP DEFAULT NOW()
