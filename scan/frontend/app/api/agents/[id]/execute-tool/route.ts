@@ -165,6 +165,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       try {
         let url = tool.endpoint_url;
         
+        console.log('🔍 Tool endpoint URL:', url);
+        
         if (!url || url === 'your_replit_url' || url.includes('placeholder')) {
           throw new Error('Tool endpoint URL not configured');
         }
@@ -202,18 +204,26 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           tx_hash,
         };
 
+        console.log('🌐 Calling proxy:', url);
+        console.log('📦 Request body:', JSON.stringify(requestBody, null, 2));
+
         if (tool.http_method === 'GET') {
           const params = new URLSearchParams(input);
           url = `${url}?${params.toString()}`;
           const response = await fetch(url, { headers });
-          toolOutput = await response.json();
+          const responseText = await response.text();
+          console.log('📥 Proxy response:', responseText);
+          toolOutput = JSON.parse(responseText);
         } else {
           const response = await fetch(url, {
             method: 'POST',
             headers,
             body: JSON.stringify(requestBody),
           });
-          toolOutput = await response.json();
+          const responseText = await response.text();
+          console.log('📥 Proxy response status:', response.status);
+          console.log('📥 Proxy response:', responseText);
+          toolOutput = JSON.parse(responseText);
         }
       } catch (error) {
         console.error('❌ Tool execution error:', error);
