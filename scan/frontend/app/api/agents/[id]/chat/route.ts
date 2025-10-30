@@ -60,7 +60,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       
       // If this message has tool_calls, reconstruct the proper Anthropic format
       if (row.tool_calls) {
-        const toolCalls = JSON.parse(row.tool_calls);
+        // JSONB columns are already parsed objects, no need for JSON.parse
+        const toolCalls = row.tool_calls;
         return {
           role,
           content: toolCalls, // Tool calls should be the content array
