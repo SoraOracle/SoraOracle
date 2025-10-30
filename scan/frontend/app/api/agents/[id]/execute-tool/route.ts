@@ -242,11 +242,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       const { plan, tools_completed = 0, total_tools = 0 } = metadata;
       
       console.log(`🎯 Plan check: ${tools_completed} of ${total_tools} tools completed`);
+      console.log(`🎯 Condition check: plan exists? ${!!plan}, ${tools_completed} < ${total_tools - 1}? ${tools_completed < total_tools - 1}`);
       
       if (plan && tools_completed < total_tools - 1) {
+        console.log('✅ Entering next tool block!');
         // More tools to execute - return next tool WITHOUT calling Claude
         const nextTaskIndex = tools_completed + 1;
         const nextTask = plan.tasks[nextTaskIndex];
+        console.log(`🔧 Next task (${nextTaskIndex}):`, JSON.stringify(nextTask, null, 2));
         
         // Update metadata
         await pool.query(
