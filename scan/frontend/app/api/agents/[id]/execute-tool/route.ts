@@ -167,7 +167,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
         // Get session wallet address for JWT authentication
         const sessionResult = await pool.query(
-          'SELECT wallet_address FROM s402_sessions WHERE id = $1',
+          'SELECT session_address FROM s402_sessions WHERE id = $1',
           [session_id]
         );
 
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           throw new Error('Session not found');
         }
 
-        const sessionAddress = sessionResult.rows[0].wallet_address;
+        const sessionAddress = sessionResult.rows[0].session_address;
 
         // Generate JWT token for proxy authentication
         const jwtToken = jwt.sign(
