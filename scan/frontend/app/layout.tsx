@@ -20,6 +20,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'S402 Scan - Oracle Ecosystem Explorer for BNB Chain',
   description: 'Analytics dashboard for s402 oracle payments on BNB Smart Chain',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
