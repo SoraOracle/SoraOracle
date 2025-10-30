@@ -51,29 +51,26 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     );
 
     const historyResult = await pool.query(
-      'SELECT role, content, tool_calls FROM s402_agent_chats WHERE agent_id = $1 AND session_id = $2 ORDER BY created_at ASC LIMIT 20',
+      'SELECT role, content, tool_calls, tool_output FROM s402_agent_chats WHERE agent_id = $1 AND session_id = $2 ORDER BY created_at ASC LIMIT 20',
       [agentId, session_id]
     );
 
-    const conversationHistory = historyResult.rows.map(row => {
+    // Build conversation history, excluding orphaned tool_use blocks
+    const conversationHistory: any[] = [];
+    
+    for (let i = 0; i < historyResult.rows.length; i++) {
+      const row = historyResult.rows[i];
       const role = row.role === 'user' ? 'user' : 'assistant';
       
-      // If this message has tool_calls, reconstruct the proper Anthropic format
-      if (row.tool_calls) {
-        // JSONB columns are already parsed objects, no need for JSON.parse
-        const toolCalls = row.tool_calls;
-        return {
+      // Skip messages with tool_calls (tool_use blocks) - these were already processed
+      // Only include regular text messages
+      if (!row.tool_calls && row.content) {
+        conversationHistory.push({
           role,
-          content: toolCalls, // Tool calls should be the content array
-        };
+          content: row.content,
+        });
       }
-      
-      // Regular text message
-      return {
-        role,
-        content: row.content,
-      };
-    });
+    }
 
     const toolsResult = await pool.query(
       'SELECT id, name, description, input_schema, cost_usd FROM s402_tools WHERE is_active = true'
