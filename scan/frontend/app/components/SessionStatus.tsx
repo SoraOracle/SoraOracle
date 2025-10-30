@@ -62,9 +62,17 @@ export default function SessionStatus() {
         </div>
 
         {/* Info */}
-        <p className="text-xs text-gray-500">
-          💡 Close session anytime to withdraw unused USD1 and BNB
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-gray-500">
+            💡 Close session anytime to withdraw unused USD1 and BNB
+          </p>
+          <a
+            href="/sessions/history"
+            className="text-xs text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors"
+          >
+            View History →
+          </a>
+        </div>
 
         {/* Warning for low balance */}
         {isLowBalance && (

@@ -1,0 +1,195 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useWallet } from '@/app/providers/WalletProvider';
+import { useRouter } from 'next/navigation';
+
+interface HistoricalSession {
+  id: string;
+  sessionAddress: string;
+  maxUsd1Amount: number;
+  spentAmount: number;
+  createdAt: string;
+  refundedAt: string | null;
+  refundedUsd1Amount: number | null;
+  refundedBnbAmount: number | null;
+  currentUsd1Balance: number;
+  currentBnbBalance: number;
+  canRefund: boolean;
+}
+
+export default function SessionHistoryPage() {
+  const { walletAddress, token } = useWallet();
+  const router = useRouter();
+  const [sessions, setSessions] = useState<HistoricalSession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refunding, setRefunding] = useState<string | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!walletAddress || !token) {
+      router.push('/');
+      return;
+    }
+    loadSessions();
+  }, [walletAddress, token]);
+
+  const loadSessions = async () => {
+    if (!walletAddress || !token) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/sessions/history?userAddress=${walletAddress}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) throw new Error('Failed to load session history');
+
+      const data = await response.json();
+      setSessions(data.sessions || []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefund = async (sessionId: string) => {
+    if (!walletAddress || !token) return;
+
+    setRefunding(sessionId);
+    setError('');
+
+    try {
+      const response = await fetch('/api/sessions/refund', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userAddress: walletAddress,
+          sessionId,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Refund failed');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        loadSessions();
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setRefunding(null);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center">Loading session history...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-black text-white p-8">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Session History</h1>
+          <p className="text-gray-400">
+            View and refund your previous sessions
+          </p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded text-red-400">
+            {error}
+          </div>
+        )}
+
+        {sessions.length === 0 ? (
+          <div className="text-center text-gray-400 py-12">
+            No previous sessions found
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {sessions.map((session) => (
+              <div
+                key={session.id}
+                className="bg-zinc-900 border border-zinc-800 rounded-lg p-6"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="text-sm text-gray-400 mb-1">Session ID</div>
+                    <div className="font-mono text-sm text-gray-300">
+                      {session.id.slice(0, 20)}...
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm text-gray-400 mb-1">Created</div>
+                    <div className="text-sm">
+                      {new Date(session.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                  <div>
+                    <div className="text-sm text-gray-400 mb-1">Initial Limit</div>
+                    <div className="font-semibold">{session.maxUsd1Amount.toFixed(2)} USD1</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400 mb-1">Spent</div>
+                    <div className="font-semibold">{session.spentAmount.toFixed(2)} USD1</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400 mb-1">Remaining USD1</div>
+                    <div className="font-semibold text-orange-500">
+                      {session.currentUsd1Balance.toFixed(4)} USD1
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-400 mb-1">Remaining BNB</div>
+                    <div className="font-semibold text-orange-500">
+                      {session.currentBnbBalance.toFixed(6)} BNB
+                    </div>
+                  </div>
+                </div>
+
+                {session.refundedAt && (
+                  <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded">
+                    <div className="text-sm text-green-400">
+                      Refunded {session.refundedUsd1Amount?.toFixed(4) || 0} USD1 + {session.refundedBnbAmount?.toFixed(6) || 0} BNB
+                      on {new Date(session.refundedAt).toLocaleString()}
+                    </div>
+                  </div>
+                )}
+
+                {session.canRefund && (
+                  <button
+                    onClick={() => handleRefund(session.id)}
+                    disabled={refunding === session.id}
+                    className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded transition-colors"
+                  >
+                    {refunding === session.id ? 'Refunding...' : 'Refund Remaining Balance'}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

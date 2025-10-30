@@ -204,7 +204,14 @@ CREATE TABLE IF NOT EXISTS s402_sessions (
   expires_at TIMESTAMP, -- Legacy field, nullable (sessions don't expire)
   is_active BOOLEAN DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT NOW(),
-  last_used_at TIMESTAMP DEFAULT NOW()
+  last_used_at TIMESTAMP DEFAULT NOW(),
+  usd1_tx_hash VARCHAR(66), -- Funding USD1 transaction
+  bnb_tx_hash VARCHAR(66), -- Funding BNB transaction
+  refund_usd1_tx_hash VARCHAR(66), -- Refund USD1 transaction
+  refund_bnb_tx_hash VARCHAR(66), -- Refund BNB transaction
+  refunded_usd1_amount NUMERIC(20, 8), -- USD1 amount refunded
+  refunded_bnb_amount NUMERIC(20, 8), -- BNB amount refunded
+  refunded_at TIMESTAMP -- When refund was processed
 );
 
 -- Indexes for s402_sessions table

@@ -17,9 +17,14 @@ function decryptPrivateKey(encryptedKey: string): string {
 }
 
 const USD1_ADDRESS = '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d';
+const S402_FACILITATOR_ADDRESS = '0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3';
+
 const USD1_ABI = [
   'function balanceOf(address owner) external view returns (uint256)',
-  'function transfer(address to, uint256 amount) external returns (bool)',
+];
+
+const S402_ABI = [
+  'function settlePayment((address owner, uint256 value, uint256 deadline, address recipient, bytes32 nonce) payment, (uint8 v, bytes32 r, bytes32 s) authSig) external returns (bool)',
 ];
 
 export async function POST(request: NextRequest) {
@@ -71,32 +76,95 @@ export async function POST(request: NextRequest) {
     let usd1TxHash: string | null = null;
     let bnbTxHash: string | null = null;
 
-    // Check USD1 balance
+    // Step 1: Refund USD1 through S402 Facilitator (matches payment flow)
     const usd1Contract = new ethers.Contract(USD1_ADDRESS, USD1_ABI, sessionWallet);
     const usd1Balance = await usd1Contract.balanceOf(session.session_address);
 
     if (usd1Balance > 0n) {
-      const transferTx = await usd1Contract.transfer(userAddress, usd1Balance);
+      // Use S402 Facilitator for refund (ensures proper tracking and platform fees)
+      const nonce = '0x' + crypto.randomBytes(32).toString('hex');
+      const deadline = Math.floor(Date.now() / 1000) + 3600;
+
+      // Create EIP-712 signature for refund authorization
+      const authDomain = {
+        name: 'S402Facilitator',
+        version: '1',
+        chainId: 56,
+        verifyingContract: S402_FACILITATOR_ADDRESS
+      };
+
+      const authTypes = {
+        PaymentAuthorization: [
+          { name: 'owner', type: 'address' },
+          { name: 'spender', type: 'address' },
+          { name: 'value', type: 'uint256' },
+          { name: 'deadline', type: 'uint256' },
+          { name: 'recipient', type: 'address' },
+          { name: 'nonce', type: 'bytes32' }
+        ]
+      };
+
+      const authMessage = {
+        owner: session.session_address,
+        spender: S402_FACILITATOR_ADDRESS,
+        value: usd1Balance,
+        deadline: deadline,
+        recipient: userAddress,
+        nonce: nonce
+      };
+
+      const authSigRaw = await sessionWallet.signTypedData(authDomain, authTypes, authMessage);
+      const authSig = ethers.Signature.from(authSigRaw);
+
+      const payment = {
+        owner: session.session_address,
+        value: usd1Balance,
+        deadline: deadline,
+        recipient: userAddress,
+        nonce: nonce
+      };
+
+      const authSigStruct = {
+        v: authSig.v,
+        r: authSig.r,
+        s: authSig.s
+      };
+
+      // Submit refund through S402 Facilitator
+      const facilitator = new ethers.Contract(S402_FACILITATOR_ADDRESS, S402_ABI, sessionWallet);
+      const transferTx = await facilitator.settlePayment(payment, authSigStruct);
       const receipt = await transferTx.wait();
       refundedUSD1 = ethers.formatUnits(usd1Balance, 18);
       usd1TxHash = receipt.hash;
     }
 
-    // Check BNB balance
+    // Step 2: Refund BNB (calculate precise gas reserve)
     const bnbBalance = await provider.getBalance(session.session_address);
     
-    // Leave a small amount for gas (0.0001 BNB)
-    const gasReserve = ethers.parseUnits('0.0001', 18);
-    
-    if (bnbBalance > gasReserve) {
-      const refundAmount = bnbBalance - gasReserve;
-      const bnbTx = await sessionWallet.sendTransaction({
-        to: userAddress,
-        value: refundAmount,
-      });
-      const receipt = await bnbTx.wait();
-      refundedBNB = ethers.formatUnits(refundAmount, 18);
-      bnbTxHash = receipt?.hash || null;
+    if (bnbBalance > 0n) {
+      // BNB transfer uses exactly 21000 gas (standard transfer)
+      const gasLimit = 21000n;
+      
+      // Get current gas price
+      const feeData = await provider.getFeeData();
+      const gasPrice = feeData.gasPrice || ethers.parseUnits('3', 'gwei'); // Default 3 gwei if null
+      
+      // Calculate gas cost with 20% buffer for safety
+      const gasCost = gasLimit * gasPrice * 120n / 100n;
+      
+      // Only refund if balance exceeds gas cost
+      if (bnbBalance > gasCost) {
+        const refundAmount = bnbBalance - gasCost;
+        const bnbTx = await sessionWallet.sendTransaction({
+          to: userAddress,
+          value: refundAmount,
+          gasLimit: gasLimit,
+          gasPrice: gasPrice
+        });
+        const receipt = await bnbTx.wait();
+        refundedBNB = ethers.formatUnits(refundAmount, 18);
+        bnbTxHash = receipt?.hash || null;
+      }
     }
 
     // Ensure refund columns exist (idempotent)
