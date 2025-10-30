@@ -33,10 +33,30 @@ attached_assets/
 *.tmp
 .git.backup*
 
-# Replit-specific
-replit.md
+# Replit-specific files and metadata
 .replit
-.git/
+.replit.*
+replit.nix
+.config/
+.upm/
+.cache/
+.breakpoints
+replit_zip_error_log.txt
+.replitignore
+
+# Replit metadata (prevent from being added to commits)
+**/.replit
+**/replit.nix
+**/.config/configstore/
+**/.upm/
+**/.cache/replit/
+
+# Keep replit.md as project documentation
+# replit.md
+
+# Replit AI/Agent metadata
+.agent/
+.ai/
 
 # Deployment artifacts
 deployment-*.json
