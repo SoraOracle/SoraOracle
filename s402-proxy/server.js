@@ -251,25 +251,32 @@ app.post('/api/tool/:tool_id', async (req, res) => {
           });
         }
 
+        console.log(`📜 Transaction has ${receipt.logs.length} logs`);
+
         // Parse PaymentSettled event from logs
         const facilitatorContract = new ethers.Interface(S402_ABI);
         let paymentEvent = null;
         
         for (const log of receipt.logs) {
+          console.log(`🔍 Checking log from ${log.address} (looking for ${S402_FACILITATOR})`);
+          
           if (log.address.toLowerCase() === S402_FACILITATOR.toLowerCase()) {
+            console.log('✅ Found log from S402 Facilitator');
             try {
               const parsed = facilitatorContract.parseLog(log);
+              console.log(`📋 Parsed event: ${parsed.name}`);
               if (parsed.name === 'PaymentSettled') {
                 paymentEvent = parsed;
                 break;
               }
             } catch (e) {
-              // Not the event we're looking for
+              console.log(`⚠️ Failed to parse log: ${e.message}`);
             }
           }
         }
 
         if (!paymentEvent) {
+          console.log('❌ No PaymentSettled event found in transaction');
           return res.status(402).json({ 
             error: 'Not a valid S402 payment',
             message: 'Transaction does not contain a PaymentSettled event'
