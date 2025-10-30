@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useSession } from '../providers/SessionProvider';
 import { useWallet } from '../providers/WalletProvider';
 
@@ -20,6 +21,7 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
   const [error, setError] = useState('');
   const [fundingStep, setFundingStep] = useState<FundingStep>('configure');
   const [sessionAddress, setSessionAddress] = useState('');
+  const [mounted, setMounted] = useState(false);
   
   // Dynamic BNB calculation: (usd1Amount / 0.02) * 0.0000075
   const calculateGas = (usd1Amount: number) => {
@@ -30,7 +32,12 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
   
   const estimatedGas = calculateGas(parseFloat(maxUsd1Amount) || 0.5);
 
-  if (!isOpen) return null;
+  // Only render on client side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const handleCreate = async () => {
     setError('');
@@ -205,8 +212,8 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
     );
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+  const modalContent = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div className="bg-s402-light-card dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg max-w-md w-full shadow-2xl flex flex-col max-h-[90vh]">
         <div className="p-8 pb-4">
           <h2 className="text-2xl font-bold mb-2">Create Session</h2>
@@ -309,4 +316,7 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
       </div>
     </div>
   );
+
+  // Use portal to render modal at document body level (fixes positioning issues)
+  return createPortal(modalContent, document.body);
 }
