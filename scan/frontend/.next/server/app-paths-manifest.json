@@ -4,5 +4,7 @@
   "/api/charts/route": "app/api/charts/route.js",
   "/api/transactions/route": "app/api/transactions/route.js",
   "/api/composers/top/route": "app/api/composers/top/route.js",
-  "/api/sessions/active/route": "app/api/sessions/active/route.js"
+  "/api/sessions/active/route": "app/api/sessions/active/route.js",
+  "/api/admin/check/route": "app/api/admin/check/route.js",
+  "/page": "app/page.js"
 }
