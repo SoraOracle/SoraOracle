@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
             to: session.user_address,
             value: refundAmount,
             gasLimit: gasLimit,
-            gasPrice: gasPrice, // Explicitly set the gas price
+            // Let ethers calculate gasPrice automatically for better reliability
           });
           const receipt = await bnbTx.wait();
           refundedBNB = ethers.formatUnits(refundAmount, 18);
@@ -200,17 +200,32 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Step 3: Verify wallet is effectively empty (small dust amounts acceptable)
+    // Step 3: Verify wallet is effectively empty before deleting private key
     const finalUsd1Balance = await usd1Contract.balanceOf(session.session_address);
     const finalBnbBalance = await provider.getBalance(session.session_address);
     
-    const dustThreshold = ethers.parseUnits('0.001', 18); // 0.001 tokens
+    const usd1DustThreshold = ethers.parseUnits('0.01', 18); // 0.01 USD1
+    const bnbDustThreshold = ethers.parseUnits('0.000015', 18); // 0.000015 BNB (3x gas cost)
     
-    if (finalUsd1Balance > dustThreshold) {
+    // Check if significant balances remain
+    const hasSignificantUsd1 = finalUsd1Balance > usd1DustThreshold;
+    const hasSignificantBnb = finalBnbBalance > bnbDustThreshold;
+    
+    if (hasSignificantUsd1 || hasSignificantBnb) {
+      console.error('Cannot close session - significant balance remains:',
+        'USD1:', ethers.formatUnits(finalUsd1Balance, 18),
+        'BNB:', ethers.formatUnits(finalBnbBalance, 18));
+      
       return NextResponse.json(
         { 
-          error: 'Cannot close session: USD1 balance still exists',
-          usd1Balance: ethers.formatUnits(finalUsd1Balance, 18),
+          error: 'Refund incomplete - session cannot be closed safely',
+          details: {
+            usd1Balance: ethers.formatUnits(finalUsd1Balance, 18),
+            bnbBalance: ethers.formatUnits(finalBnbBalance, 18),
+            message: hasSignificantUsd1 
+              ? 'USD1 balance still exists. Please try again or contact support.'
+              : 'BNB balance still exists. The refund transaction may have failed.'
+          }
         },
         { status: 400 }
       );
