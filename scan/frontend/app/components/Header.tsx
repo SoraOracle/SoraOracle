@@ -1,13 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTheme } from '../providers/ThemeProvider';
+import { useSession } from '../providers/SessionProvider';
+import SessionModal from './SessionModal';
 
 export default function Header() {
   const [address, setAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showSessionDropdown, setShowSessionDropdown] = useState(false);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const { hasActiveSession, session } = useSession();
   
   let theme = 'dark';
   let toggleTheme = () => {};
@@ -22,6 +29,18 @@ export default function Header() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowSessionDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -162,17 +181,90 @@ export default function Header() {
             )}
             <span className="text-sm text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full bg-gray-200 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 shadow-soft dark:shadow-none">BNB Chain</span>
             {address ? (
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full bg-gray-200 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 shadow-soft dark:shadow-none">
-                  {formatAddress(address)}
-                </span>
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={disconnectWallet}
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                  title="Disconnect"
+                  onClick={() => setShowSessionDropdown(!showSessionDropdown)}
+                  className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400 px-3 py-1.5 rounded-full bg-gray-200 dark:bg-gray-800/50 border border-gray-300 dark:border-gray-700 hover:border-s402-orange shadow-soft dark:shadow-none transition-colors"
                 >
-                  ✕
+                  <span>{formatAddress(address)}</span>
+                  <span className={`transform transition-transform ${showSessionDropdown ? 'rotate-180' : ''}`}>▼</span>
                 </button>
+
+                {showSessionDropdown && (
+                  <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl z-50">
+                    {/* Session Status Section */}
+                    <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+                      <div className="text-xs text-gray-500 mb-2">Session Status</div>
+                      {hasActiveSession && session ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Active Session</span>
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            Balance: ${session.remainingAmount?.toFixed(3)} / ${session.maxUsd1Amount?.toFixed(3)}
+                          </div>
+                          <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-1.5">
+                            <div
+                              className="bg-green-500 h-1.5 rounded-full transition-all"
+                              style={{ width: `${((session.remainingAmount || 0) / (session.maxUsd1Amount || 1)) * 100}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-500">No Active Session</span>
+                          <div className="w-2 h-2 rounded-full bg-gray-400"></div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Menu Options */}
+                    <div className="p-2">
+                      {!hasActiveSession && (
+                        <button
+                          onClick={() => {
+                            setShowSessionModal(true);
+                            setShowSessionDropdown(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+                        >
+                          <span>➕</span>
+                          <span>Create Session</span>
+                        </button>
+                      )}
+                      <a
+                        href="/sessions/history"
+                        className="block w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2"
+                        onClick={() => setShowSessionDropdown(false)}
+                      >
+                        <span>📋</span>
+                        <span>Session History</span>
+                      </a>
+                    </div>
+
+                    {/* Wallet Section */}
+                    <div className="p-2 border-t border-gray-200 dark:border-gray-800">
+                      <button
+                        onClick={() => {
+                          disconnectWallet();
+                          setShowSessionDropdown(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors flex items-center gap-2"
+                      >
+                        <span>🚪</span>
+                        <span>Disconnect Wallet</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Session Modal */}
+                <SessionModal
+                  isOpen={showSessionModal}
+                  onClose={() => setShowSessionModal(false)}
+                  onSuccess={() => setShowSessionModal(false)}
+                />
               </div>
             ) : (
               <button

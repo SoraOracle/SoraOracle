@@ -55,16 +55,8 @@ export default function ComposerPage() {
     loadTools();
   }, []);
 
-  // Prompt for session creation when authenticated but no active session
-  useEffect(() => {
-    if (token && walletAddress && !hasActiveSession && !showSessionModal) {
-      // Give a slight delay for better UX
-      const timer = setTimeout(() => {
-        setShowSessionModal(true);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [token, walletAddress, hasActiveSession]);
+  // Don't auto-popup session modal - let user manually trigger it
+  // This prevents flash/race condition on page load
 
   const loadTools = async () => {
     try {
@@ -297,7 +289,7 @@ export default function ComposerPage() {
                 No Active Session
               </h3>
               <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                Create a session to enable seamless API calls without repeated wallet signatures. Sessions have spending limits and auto-expire for security.
+                Create a session to enable seamless API calls without repeated wallet signatures. Sessions have spending limits and persist until you manually close them.
               </p>
               <button
                 onClick={() => setShowSessionModal(true)}
