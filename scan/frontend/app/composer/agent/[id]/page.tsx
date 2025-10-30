@@ -9,6 +9,10 @@ import { useSession } from '../../../providers/SessionProvider';
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  tool_output?: {
+    images?: string[];
+    [key: string]: any;
+  };
 }
 
 interface PaymentRequest {
@@ -192,6 +196,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       setMessages(history.filter((msg: any) => msg.content).map((msg: any) => ({
         role: msg.role,
         content: msg.content,
+        tool_output: msg.tool_output, // Include tool output (e.g., image URLs)
       })));
     } catch (error) {
       console.error('Failed to load chat history:', error);
@@ -440,16 +445,11 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       setIsGeneratingImage(false);
 
       if (data.type === 'message') {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
-        
-        // Show tool output if images were generated
-        if (data.tool_output?.images) {
-          const imageUrls = data.tool_output.images;
-          setMessages(prev => [...prev, {
-            role: 'assistant',
-            content: `Here are the generated images:\n${imageUrls.map((url: string, i: number) => `Image ${i+1}: ${url}`).join('\n')}`
-          }]);
-        }
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: data.content,
+          tool_output: data.tool_output // Include tool output for images
+        }]);
       }
     } catch (error: any) {
       console.error('Payment error:', error);
@@ -652,46 +652,42 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
                     }`}
                   >
                     <div className="text-sm whitespace-pre-wrap">
-                      {/* Check if message contains image URLs */}
-                      {(msg.content.includes('/api/images/') || (msg.content.includes('https://') && msg.content.includes('replicate.delivery'))) ? (
-                        <div className="space-y-2">
-                          {msg.content.split('\n').map((line, lineIdx) => {
-                            // Match both our API URLs and external URLs
-                            const urlMatch = line.match(/(https?:\/\/[^\s]+|\/api\/images\/[^\s]+)/);
-                            if (urlMatch) {
-                              const imageUrl = urlMatch[1];
-                              return (
-                                <div key={lineIdx} className="space-y-2">
-                                  <img 
-                                    src={imageUrl} 
-                                    alt="Generated image" 
-                                    className="rounded-lg max-w-full h-auto shadow-lg"
-                                  />
-                                  <div className="flex gap-2 items-center">
-                                    <a 
-                                      href={imageUrl} 
-                                      download 
-                                      className="text-xs px-3 py-1 bg-s402-orange text-white rounded hover:bg-s402-orange/90 transition-colors"
-                                    >
-                                      ⬇ Download
-                                    </a>
-                                    <a 
-                                      href={imageUrl} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-xs text-s402-orange hover:underline"
-                                    >
-                                      Open in new tab →
-                                    </a>
-                                  </div>
-                                </div>
-                              );
-                            }
-                            return <div key={lineIdx}>{line}</div>;
-                          })}
+                      {msg.content}
+                      
+                      {/* Display tool output images if they exist */}
+                      {msg.tool_output && msg.tool_output.images && (
+                        <div className="mt-3 space-y-3">
+                          {(Array.isArray(msg.tool_output.images) ? msg.tool_output.images : [msg.tool_output.images]).map((imageUrl: string, imgIdx: number) => (
+                            <div key={imgIdx}>
+                              <img 
+                                src={imageUrl} 
+                                alt="Generated" 
+                                className="rounded-lg max-w-full h-auto border border-gray-200 dark:border-gray-700"
+                                onError={(e) => {
+                                  console.error('Image failed to load:', imageUrl);
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                              <div className="mt-2 flex gap-3 text-xs">
+                                <a 
+                                  href={imageUrl} 
+                                  download
+                                  className="text-s402-orange hover:underline"
+                                >
+                                  ⬇ Download
+                                </a>
+                                <a 
+                                  href={imageUrl} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-s402-orange hover:underline"
+                                >
+                                  Open in new tab →
+                                </a>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ) : (
-                        msg.content
                       )}
                     </div>
                   </div>

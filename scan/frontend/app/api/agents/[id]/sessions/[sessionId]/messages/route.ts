@@ -11,7 +11,7 @@ export async function GET(
     const { sessionId } = await params;
 
     const result = await pool.query(
-      `SELECT role, content, created_at 
+      `SELECT role, content, tool_output, created_at 
        FROM s402_agent_chats 
        WHERE session_id = $1 
        ORDER BY created_at ASC`,

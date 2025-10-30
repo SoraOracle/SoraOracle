@@ -144,13 +144,16 @@ CREATE INDEX IF NOT EXISTS idx_tool_active ON s402_tools(is_active);
 CREATE TABLE IF NOT EXISTS s402_agent_chats (
   id BIGSERIAL PRIMARY KEY,
   agent_id VARCHAR(66) NOT NULL REFERENCES s402_agents(id) ON DELETE CASCADE,
+  session_id VARCHAR(66), -- Chat session identifier
   role VARCHAR(20) NOT NULL, -- 'user' or 'assistant'
   content TEXT NOT NULL,
   tool_calls JSONB, -- Array of tool call requests
+  tool_output JSONB, -- Tool execution results (e.g., image URLs)
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_chat_agent ON s402_agent_chats(agent_id);
+CREATE INDEX IF NOT EXISTS idx_chat_session ON s402_agent_chats(session_id);
 CREATE INDEX IF NOT EXISTS idx_chat_created ON s402_agent_chats(created_at);
 
 -- Admin wallets table: Addresses allowed to manage tools

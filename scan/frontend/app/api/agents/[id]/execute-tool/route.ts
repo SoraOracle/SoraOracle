@@ -323,8 +323,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     await pool.query(
-      'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
-      [agentId, session_id, 'assistant', reply]
+      'INSERT INTO s402_agent_chats (agent_id, session_id, role, content, tool_output) VALUES ($1, $2, $3, $4, $5)',
+      [agentId, session_id, 'assistant', reply, JSON.stringify(toolOutput)]
     );
 
     // Update agent stats: increment query count and total spent
