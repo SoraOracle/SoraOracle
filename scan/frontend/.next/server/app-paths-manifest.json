@@ -1,14 +1,9 @@
 {
   "/api/sessions/active/route": "app/api/sessions/active/route.js",
-  "/api/stats/route": "app/api/stats/route.js",
-  "/api/charts/route": "app/api/charts/route.js",
-  "/api/composers/top/route": "app/api/composers/top/route.js",
-  "/api/transactions/route": "app/api/transactions/route.js",
-  "/api/services/route": "app/api/services/route.js",
-  "/api/admin/check/route": "app/api/admin/check/route.js",
-  "/api/tools/route": "app/api/tools/route.js",
+  "/api/agents/[id]/chat/route": "app/api/agents/[id]/chat/route.js",
+  "/api/agents/[id]/sessions/[sessionId]/route": "app/api/agents/[id]/sessions/[sessionId]/route.js",
   "/page": "app/page.js",
-  "/marketplace/page": "app/marketplace/page.js",
   "/transactions/page": "app/transactions/page.js",
-  "/composer/page": "app/composer/page.js"
+  "/composer/page": "app/composer/page.js",
+  "/composer/agent/[id]/page": "app/composer/agent/[id]/page.js"
 }

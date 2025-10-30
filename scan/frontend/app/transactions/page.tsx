@@ -113,10 +113,23 @@ export default function TransactionsPage() {
                   <td className="py-3">
                     {tx.serviceName ? (
                       <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 bg-s402-orange/10 text-s402-orange text-xs rounded">
-                          {tx.serviceCategory}
-                        </span>
-                        <span className="font-medium text-sm">{tx.serviceName}</span>
+                        {tx.serviceIcon && (
+                          <div className="w-8 h-8 rounded overflow-hidden bg-gray-100 dark:bg-gray-900 flex items-center justify-center flex-shrink-0">
+                            {tx.serviceIcon.startsWith('/') ? (
+                              <img 
+                                src={tx.serviceIcon} 
+                                alt={tx.serviceName}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="text-lg">{tx.serviceIcon}</span>
+                            )}
+                          </div>
+                        )}
+                        <div className="flex flex-col">
+                          <span className="font-medium text-sm">{tx.serviceName}</span>
+                          <span className="text-xs text-gray-500">{tx.serviceCategory}</span>
+                        </div>
                       </div>
                     ) : (
                       <a

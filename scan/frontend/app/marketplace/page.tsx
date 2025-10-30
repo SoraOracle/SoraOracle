@@ -156,8 +156,16 @@ export default function MarketplacePage() {
               className="bg-s402-light-card dark:bg-transparent border border-gray-300 dark:border-gray-800 rounded-lg p-6 shadow-soft dark:shadow-none hover:border-s402-orange transition-all duration-300 group"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 bg-s402-orange/10 rounded-full flex items-center justify-center text-xl">
-                  {tool.icon || '🛠️'}
+                <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+                  {tool.icon?.startsWith('/') ? (
+                    <img 
+                      src={tool.icon} 
+                      alt={tool.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-2xl">{tool.icon || '🛠️'}</span>
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="text-xs text-gray-500">Price</div>

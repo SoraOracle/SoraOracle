@@ -15,9 +15,11 @@ export async function GET() {
         p.block_timestamp,
         t.name as service_name,
         t.category as service_category,
+        t.icon_url as service_icon,
         'payment' as type
       FROM s402_payments p
-      LEFT JOIN s402_tools t ON LOWER(p.to_address) = LOWER(t.provider_address)
+      LEFT JOIN s402_proxy_usage u ON u.tx_hash = p.tx_hash
+      LEFT JOIN s402_tools t ON t.id = u.service
       ORDER BY p.block_timestamp DESC
       LIMIT 100
     `);
@@ -104,6 +106,7 @@ export async function GET() {
       timestamp: row.block_timestamp,
       serviceName: row.service_name || null,
       serviceCategory: row.service_category || null,
+      serviceIcon: row.service_icon || null,
       type: 'payment',
     }));
 
