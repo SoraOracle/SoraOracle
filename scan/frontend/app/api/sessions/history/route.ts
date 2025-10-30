@@ -75,7 +75,10 @@ export async function GET(request: NextRequest) {
           refundedBnbAmount: session.refunded_bnb_amount ? parseFloat(session.refunded_bnb_amount) : null,
           currentUsd1Balance: currentUsd1,
           currentBnbBalance: currentBnb,
-          canRefund: currentUsd1 > 0.001 || currentBnb > 0.0001, // Has refundable balance
+          // Only allow refund if balance exceeds gas costs
+          // BSC gas: ~21,000 * 3 gwei = 0.000063 BNB (~$0.013)
+          // Set threshold at 0.0001 BNB and 0.01 USD1 to ensure refund > gas cost
+          canRefund: currentUsd1 >= 0.01 || currentBnb >= 0.0001,
         };
       })
     );

@@ -314,7 +314,7 @@ export default function SessionHistoryPage() {
                   </div>
                 )}
 
-                {session.canRefund && (
+                {session.canRefund ? (
                   <button
                     onClick={() => handleRefund(session.id)}
                     disabled={refunding === session.id}
@@ -322,7 +322,13 @@ export default function SessionHistoryPage() {
                   >
                     {refunding === session.id ? 'Refunding...' : 'Refund Remaining Balance'}
                   </button>
-                )}
+                ) : (session.currentUsd1Balance > 0 || session.currentBnbBalance > 0) ? (
+                  <div className="p-3 bg-gray-500/10 border border-gray-500/20 rounded text-center">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      💡 Remaining balance too small to refund (gas fees would exceed refund value)
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>
