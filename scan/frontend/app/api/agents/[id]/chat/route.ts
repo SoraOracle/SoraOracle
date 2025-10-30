@@ -55,19 +55,45 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       [agentId, session_id]
     );
 
-    // Build conversation history, excluding orphaned tool_use blocks
+    // Build conversation history with proper tool_use/tool_result pairing
     const conversationHistory: any[] = [];
     
     for (let i = 0; i < historyResult.rows.length; i++) {
       const row = historyResult.rows[i];
       const role = row.role === 'user' ? 'user' : 'assistant';
       
-      // Skip messages with tool_calls (tool_use blocks) - these were already processed
-      // Only include regular text messages
-      if (!row.tool_calls && row.content) {
+      // Include text messages
+      if (row.content && !row.tool_calls && !row.tool_output) {
         conversationHistory.push({
           role,
           content: row.content,
+        });
+      }
+      
+      // Include tool_use blocks (assistant with tool_calls)
+      if (row.tool_calls && row.role === 'assistant') {
+        const toolCalls = typeof row.tool_calls === 'string' ? JSON.parse(row.tool_calls) : row.tool_calls;
+        conversationHistory.push({
+          role: 'assistant',
+          content: toolCalls.map((tc: any) => ({
+            type: 'tool_use',
+            id: tc.id,
+            name: tc.name,
+            input: tc.input
+          }))
+        });
+      }
+      
+      // Include tool_result blocks (user with tool_output)
+      if (row.tool_output && row.role === 'user') {
+        const toolOutput = typeof row.tool_output === 'string' ? JSON.parse(row.tool_output) : row.tool_output;
+        conversationHistory.push({
+          role: 'user',
+          content: [{
+            type: 'tool_result',
+            tool_use_id: toolOutput.tool_use_id,
+            content: JSON.stringify(toolOutput.result)
+          }]
         });
       }
     }
@@ -82,45 +108,34 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       input_schema: tool.input_schema,
     }));
 
-    const systemPrompt = `You are an s402-powered AI agent named "${agent.name}". 
-${agent.description}
+    const systemPrompt = `You are "${agent.name}" - ${agent.description}
 
-You have access to the following paid API tools. Each tool requires a 402 micropayment to use:
+Available Tools (paid via S402 micropayments):
 ${tools.map(t => `- ${t.name}: ${t.description}`).join('\n')}
 
-When you need to call a tool:
-1. Request the tool by using tool_use
-2. The user will be prompted to make a 402 payment
-3. After payment is confirmed, you'll receive the tool's response
-4. Use the data to answer the user's question
+**How to Use Tools:**
+- You can call MULTIPLE tools in a SINGLE response to handle complex requests
+- Each tool requires automatic payment (already handled)
+- Present results conversationally and naturally
 
-IMPORTANT: When presenting tool results to users:
+**Formatting Guidelines:**
 
-**For Image/Video Content:**
-- If the response contains image URLs (url, hdurl, image_url, etc.), always display them using markdown image syntax: ![description](url)
-- Use the high-resolution version (hdurl) if available, fallback to standard (url)
-- For videos (media_type: "video"), embed using markdown video or provide a clickable link
-- Provide a brief caption describing what the image shows
+Images & Media:
+- Automatically embed images with markdown: ![title](url)
+- Use hdurl for high-res, fallback to url
+- Add engaging captions
 
-**For Text Content:**
-- Format explanations, descriptions, and long text with proper paragraphs
-- Use **bold** for important terms or titles
-- Use bullet points or numbered lists for structured data
-- Keep the formatting clean and readable
+Text Presentation:
+- Write like a helpful AI assistant, not a robot
+- Use **bold** for emphasis and titles
+- Format long text into clean, readable paragraphs
+- Use lists when showing multiple items
 
-**For Structured Data:**
-- Present data in a logical, easy-to-read format
-- Group related information together
-- Use clear labels and sections
+Example (NASA APOD):
+✅ GOOD: "Here's today's Astronomy Picture! [embed image] The Witch's Broom Nebula is a stunning supernova remnant..."
+❌ BAD: "Tool executed successfully! Result: {success: true, data: {...}}"
 
-**Example Response Format:**
-When showing NASA's Astronomy Picture:
-1. Display the image with markdown
-2. Show the title in bold
-3. Present the explanation in clean paragraphs
-4. Add relevant metadata (date, copyright, etc.) at the end
-
-Be concise but informative. Make the presentation visually appealing and easy to understand.`;
+**Be conversational, helpful, and make data easy to understand. If a user asks for multiple things, handle them all at once using multiple tools.**`;
 
     // Retry helper with exponential backoff for transient errors
     const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3) => {
