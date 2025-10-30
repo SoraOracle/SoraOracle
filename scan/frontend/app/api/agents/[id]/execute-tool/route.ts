@@ -217,35 +217,61 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       ],
     });
     
-    // Clean up orphaned tool_use blocks (Claude requires each tool_use to have a matching tool_result)
-    const cleanedHistory: any[] = [];
+    // Clean up orphaned blocks (Claude requires matching tool_use/tool_result pairs)
+    // First pass: collect valid tool_use IDs (those with matching tool_results)
+    const validToolUseIds = new Set<string>();
     for (let i = 0; i < conversationHistory.length; i++) {
       const msg = conversationHistory[i];
-      
-      // If this is a tool_use message, check if next message has matching tool_result
-      if (msg.role === 'assistant' && Array.isArray(msg.content) && 
-          msg.content.some((c: any) => c.type === 'tool_use')) {
-        const nextMsg = conversationHistory[i + 1];
+      if (msg.role === 'assistant' && Array.isArray(msg.content)) {
         const toolUseIds = msg.content.filter((c: any) => c.type === 'tool_use').map((c: any) => c.id);
+        const nextMsg = conversationHistory[i + 1];
         
-        // Check if next message contains tool_result for this tool_use
         if (nextMsg && nextMsg.role === 'user' && Array.isArray(nextMsg.content)) {
           const toolResultIds = nextMsg.content
             .filter((c: any) => c.type === 'tool_result')
             .map((c: any) => c.tool_use_id);
           
-          // Only include if all tool_use IDs have matching tool_results
-          const allMatched = toolUseIds.every(id => toolResultIds.includes(id));
-          if (allMatched) {
-            cleanedHistory.push(msg);
-          } else {
-            console.log(`🧹 Removed orphaned tool_use: ${toolUseIds.join(', ')}`);
+          // Only mark as valid if ALL tool_use IDs have matching results
+          if (toolUseIds.every(id => toolResultIds.includes(id))) {
+            toolUseIds.forEach(id => validToolUseIds.add(id));
           }
-        } else {
-          console.log(`🧹 Removed orphaned tool_use without result: ${toolUseIds.join(', ')}`);
         }
-      } else {
-        // Include regular messages and tool_results
+      }
+    }
+
+    // Second pass: build cleaned history, removing orphaned tool_use AND tool_result blocks
+    const cleanedHistory: any[] = [];
+    for (let i = 0; i < conversationHistory.length; i++) {
+      const msg = conversationHistory[i];
+      
+      // Handle tool_use messages
+      if (msg.role === 'assistant' && Array.isArray(msg.content) && 
+          msg.content.some((c: any) => c.type === 'tool_use')) {
+        const toolUseIds = msg.content.filter((c: any) => c.type === 'tool_use').map((c: any) => c.id);
+        
+        // Include if all tool_use IDs are valid
+        if (toolUseIds.every(id => validToolUseIds.has(id))) {
+          cleanedHistory.push(msg);
+        } else {
+          console.log(`🧹 Removed orphaned tool_use: ${toolUseIds.join(', ')}`);
+        }
+      }
+      // Handle tool_result messages
+      else if (msg.role === 'user' && Array.isArray(msg.content) && 
+               msg.content.some((c: any) => c.type === 'tool_result')) {
+        const toolResultIds = msg.content
+          .filter((c: any) => c.type === 'tool_result')
+          .map((c: any) => c.tool_use_id);
+        
+        // Include if all tool_result IDs match valid tool_use IDs
+        if (toolResultIds.every(id => validToolUseIds.has(id))) {
+          cleanedHistory.push(msg);
+        } else {
+          console.log(`🧹 Removed orphaned tool_result: ${toolResultIds.join(', ')}`);
+        }
+      }
+      // Include regular messages
+      else {
         cleanedHistory.push(msg);
       }
     }
