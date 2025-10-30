@@ -57,9 +57,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Build conversation history with proper tool_use/tool_result pairing
     const conversationHistory: any[] = [];
+    const rows = historyResult.rows;
     
-    for (let i = 0; i < historyResult.rows.length; i++) {
-      const row = historyResult.rows[i];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
       const role = row.role === 'user' ? 'user' : 'assistant';
       
       // Include text messages
@@ -70,31 +71,44 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         });
       }
       
-      // Include tool_use blocks (assistant with tool_calls)
+      // Include tool_use blocks ONLY if followed by tool_result
       if (row.tool_calls && row.role === 'assistant') {
-        const toolCalls = typeof row.tool_calls === 'string' ? JSON.parse(row.tool_calls) : row.tool_calls;
-        conversationHistory.push({
-          role: 'assistant',
-          content: toolCalls.map((tc: any) => ({
-            type: 'tool_use',
-            id: tc.id,
-            name: tc.name,
-            input: tc.input
-          }))
-        });
+        // Check if next message is a tool_result
+        const nextRow = rows[i + 1];
+        const hasMatchingResult = nextRow && nextRow.role === 'user' && nextRow.tool_output;
+        
+        if (hasMatchingResult) {
+          const toolCalls = typeof row.tool_calls === 'string' ? JSON.parse(row.tool_calls) : row.tool_calls;
+          conversationHistory.push({
+            role: 'assistant',
+            content: toolCalls.map((tc: any) => ({
+              type: 'tool_use',
+              id: tc.id,
+              name: tc.name,
+              input: tc.input
+            }))
+          });
+        }
+        // Skip orphaned tool_use blocks
       }
       
-      // Include tool_result blocks (user with tool_output)
+      // Include tool_result blocks ONLY if preceded by tool_use
       if (row.tool_output && row.role === 'user') {
-        const toolOutput = typeof row.tool_output === 'string' ? JSON.parse(row.tool_output) : row.tool_output;
-        conversationHistory.push({
-          role: 'user',
-          content: [{
-            type: 'tool_result',
-            tool_use_id: toolOutput.tool_use_id,
-            content: JSON.stringify(toolOutput.result)
-          }]
-        });
+        const prevRow = rows[i - 1];
+        const hasMatchingToolUse = prevRow && prevRow.role === 'assistant' && prevRow.tool_calls;
+        
+        if (hasMatchingToolUse) {
+          const toolOutput = typeof row.tool_output === 'string' ? JSON.parse(row.tool_output) : row.tool_output;
+          conversationHistory.push({
+            role: 'user',
+            content: [{
+              type: 'tool_result',
+              tool_use_id: toolOutput.tool_use_id,
+              content: JSON.stringify(toolOutput.result)
+            }]
+          });
+        }
+        // Skip orphaned tool_result blocks
       }
     }
 
