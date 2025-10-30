@@ -15,6 +15,16 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/sessions/active/route.js"
+    ],
+    "/composer/agent/[id]/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/composer/agent/[id]/layout.js"
+    ],
+    "/composer/agent/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/composer/agent/[id]/page.js"
     ]
   }
 }
