@@ -63,6 +63,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "emoji-picker-react": "^4.15.0",
+    "ethers": "^6.15.0",
     "express": "^5.1.0",
     "hardhat": "^2.22.18",
     "ipfs-http-client": "^60.0.1",

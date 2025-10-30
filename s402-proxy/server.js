@@ -4,9 +4,13 @@ const { Pool } = require('pg');
 const Replicate = require('replicate');
 const jwt = require('jsonwebtoken');
 const fetch = require('node-fetch');
+const { ethers } = require('ethers');
 
 const app = express();
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+// BSC Provider for on-chain verification
+const bscProvider = new ethers.JsonRpcProvider('https://bsc-dataseed.binance.org/');
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
@@ -19,6 +23,12 @@ if (!JWT_SECRET) {
 
 const ADMIN_WALLET = '0x89907F51bE80c12E63Eb62fa7680c3960aC0C18f';
 const PAYMENT_VALIDITY_SECONDS = 300;
+const S402_FACILITATOR = '0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3';
+
+// S402 Facilitator ABI (PaymentSettled event only)
+const S402_ABI = [
+  'event PaymentSettled(address indexed from, address indexed to, uint256 value, bytes32 nonce, uint256 timestamp)'
+];
 
 app.use(cors());
 app.use(express.json());
@@ -213,39 +223,82 @@ app.post('/api/tool/:tool_id', async (req, res) => {
       });
     }
 
-    // Verify payment (with retry for indexer lag)
-    let paymentCheck;
-    let retries = 0;
-    const maxRetries = 5;
-    const retryDelay = 2000; // 2 seconds
+    // Verify payment on-chain (fast path: check database first, fallback to blockchain)
+    let paymentCheck = await pool.query(
+      `SELECT tx_hash, from_address, to_address, value_usd, block_timestamp 
+       FROM s402_payments 
+       WHERE tx_hash = $1`,
+      [tx_hash]
+    );
+
+    let payment;
     
-    while (retries < maxRetries) {
-      paymentCheck = await pool.query(
-        `SELECT tx_hash, from_address, to_address, value_usd, block_timestamp 
-         FROM s402_payments 
-         WHERE tx_hash = $1`,
-        [tx_hash]
-      );
+    if (paymentCheck.rows.length > 0) {
+      // Fast path: payment already indexed
+      payment = paymentCheck.rows[0];
+      console.log('✅ Payment found in database (cached)');
+    } else {
+      // Slow path: verify directly on BSC blockchain
+      console.log('🔍 Payment not in database, checking blockchain...');
       
-      if (paymentCheck.rows.length > 0) {
-        break; // Payment found!
-      }
-      
-      if (retries < maxRetries - 1) {
-        console.log(`⏳ Payment ${tx_hash} not indexed yet, retry ${retries + 1}/${maxRetries}...`);
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-      }
-      retries++;
-    }
+      try {
+        const receipt = await bscProvider.getTransactionReceipt(tx_hash);
+        
+        if (!receipt) {
+          return res.status(402).json({ 
+            error: 'Transaction not found on blockchain',
+            message: 'Invalid transaction hash or transaction not yet confirmed'
+          });
+        }
 
-    if (paymentCheck.rows.length === 0) {
-      return res.status(402).json({ 
-        error: 'Payment not found on-chain',
-        message: 'Transaction not yet indexed. Please wait a moment and try again.'
-      });
-    }
+        // Parse PaymentSettled event from logs
+        const facilitatorContract = new ethers.Interface(S402_ABI);
+        let paymentEvent = null;
+        
+        for (const log of receipt.logs) {
+          if (log.address.toLowerCase() === S402_FACILITATOR.toLowerCase()) {
+            try {
+              const parsed = facilitatorContract.parseLog(log);
+              if (parsed.name === 'PaymentSettled') {
+                paymentEvent = parsed;
+                break;
+              }
+            } catch (e) {
+              // Not the event we're looking for
+            }
+          }
+        }
 
-    const payment = paymentCheck.rows[0];
+        if (!paymentEvent) {
+          return res.status(402).json({ 
+            error: 'Not a valid S402 payment',
+            message: 'Transaction does not contain a PaymentSettled event'
+          });
+        }
+
+        // Extract payment details from event
+        const block = await bscProvider.getBlock(receipt.blockNumber);
+        payment = {
+          tx_hash: tx_hash,
+          from_address: paymentEvent.args.from,
+          to_address: paymentEvent.args.to,
+          value_usd: parseFloat(ethers.formatUnits(paymentEvent.args.value, 18)),
+          block_timestamp: new Date(block.timestamp * 1000)
+        };
+        
+        console.log('✅ Payment verified on-chain:', {
+          from: payment.from_address,
+          to: payment.to_address,
+          amount: payment.value_usd
+        });
+      } catch (error) {
+        console.error('❌ Blockchain verification failed:', error);
+        return res.status(402).json({ 
+          error: 'Payment verification failed',
+          message: error.message
+        });
+      }
+    }
 
     // Verify payment sender
     if (payment.from_address.toLowerCase() !== authenticatedAddress.toLowerCase()) {
