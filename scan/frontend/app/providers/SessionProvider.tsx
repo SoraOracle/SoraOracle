@@ -10,8 +10,6 @@ interface Session {
   maxUsd1Amount: number;
   spentAmount: number;
   remainingAmount: number;
-  durationSeconds: number;
-  expiresAt: string;
   createdAt: string;
   lastUsedAt: string;
 }
@@ -20,7 +18,9 @@ interface SessionContextType {
   session: Session | null;
   hasActiveSession: boolean;
   isLoading: boolean;
+  isClosing: boolean;
   createSession: (maxUsd1Amount: number, durationSeconds: number) => Promise<void>;
+  closeSession: () => Promise<void>;
   deactivateSession: () => Promise<void>;
   refreshSession: () => Promise<void>;
 }
@@ -31,6 +31,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const { walletAddress, token } = useWallet();
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isClosing, setIsClosing] = useState(false);
 
   // Check for active session when wallet connects
   useEffect(() => {
@@ -101,7 +102,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           userAddress: walletAddress,
           maxUsd1Amount,
-          durationSeconds,
+          // durationSeconds ignored - sessions don't expire
         }),
       });
 
@@ -119,6 +120,43 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       throw error;
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const closeSession = async () => {
+    if (!walletAddress || !token) {
+      throw new Error('Wallet not connected');
+    }
+
+    setIsClosing(true);
+    try {
+      const response = await fetch('/api/sessions/close', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userAddress: walletAddress,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to close session');
+      }
+
+      const data = await response.json();
+      
+      // Clear session state after successful close
+      setSession(null);
+      
+      return data;
+    } catch (error) {
+      console.error('Error closing session:', error);
+      throw error;
+    } finally {
+      setIsClosing(false);
     }
   };
 
@@ -158,7 +196,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         session,
         hasActiveSession,
         isLoading,
+        isClosing,
         createSession,
+        closeSession,
         deactivateSession,
         refreshSession,
       }}
