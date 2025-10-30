@@ -1,3 +1,10 @@
 {
-  "/page": "app/page.js"
+  "/api/agents/route": "app/api/agents/route.js",
+  "/api/tools/route": "app/api/tools/route.js",
+  "/api/agents/[id]/sessions/route": "app/api/agents/[id]/sessions/route.js",
+  "/api/sessions/active/route": "app/api/sessions/active/route.js",
+  "/api/admin/check/route": "app/api/admin/check/route.js",
+  "/api/agents/[id]/sessions/[sessionId]/messages/route": "app/api/agents/[id]/sessions/[sessionId]/messages/route.js",
+  "/api/agents/[id]/chat/route": "app/api/agents/[id]/chat/route.js",
+  "/composer/agent/[id]/page": "app/composer/agent/[id]/page.js"
 }
