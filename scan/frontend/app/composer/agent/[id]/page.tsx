@@ -445,7 +445,23 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       const data = await response.json();
       setIsGeneratingImage(false);
 
-      if (data.type === 'message') {
+      if (data.type === 'payment_required') {
+        // Backend returned another tool request (multi-tool orchestration)
+        setPaymentRequest(data);
+        
+        // Show any assistant message that came with the request
+        if (data.assistant_message) {
+          setMessages(prev => [...prev, { role: 'assistant', content: data.assistant_message }]);
+        }
+        
+        // Auto-execute if user has enabled auto-approve
+        if (autoApprovePayments) {
+          setShowPaymentConfirm(false);
+          await executePayment(data);
+        } else {
+          setShowPaymentConfirm(true);
+        }
+      } else if (data.type === 'message') {
         setMessages(prev => [...prev, { 
           role: 'assistant', 
           content: data.content,
