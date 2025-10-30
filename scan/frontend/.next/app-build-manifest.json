@@ -95,6 +95,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/agents/[id]/chat/route.js"
+    ],
+    "/api/agents/[id]/sessions/[sessionId]/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/agents/[id]/sessions/[sessionId]/route.js"
     ]
   }
 }
