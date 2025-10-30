@@ -14,11 +14,15 @@ const anthropic = new Anthropic({
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const { tool_call_id, tool_id, tx_hash, input, payer_address, session_id } = await request.json();
+    const { tool_call_id, tool_id, tx_hash, input, payer_address, payment_session_id, chat_session_id } = await request.json();
     const agentId = id;
 
-    if (!session_id) {
-      return NextResponse.json({ error: 'Session ID required' }, { status: 400 });
+    if (!payment_session_id) {
+      return NextResponse.json({ error: 'Payment session ID required' }, { status: 400 });
+    }
+
+    if (!chat_session_id) {
+      return NextResponse.json({ error: 'Chat session ID required' }, { status: 400 });
     }
 
     if (!payer_address) {
@@ -166,20 +170,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         // Get session wallet address for JWT authentication
-        console.log('🔍 Looking up session:', session_id);
+        console.log('🔍 Looking up payment session:', payment_session_id);
         const sessionResult = await pool.query(
           'SELECT session_address FROM s402_sessions WHERE id = $1',
-          [session_id]
+          [payment_session_id]
         );
 
-        console.log('🔍 Session query result:', sessionResult.rows.length, 'rows');
         if (sessionResult.rows.length === 0) {
-          // Try to find any active session for debugging
-          const debugResult = await pool.query(
-            'SELECT id, session_address, user_address FROM s402_sessions WHERE is_active = true LIMIT 5'
-          );
-          console.log('🔍 Active sessions in DB:', debugResult.rows);
-          throw new Error(`Session not found: ${session_id}`);
+          throw new Error(`Payment session not found: ${payment_session_id}`);
         }
 
         const sessionAddress = sessionResult.rows[0].session_address;
@@ -235,7 +233,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const historyResult = await pool.query(
       'SELECT role, content, tool_calls FROM s402_agent_chats WHERE agent_id = $1 AND session_id = $2 ORDER BY created_at ASC LIMIT 20',
-      [agentId, session_id]
+      [agentId, chat_session_id]
     );
 
     // Build conversation history, excluding orphaned tool_use blocks
@@ -354,7 +352,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     await pool.query(
       'INSERT INTO s402_agent_chats (agent_id, session_id, role, content, tool_output) VALUES ($1, $2, $3, $4, $5)',
-      [agentId, session_id, 'assistant', reply, JSON.stringify(toolOutput)]
+      [agentId, chat_session_id, 'assistant', reply, JSON.stringify(toolOutput)]
     );
 
     // Update agent stats: increment query count and total spent

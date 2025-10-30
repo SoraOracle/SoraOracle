@@ -437,7 +437,8 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           tx_hash: txHash,
           input: request.tool.input,
           payer_address: payer,
-          session_id: paymentSession?.id, // Use payment session ID, not chat session ID
+          payment_session_id: paymentSession?.id, // Payment wallet session
+          chat_session_id: currentSessionId, // Conversation history session
         }),
       });
 
