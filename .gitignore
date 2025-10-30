@@ -42,6 +42,10 @@ cleanup-git-history.sh
 .git/refs/original/
 backup-*/
 
+# Replit documentation files
+replit.md
+S402_ANNOUNCEMENT_TWEETS.md
+
 # Replit-specific files and metadata
 .replit
 .replit.*
@@ -60,9 +64,6 @@ replit_zip_error_log.txt
 **/.upm/
 **/.cache/replit/
 
-# Keep replit.md as project documentation
-# replit.md
-
 # Replit AI/Agent metadata
 .agent/
 .ai/
@@ -80,5 +81,4 @@ coverage/
 
 # Irrelevant markdown files
 *.md
-!replit.md
 !README.md
