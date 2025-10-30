@@ -115,12 +115,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         for (const replicateUrl of replicateUrls) {
           try {
             console.log('📥 Downloading image from Replicate...');
-            const response = await fetch(replicateUrl);
+            const urlStr = String(replicateUrl);
+            const response = await fetch(urlStr);
             const arrayBuffer = await response.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
             
             // Generate unique filename
-            const ext = replicateUrl.includes('.png') ? 'png' : 'jpg';
+            const ext = urlStr.includes('.png') ? 'png' : 'jpg';
             const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}.${ext}`;
             const filePath = path.join(process.cwd(), 'public', 'generated-images', filename);
             
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           } catch (error) {
             console.error('❌ Failed to download/save image:', error);
             // Fallback to Replicate URL if download fails
-            hostedUrls.push(replicateUrl);
+            hostedUrls.push(String(replicateUrl));
           }
         }
 
@@ -261,15 +262,62 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const systemPrompt = agentResult.rows[0]?.description || 'You are a helpful AI assistant powered by s402 oracle data.';
 
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL_STR,
-      max_tokens: 2048,
-      system: systemPrompt,
-      messages: conversationHistory,
-    });
+    // Retry helper with exponential backoff for transient errors
+    const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3) => {
+      const delays = [1000, 2000, 4000]; // 1s, 2s, 4s
+      let lastError;
+      
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          return await fn();
+        } catch (error: any) {
+          lastError = error;
+          const is529 = error.status === 529;
+          const isTransient = error.status >= 500 && error.status < 600;
+          
+          // Only retry on 529 or transient server errors
+          if ((is529 || isTransient) && i < maxRetries - 1) {
+            console.log(`⚠️ Anthropic API ${error.status} error, retrying in ${delays[i]}ms (attempt ${i + 1}/${maxRetries})...`);
+            await new Promise(resolve => setTimeout(resolve, delays[i]));
+            continue;
+          }
+          
+          throw error;
+        }
+      }
+      
+      throw lastError;
+    };
 
-    const textContent = response.content.find(c => c.type === 'text');
-    const reply = textContent ? (textContent as any).text : 'I received the data but could not process it.';
+    let reply: string;
+    
+    try {
+      const response = await retryWithBackoff(() => 
+        anthropic.messages.create({
+          model: DEFAULT_MODEL_STR,
+          max_tokens: 2048,
+          system: systemPrompt,
+          messages: conversationHistory,
+        })
+      );
+
+      const textContent = response.content.find(c => c.type === 'text');
+      reply = textContent ? (textContent as any).text : 'I received the data but could not process it.';
+    } catch (error: any) {
+      // Graceful fallback when Claude is unavailable
+      console.error('❌ Claude API unavailable after retries:', error.status, error.message);
+      
+      // Build fallback response with tool output details
+      if (toolOutput && typeof toolOutput === 'object' && 'images' in toolOutput && toolOutput.images) {
+        const imageUrls = Array.isArray(toolOutput.images) ? toolOutput.images : [toolOutput.images];
+        const imageLinks = imageUrls.map((url: string) => `![Generated Image](${url})`).join('\n\n');
+        reply = `✅ Your image has been generated successfully!\n\n${imageLinks}\n\n_Note: Claude is temporarily experiencing high load and couldn't provide a detailed response. Your image is ready above._`;
+      } else if (toolOutput) {
+        reply = `✅ Tool executed successfully!\n\nResult: ${JSON.stringify(toolOutput, null, 2)}\n\n_Note: Claude is temporarily experiencing high load and couldn't provide a detailed response._`;
+      } else {
+        reply = `⚠️ The tool was executed successfully, but I'm temporarily experiencing high load and can't provide a detailed response right now. Please try again in a moment.`;
+      }
+    }
 
     await pool.query(
       'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',

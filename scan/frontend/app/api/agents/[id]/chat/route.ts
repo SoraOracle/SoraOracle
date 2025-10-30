@@ -84,13 +84,42 @@ When you need to call a tool:
 
 Focus on providing valuable insights using s402 oracle data. Be concise and helpful.`;
 
-    const response = await anthropic.messages.create({
-      model: DEFAULT_MODEL_STR,
-      max_tokens: 2048,
-      system: systemPrompt,
-      messages: conversationHistory as any,
-      tools: tools as any,
-    });
+    // Retry helper with exponential backoff for transient errors
+    const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3) => {
+      const delays = [1000, 2000, 4000]; // 1s, 2s, 4s
+      let lastError;
+      
+      for (let i = 0; i < maxRetries; i++) {
+        try {
+          return await fn();
+        } catch (error: any) {
+          lastError = error;
+          const is529 = error.status === 529;
+          const isTransient = error.status >= 500 && error.status < 600;
+          
+          // Only retry on 529 or transient server errors
+          if ((is529 || isTransient) && i < maxRetries - 1) {
+            console.log(`⚠️ Anthropic API ${error.status} error, retrying in ${delays[i]}ms (attempt ${i + 1}/${maxRetries})...`);
+            await new Promise(resolve => setTimeout(resolve, delays[i]));
+            continue;
+          }
+          
+          throw error;
+        }
+      }
+      
+      throw lastError;
+    };
+
+    const response = await retryWithBackoff(() =>
+      anthropic.messages.create({
+        model: DEFAULT_MODEL_STR,
+        max_tokens: 2048,
+        system: systemPrompt,
+        messages: conversationHistory as any,
+        tools: tools as any,
+      })
+    );
 
     // Check for tool_use in ANY content block (Claude can return text + tool_use)
     const toolUseBlock = response.content.find((c: any) => c.type === 'tool_use');
