@@ -263,6 +263,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           [nextTask.tool_id]
         );
 
+        console.log(`🔍 Tool lookup for "${nextTask.tool_id}": found ${nextToolResult.rows.length} rows`);
+
         if (nextToolResult.rows.length > 0) {
           const nextTool = nextToolResult.rows[0];
           const nextToolCallId = `toolu_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -284,6 +286,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             [parseFloat(tool.cost_usd), agentId]
           );
 
+          console.log(`🚀 Returning payment_required for next tool: ${nextTool.name}`);
+          
           return NextResponse.json({
             type: 'payment_required',
             assistant_message: `Processing task ${nextTaskIndex + 1} of ${total_tools}...`,
@@ -296,6 +300,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             },
             tool_call_id: nextToolCallId,
           });
+        } else {
+          console.log(`❌ Tool "${nextTask.tool_id}" not found in database!`);
         }
       } else if (plan && tools_completed === total_tools - 1) {
         // All tools complete - clear metadata and proceed to synthesis
