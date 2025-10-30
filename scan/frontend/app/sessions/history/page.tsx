@@ -262,94 +262,104 @@ export default function SessionHistoryPage() {
             No previous sessions found
           </div>
         ) : (
-          <div className="space-y-4">
-            {sessions.map((session) => (
-              <div
-                key={session.id}
-                className={`bg-s402-light-card dark:bg-zinc-900 border ${
-                  session.isActive 
-                    ? 'border-green-500 dark:border-green-600' 
-                    : 'border-gray-300 dark:border-zinc-800'
-                } rounded-lg p-6 shadow-soft dark:shadow-none`}
-              >
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="text-sm text-gray-500 dark:text-gray-400">Session ID</div>
-                      {session.isActive && (
-                        <span className="px-2 py-0.5 bg-green-500 text-white text-xs font-medium rounded-full flex items-center gap-1">
-                          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
-                          ACTIVE
-                        </span>
-                      )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sessions.map((session, index) => {
+              const sessionDate = new Date(session.createdAt);
+              const sessionTitle = `Session ${sessions.length - index}`;
+              const hasRefundableBalance = session.currentUsd1Balance >= 0.01 || session.currentBnbBalance >= 0.000015;
+              
+              return (
+                <div
+                  key={session.id}
+                  className={`bg-s402-light-card dark:bg-zinc-900 border ${
+                    session.isActive 
+                      ? 'border-green-500 dark:border-green-600' 
+                      : 'border-gray-300 dark:border-zinc-800'
+                  } rounded-lg p-6 shadow-soft dark:shadow-none hover:border-s402-orange dark:hover:border-s402-orange transition-all duration-300 flex flex-col h-full`}
+                >
+                  {/* Header with Icon and Badge */}
+                  <div className="flex items-start gap-3 mb-4">
+                    <div className="w-12 h-12 bg-s402-orange/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-2xl">{session.isActive ? '⚡' : '💳'}</span>
                     </div>
-                    <div className="font-mono text-sm text-gray-700 dark:text-gray-300">
-                      {session.id.slice(0, 20)}...
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-lg mb-1">{sessionTitle}</h3>
+                      <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded ${
+                        session.isActive 
+                          ? 'bg-green-500/20 text-green-600 dark:text-green-400'
+                          : session.refundedAt
+                          ? 'bg-blue-500/20 text-blue-600 dark:text-blue-400'
+                          : 'bg-gray-500/20 text-gray-600 dark:text-gray-400'
+                      }`}>
+                        {session.isActive ? 'Active' : session.refundedAt ? 'Refunded' : 'Closed'}
+                      </span>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Created</div>
-                    <div className="text-sm">
-                      {new Date(session.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                  <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Initial Limit</div>
-                    <div className="font-semibold">{session.maxUsd1Amount.toFixed(2)} USD1</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Spent</div>
-                    <div className="font-semibold">{session.spentAmount.toFixed(2)} USD1</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Remaining USD1</div>
-                    <div className="font-semibold text-orange-600 dark:text-orange-500">
-                      {session.currentUsd1Balance.toFixed(4)} USD1
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Remaining BNB</div>
-                    <div className="font-semibold text-orange-600 dark:text-orange-500">
-                      {session.currentBnbBalance.toFixed(6)} BNB
-                    </div>
-                  </div>
-                </div>
-
-                {session.refundedAt && (
-                  <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded">
-                    <div className="text-sm text-green-600 dark:text-green-400">
-                      Refunded {session.refundedUsd1Amount?.toFixed(4) || 0} USD1 + {session.refundedBnbAmount?.toFixed(6) || 0} BNB
-                      on {new Date(session.refundedAt).toLocaleString()}
-                    </div>
-                  </div>
-                )}
-
-                {session.isActive ? (
-                  <div className="p-3 bg-green-500/10 border border-green-500/20 rounded text-center">
-                    <div className="text-sm text-green-600 dark:text-green-400">
-                      ✨ This is your current active session. Close it from the header to refund remaining balance.
-                    </div>
-                  </div>
-                ) : session.canRefund ? (
-                  <button
-                    onClick={() => handleRefund(session.id)}
-                    disabled={refunding === session.id}
-                    className="w-full bg-s402-orange hover:bg-orange-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded transition-colors shadow-soft dark:shadow-none"
-                  >
-                    {refunding === session.id ? 'Refunding...' : 'Refund Remaining Balance'}
-                  </button>
-                ) : (session.currentUsd1Balance > 0 || session.currentBnbBalance > 0) ? (
-                  <div className="p-3 bg-gray-500/10 border border-gray-500/20 rounded text-center">
+                  {/* Session Info */}
+                  <div className="space-y-2 mb-4 flex-1">
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      💡 Remaining balance too small to refund (gas fees would exceed refund value)
+                      Created {sessionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                     </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 pt-2">
+                      <div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Limit</div>
+                        <div className="text-sm font-semibold">${session.maxUsd1Amount.toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">Spent</div>
+                        <div className="text-sm font-semibold">${session.spentAmount.toFixed(2)}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">USD1</div>
+                        <div className="text-sm font-semibold text-s402-orange">{session.currentUsd1Balance.toFixed(4)}</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">BNB</div>
+                        <div className="text-sm font-semibold text-s402-orange">{session.currentBnbBalance.toFixed(6)}</div>
+                      </div>
+                    </div>
+
+                    {session.refundedAt && (
+                      <div className="pt-2 text-xs text-green-600 dark:text-green-400">
+                        ✓ Refunded on {new Date(session.refundedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      </div>
+                    )}
                   </div>
-                ) : null}
-              </div>
-            ))}
+
+                  {/* Action Button */}
+                  {session.isActive ? (
+                    <div className="text-xs text-center text-gray-500 dark:text-gray-400 py-2 bg-gray-100 dark:bg-gray-800 rounded">
+                      Close from header to refund
+                    </div>
+                  ) : session.canRefund ? (
+                    <button
+                      onClick={() => handleRefund(session.id)}
+                      disabled={refunding === session.id}
+                      className="w-full text-s402-orange hover:text-orange-600 disabled:text-gray-400 font-medium text-sm py-2 transition-colors flex items-center justify-center gap-1 group"
+                    >
+                      {refunding === session.id ? (
+                        'Refunding...'
+                      ) : (
+                        <>
+                          Refund Balance
+                          <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        </>
+                      )}
+                    </button>
+                  ) : hasRefundableBalance ? (
+                    <div className="text-xs text-center text-gray-500 dark:text-gray-400 py-2">
+                      Balance too small to refund
+                    </div>
+                  ) : (
+                    <div className="text-xs text-center text-gray-500 dark:text-gray-400 py-2">
+                      No remaining balance
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
