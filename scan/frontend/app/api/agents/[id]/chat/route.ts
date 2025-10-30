@@ -51,14 +51,28 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     );
 
     const historyResult = await pool.query(
-      'SELECT role, content FROM s402_agent_chats WHERE agent_id = $1 AND session_id = $2 ORDER BY created_at ASC LIMIT 20',
+      'SELECT role, content, tool_calls FROM s402_agent_chats WHERE agent_id = $1 AND session_id = $2 ORDER BY created_at ASC LIMIT 20',
       [agentId, session_id]
     );
 
-    const conversationHistory = historyResult.rows.map(row => ({
-      role: row.role === 'user' ? 'user' : 'assistant',
-      content: row.content,
-    }));
+    const conversationHistory = historyResult.rows.map(row => {
+      const role = row.role === 'user' ? 'user' : 'assistant';
+      
+      // If this message has tool_calls, reconstruct the proper Anthropic format
+      if (row.tool_calls) {
+        const toolCalls = JSON.parse(row.tool_calls);
+        return {
+          role,
+          content: toolCalls, // Tool calls should be the content array
+        };
+      }
+      
+      // Regular text message
+      return {
+        role,
+        content: row.content,
+      };
+    });
 
     const toolsResult = await pool.query(
       'SELECT id, name, description, input_schema, cost_usd FROM s402_tools WHERE is_active = true'

@@ -1,6 +1,4 @@
 {
-  "/api/sessions/refund/route": "app/api/sessions/refund/route.js",
   "/api/sessions/active/route": "app/api/sessions/active/route.js",
-  "/api/sessions/history/route": "app/api/sessions/history/route.js",
   "/page": "app/page.js"
 }

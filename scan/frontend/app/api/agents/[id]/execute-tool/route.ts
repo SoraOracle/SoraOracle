@@ -217,8 +217,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         });
       } else if (row.role === 'assistant') {
         if (row.tool_calls) {
-          // Skip tool_use blocks that aren't the current one we're responding to
-          const toolCallsArray = Array.isArray(row.tool_calls) ? row.tool_calls : [row.tool_calls];
+          // Parse JSON string if needed
+          const toolCallsArray = typeof row.tool_calls === 'string' 
+            ? JSON.parse(row.tool_calls) 
+            : (Array.isArray(row.tool_calls) ? row.tool_calls : [row.tool_calls]);
+          
           const toolCall = toolCallsArray[0];
           
           if (toolCall.id === tool_call_id) {
