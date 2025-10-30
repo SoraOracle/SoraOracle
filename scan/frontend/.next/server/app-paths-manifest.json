@@ -2,6 +2,7 @@
   "/api/sessions/history/route": "app/api/sessions/history/route.js",
   "/api/admin/check/route": "app/api/admin/check/route.js",
   "/api/sessions/active/route": "app/api/sessions/active/route.js",
+  "/api/sessions/close/route": "app/api/sessions/close/route.js",
   "/page": "app/page.js",
   "/sessions/history/page": "app/sessions/history/page.js"
 }
