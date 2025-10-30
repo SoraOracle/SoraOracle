@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS s402_sessions (
   id VARCHAR(66) PRIMARY KEY,
   user_address VARCHAR(42) NOT NULL,
   session_address VARCHAR(42) NOT NULL, -- Public key of session wallet
-  session_private_key TEXT NOT NULL, -- Encrypted private key (AES-256)
+  session_private_key TEXT, -- Encrypted private key (AES-256), nullable after close
   max_usd1_amount NUMERIC(20, 6) NOT NULL, -- Spending limit in USD1
   spent_amount NUMERIC(20, 6) DEFAULT 0, -- Amount spent so far
   duration_seconds INT, -- Legacy field, nullable (sessions don't expire)
