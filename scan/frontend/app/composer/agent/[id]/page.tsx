@@ -127,12 +127,11 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
         const data = await response.json();
         setSessions(data);
         
-        // Auto-select first session or create new one
+        // Auto-select first session if exists (don't auto-create)
         if (data.length > 0) {
           setCurrentSessionId(data[0].id);
-        } else {
-          createNewSession();
         }
+        // User must manually click "New Chat" to create sessions
       }
     } catch (error) {
       console.error('Failed to load sessions:', error);

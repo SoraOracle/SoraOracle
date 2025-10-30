@@ -14,7 +14,7 @@ interface SessionModalProps {
 type FundingStep = 'configure' | 'approving' | 'funding' | 'activating' | 'complete';
 
 export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModalProps) {
-  const { createSession } = useSession();
+  const { createSession, refreshSession } = useSession();
   const { walletAddress, token } = useWallet();
   const [maxUsd1Amount, setMaxUsd1Amount] = useState('0.50');
   const [isCreating, setIsCreating] = useState(false);
@@ -144,8 +144,8 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
 
       setFundingStep('complete');
       
-      // Refresh session data
-      await createSession(amount, 0); // No duration - sessions don't expire
+      // Refresh session data (fetch latest, don't create new one)
+      await refreshSession();
       
       setTimeout(() => {
         onSuccess();
