@@ -1,0 +1,13 @@
+tree 187db243c84736192b4b10f644f447b0ac551446
+parent 185eeafe65a8f54e8d693627fa408290fccd4312
+author gearfivexbt <48770100-gearfivexbt@users.noreply.replit.com> 1761611406 +0000
+committer gearfivexbt <48770100-gearfivexbt@users.noreply.replit.com> 1761611406 +0000
+
+Redirect to S402 demo and disable site navigation
+
+Update application routes to default to the S402 demo page and disable most navigation links with a "Coming Soon" tooltip and "not-allowed" cursor. The dashboard link is also moved from the header to the hamburger menu.
+
+Replit-Commit-Author: Agent
+Replit-Commit-Session-Id: 17730777-0ec0-4bea-b585-33a39dc8c35f
+Replit-Commit-Checkpoint-Type: full_checkpoint
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/a37d9087-1337-49bb-b82a-c77be12f03a6/17730777-0ec0-4bea-b585-33a39dc8c35f/Rp7nJUx
