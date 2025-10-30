@@ -228,6 +228,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       [chat_session_id]
     );
 
+    console.log('🔍 Session metadata:', JSON.stringify(sessionMetaResult.rows[0]?.metadata, null, 2));
+
     // Store current tool output as user message (tool_result)
     await pool.query(
       'INSERT INTO s402_agent_chats (agent_id, session_id, role, content, tool_output) VALUES ($1, $2, $3, $4, $5)',
@@ -238,6 +240,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (sessionMetaResult.rows[0]?.metadata) {
       const metadata = sessionMetaResult.rows[0].metadata;
       const { plan, tools_completed = 0, total_tools = 0 } = metadata;
+      
+      console.log(`🎯 Plan check: ${tools_completed} of ${total_tools} tools completed`);
       
       if (plan && tools_completed < total_tools - 1) {
         // More tools to execute - return next tool WITHOUT calling Claude
