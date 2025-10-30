@@ -48,8 +48,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Trigger refund in background (don't wait for it)
-    fetch(`${process.env.NEXT_PUBLIC_URL || 'http://localhost:5000'}/api/sessions/refund`, {
+    // Trigger refund in background using relative URL (works in all environments)
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('host') || 'localhost:5000';
+    const baseUrl = `${protocol}://${host}`;
+    
+    fetch(`${baseUrl}/api/sessions/refund`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -26,6 +26,7 @@ const S402_ABI = [
 const USD1_ABI = [
   'function allowance(address owner, address spender) external view returns (uint256)',
   'function approve(address spender, uint256 amount) external returns (bool)',
+  'function balanceOf(address owner) external view returns (uint256)',
 ];
 
 export async function POST(request: NextRequest) {
@@ -87,12 +88,25 @@ export async function POST(request: NextRequest) {
 
     const amountInUnits = ethers.parseUnits(costUSD.toString(), 18);
     
-    // Check session wallet's USD1 balance (we transferred USD1 to it during session creation)
+    // Check session wallet's actual USD1 balance (we transferred USD1 to it during session creation)
     const usd1Contract = new ethers.Contract(USD1_ADDRESS, USD1_ABI, sessionWallet);
-    const sessionBalance = await usd1Contract.allowance(session.session_address, S402_FACILITATOR_ADDRESS);
+    const sessionBalance = await usd1Contract.balanceOf(session.session_address);
     
-    // Approve facilitator if needed (first time only)
+    // Verify session has enough USD1
     if (sessionBalance < amountInUnits) {
+      return NextResponse.json(
+        { 
+          error: 'Insufficient session balance',
+          required: costUSD,
+          available: ethers.formatUnits(sessionBalance, 18),
+        },
+        { status: 402 }
+      );
+    }
+    
+    // Check allowance and approve facilitator if needed (first time only)
+    const allowance = await usd1Contract.allowance(session.session_address, S402_FACILITATOR_ADDRESS);
+    if (allowance < amountInUnits) {
       const maxApproval = ethers.parseUnits('1000000', 18);
       const approveTx = await usd1Contract.approve(S402_FACILITATOR_ADDRESS, maxApproval);
       await approveTx.wait();

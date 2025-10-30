@@ -5,7 +5,11 @@ import crypto from 'crypto';
 import { verifyJWT, validateSessionAccess } from '../auth';
 
 // Encryption configuration
-const ENCRYPTION_KEY = process.env.SESSION_ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
+// CRITICAL: Require SESSION_ENCRYPTION_KEY to ensure sessions remain decryptable
+const ENCRYPTION_KEY = process.env.SESSION_ENCRYPTION_KEY;
+if (!ENCRYPTION_KEY) {
+  throw new Error('SESSION_ENCRYPTION_KEY environment variable is required');
+}
 const ALGORITHM = 'aes-256-cbc';
 
 function encryptPrivateKey(privateKey: string): string {
