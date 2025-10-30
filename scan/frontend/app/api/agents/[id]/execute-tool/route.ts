@@ -217,10 +217,43 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       ],
     });
     
-    console.log('📋 Conversation history length:', conversationHistory.length);
-    console.log('📋 Tool use count:', conversationHistory.filter(m => m.role === 'assistant' && Array.isArray(m.content) && m.content[0]?.type === 'tool_use').length);
-    console.log('📋 Tool result count:', conversationHistory.filter(m => m.role === 'user' && Array.isArray(m.content) && m.content[0]?.type === 'tool_result').length);
-    console.log('📋 Full history:', JSON.stringify(conversationHistory, null, 2));
+    // Clean up orphaned tool_use blocks (Claude requires each tool_use to have a matching tool_result)
+    const cleanedHistory: any[] = [];
+    for (let i = 0; i < conversationHistory.length; i++) {
+      const msg = conversationHistory[i];
+      
+      // If this is a tool_use message, check if next message has matching tool_result
+      if (msg.role === 'assistant' && Array.isArray(msg.content) && 
+          msg.content.some((c: any) => c.type === 'tool_use')) {
+        const nextMsg = conversationHistory[i + 1];
+        const toolUseIds = msg.content.filter((c: any) => c.type === 'tool_use').map((c: any) => c.id);
+        
+        // Check if next message contains tool_result for this tool_use
+        if (nextMsg && nextMsg.role === 'user' && Array.isArray(nextMsg.content)) {
+          const toolResultIds = nextMsg.content
+            .filter((c: any) => c.type === 'tool_result')
+            .map((c: any) => c.tool_use_id);
+          
+          // Only include if all tool_use IDs have matching tool_results
+          const allMatched = toolUseIds.every(id => toolResultIds.includes(id));
+          if (allMatched) {
+            cleanedHistory.push(msg);
+          } else {
+            console.log(`🧹 Removed orphaned tool_use: ${toolUseIds.join(', ')}`);
+          }
+        } else {
+          console.log(`🧹 Removed orphaned tool_use without result: ${toolUseIds.join(', ')}`);
+        }
+      } else {
+        // Include regular messages and tool_results
+        cleanedHistory.push(msg);
+      }
+    }
+
+    console.log('📋 Conversation history length:', cleanedHistory.length);
+    console.log('📋 Tool use count:', cleanedHistory.filter(m => m.role === 'assistant' && Array.isArray(m.content) && m.content[0]?.type === 'tool_use').length);
+    console.log('📋 Tool result count:', cleanedHistory.filter(m => m.role === 'user' && Array.isArray(m.content) && m.content[0]?.type === 'tool_result').length);
+    console.log('📋 Full history:', JSON.stringify(cleanedHistory, null, 2));
 
     // === CRITICAL: Check for multi-tool plan BEFORE calling Claude ===
     const sessionMetaResult = await pool.query(
@@ -373,7 +406,7 @@ Be conversational, engaging, and make the data easy to understand. Never show ra
           model: DEFAULT_MODEL_STR,
           max_tokens: 2048,
           system: systemPrompt,
-          messages: conversationHistory,
+          messages: cleanedHistory,
         })
       );
       const textContent = response.content.find(c => c.type === 'text');
