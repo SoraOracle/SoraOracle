@@ -205,30 +205,35 @@ export async function POST(request: NextRequest) {
     const finalBnbBalance = await provider.getBalance(session.session_address);
     
     const usd1DustThreshold = ethers.parseUnits('0.01', 18); // 0.01 USD1
-    const bnbDustThreshold = ethers.parseUnits('0.000015', 18); // 0.000015 BNB (3x gas cost)
+    const bnbDustThreshold = ethers.parseUnits('0.0002', 18); // 0.0002 BNB (~$0.12 at $600/BNB - reasonable loss)
     
     // Check if significant balances remain
     const hasSignificantUsd1 = finalUsd1Balance > usd1DustThreshold;
     const hasSignificantBnb = finalBnbBalance > bnbDustThreshold;
     
-    if (hasSignificantUsd1 || hasSignificantBnb) {
-      console.error('Cannot close session - significant balance remains:',
-        'USD1:', ethers.formatUnits(finalUsd1Balance, 18),
-        'BNB:', ethers.formatUnits(finalBnbBalance, 18));
+    if (hasSignificantUsd1) {
+      // USD1 is valuable - must be refunded
+      console.error('Cannot close session - USD1 balance remains:',
+        ethers.formatUnits(finalUsd1Balance, 18));
       
       return NextResponse.json(
         { 
-          error: 'Refund incomplete - session cannot be closed safely',
+          error: 'USD1 refund incomplete - session cannot be closed',
           details: {
             usd1Balance: ethers.formatUnits(finalUsd1Balance, 18),
             bnbBalance: ethers.formatUnits(finalBnbBalance, 18),
-            message: hasSignificantUsd1 
-              ? 'USD1 balance still exists. Please try again or contact support.'
-              : 'BNB balance still exists. The refund transaction may have failed.'
+            message: 'USD1 balance still exists. Please try again or contact support.'
           }
         },
         { status: 400 }
       );
+    }
+    
+    // BNB: Allow session close even if small amount remains (gas dust is expected)
+    if (hasSignificantBnb) {
+      console.warn('Session closing with BNB balance remaining:',
+        ethers.formatUnits(finalBnbBalance, 18),
+        '- This BNB will remain in the session wallet.');
     }
 
     // Ensure refund columns exist (idempotent)
@@ -272,13 +277,29 @@ export async function POST(request: NextRequest) {
       [usd1TxHash, bnbTxHash, parseFloat(refundedUSD1), parseFloat(refundedBNB), session.id]
     );
 
+    // Create message based on what was refunded
+    let message = 'Session closed successfully.';
+    if (parseFloat(refundedUSD1) > 0 && parseFloat(refundedBNB) > 0) {
+      message = `Session closed. Refunded ${refundedUSD1} USD1 and ${refundedBNB} BNB.`;
+    } else if (parseFloat(refundedUSD1) > 0) {
+      message = `Session closed. Refunded ${refundedUSD1} USD1.`;
+      if (finalBnbBalance > 0n) {
+        message += ` (${ethers.formatUnits(finalBnbBalance, 18)} BNB remains as gas dust)`;
+      }
+    } else if (parseFloat(refundedBNB) > 0) {
+      message = `Session closed. Refunded ${refundedBNB} BNB.`;
+    } else if (finalBnbBalance > 0n) {
+      message = `Session closed. (${ethers.formatUnits(finalBnbBalance, 18)} BNB remains as gas dust)`;
+    }
+
     return NextResponse.json({
       success: true,
       refundedUSD1,
       refundedBNB,
       usd1TxHash,
       bnbTxHash,
-      message: 'Session closed successfully. Private key deleted.',
+      message,
+      bnbRemaining: ethers.formatUnits(finalBnbBalance, 18),
     });
   } catch (error: any) {
     console.error('Session close error:', error);
