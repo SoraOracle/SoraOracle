@@ -183,6 +183,39 @@ export default function SessionHistoryPage() {
     }
   };
 
+  const handleCloseSession = async () => {
+    if (!token) return;
+
+    if (!confirm('Close your active session? Any remaining balance will be refunded to your wallet.')) {
+      return;
+    }
+
+    setRefunding('closing');
+    setError('');
+
+    try {
+      const response = await fetch('/api/sessions/close', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to close session');
+      }
+
+      alert('Session closed successfully! Your remaining balance has been refunded.');
+      loadSessions();
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setRefunding(null);
+    }
+  };
+
   // Show authentication wall if needed
   if (needsAuth) {
     return (
@@ -330,9 +363,20 @@ export default function SessionHistoryPage() {
 
                   {/* Action Button */}
                   {session.isActive ? (
-                    <div className="text-xs text-center text-gray-500 dark:text-gray-400 py-2 bg-gray-100 dark:bg-gray-800 rounded">
-                      Close from header to refund
-                    </div>
+                    <button
+                      onClick={handleCloseSession}
+                      disabled={refunding === 'closing'}
+                      className="w-full text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 disabled:text-gray-400 font-medium text-sm py-2 transition-colors flex items-center justify-center gap-1 group"
+                    >
+                      {refunding === 'closing' ? (
+                        'Closing...'
+                      ) : (
+                        <>
+                          Close & Refund
+                          <span className="group-hover:translate-x-1 transition-transform">→</span>
+                        </>
+                      )}
+                    </button>
                   ) : session.canRefund ? (
                     <button
                       onClick={() => handleRefund(session.id)}
