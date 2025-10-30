@@ -186,3 +186,27 @@ INSERT INTO s402_admin_wallets (address, name, added_by)
 VALUES 
   ('0x0000000000000000000000000000000000000000', 'System Admin', '0x0000000000000000000000000000000000000000')
 ON CONFLICT (address) DO NOTHING;
+
+-- ============================================
+-- SESSION KEYS (Temporary spending authorization)
+-- ============================================
+
+-- Sessions table: Time-limited spending sessions with ephemeral keys
+CREATE TABLE IF NOT EXISTS s402_sessions (
+  id VARCHAR(66) PRIMARY KEY,
+  user_address VARCHAR(42) NOT NULL,
+  session_address VARCHAR(42) NOT NULL, -- Public key of session wallet
+  session_private_key TEXT NOT NULL, -- Encrypted private key (AES-256)
+  max_usd1_amount NUMERIC(20, 6) NOT NULL, -- Spending limit in USD1
+  spent_amount NUMERIC(20, 6) DEFAULT 0, -- Amount spent so far
+  duration_seconds INT NOT NULL, -- Session duration
+  expires_at TIMESTAMP NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW(),
+  last_used_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Indexes for s402_sessions table
+CREATE INDEX IF NOT EXISTS idx_session_user ON s402_sessions(user_address);
+CREATE INDEX IF NOT EXISTS idx_session_active ON s402_sessions(is_active, expires_at) WHERE is_active = TRUE;
+CREATE INDEX IF NOT EXISTS idx_session_address ON s402_sessions(session_address);
