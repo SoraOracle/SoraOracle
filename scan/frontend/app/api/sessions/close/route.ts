@@ -149,33 +149,54 @@ export async function POST(request: NextRequest) {
     let refundedBNB = '0';
     let bnbTxHash = null;
 
+    console.log('BNB refund - Initial balance:', ethers.formatUnits(bnbBalance, 18), 'BNB');
+
     if (bnbBalance > 0n) {
-      // BNB transfer uses exactly 21000 gas (standard transfer)
-      const gasLimit = 21000n;
-      
-      // Get current gas price
-      const feeData = await provider.getFeeData();
-      const gasPrice = feeData.gasPrice || ethers.parseUnits('3', 'gwei'); // Default 3 gwei if null
-      
-      // Calculate exact gas cost for this transaction
-      const exactGasCost = gasLimit * gasPrice;
-      
-      // Add 50% buffer for safety (gas price fluctuations)
-      const gasCostWithBuffer = exactGasCost * 150n / 100n;
-      
-      // Only refund if balance exceeds buffered gas cost
-      if (bnbBalance > gasCostWithBuffer) {
-        // Send everything except the gas cost (no buffer on the send amount)
-        const refundAmount = bnbBalance - exactGasCost;
+      try {
+        // BNB transfer uses exactly 21000 gas (standard transfer)
+        const gasLimit = 21000n;
         
-        const bnbTx = await sessionWallet.sendTransaction({
-          to: session.user_address,
-          value: refundAmount,
-          gasLimit: gasLimit,
-        });
-        const receipt = await bnbTx.wait();
-        refundedBNB = ethers.formatUnits(refundAmount, 18);
-        bnbTxHash = receipt?.hash || null;
+        // Get current gas price
+        const feeData = await provider.getFeeData();
+        const gasPrice = feeData.gasPrice || ethers.parseUnits('3', 'gwei'); // Default 3 gwei if null
+        
+        console.log('Gas price:', ethers.formatUnits(gasPrice, 'gwei'), 'Gwei');
+        
+        // Calculate exact gas cost for this transaction
+        const exactGasCost = gasLimit * gasPrice;
+        
+        console.log('Exact gas cost:', ethers.formatUnits(exactGasCost, 18), 'BNB');
+        
+        // Add 100% buffer for safety (double the gas cost)
+        const gasCostWithBuffer = exactGasCost * 2n;
+        
+        console.log('Buffered gas cost:', ethers.formatUnits(gasCostWithBuffer, 18), 'BNB');
+        
+        // Only refund if balance exceeds buffered gas cost (very conservative)
+        if (bnbBalance > gasCostWithBuffer) {
+          // Send everything except DOUBLE the gas cost for maximum safety
+          const refundAmount = bnbBalance - gasCostWithBuffer;
+          
+          console.log('Attempting to refund:', ethers.formatUnits(refundAmount, 18), 'BNB');
+          
+          const bnbTx = await sessionWallet.sendTransaction({
+            to: session.user_address,
+            value: refundAmount,
+            gasLimit: gasLimit,
+            gasPrice: gasPrice, // Explicitly set the gas price
+          });
+          const receipt = await bnbTx.wait();
+          refundedBNB = ethers.formatUnits(refundAmount, 18);
+          bnbTxHash = receipt?.hash || null;
+          
+          console.log('BNB refund successful:', refundedBNB, 'BNB');
+        } else {
+          console.log('Skipping BNB refund - balance too low (below 2x gas cost)');
+        }
+      } catch (bnbError: any) {
+        console.error('BNB refund failed (non-fatal):', bnbError.message);
+        // Don't fail the entire session close if BNB refund fails
+        // The important part is refunding USD1 and closing the session
       }
     }
 
