@@ -631,6 +631,9 @@ video {
 .ml-auto {
   margin-left: auto;
 }
+.mt-0\.5 {
+  margin-top: 0.125rem;
+}
 .mt-1 {
   margin-top: 0.25rem;
 }
@@ -1053,6 +1056,10 @@ video {
 .border-transparent {
   border-color: transparent;
 }
+.border-yellow-200 {
+  --tw-border-opacity: 1;
+  border-color: rgb(254 240 138 / var(--tw-border-opacity, 1));
+}
 .border-l-s402-orange {
   --tw-border-opacity: 1;
   border-left-color: rgb(249 115 22 / var(--tw-border-opacity, 1));
@@ -1151,6 +1158,10 @@ video {
 .bg-white {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
+}
+.bg-yellow-50 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 252 232 / var(--tw-bg-opacity, 1));
 }
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
@@ -1418,6 +1429,14 @@ video {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+.text-yellow-700 {
+  --tw-text-opacity: 1;
+  color: rgb(161 98 7 / var(--tw-text-opacity, 1));
+}
+.text-yellow-900 {
+  --tw-text-opacity: 1;
+  color: rgb(113 63 18 / var(--tw-text-opacity, 1));
 }
 .accent-s402-orange {
   accent-color: #F97316;
@@ -1746,6 +1765,11 @@ video {
   border-color: rgb(17 24 39 / var(--tw-border-opacity, 1));
 }
 
+.dark\:border-yellow-800:is(.dark *) {
+  --tw-border-opacity: 1;
+  border-color: rgb(133 77 14 / var(--tw-border-opacity, 1));
+}
+
 .dark\:border-zinc-800:is(.dark *) {
   --tw-border-opacity: 1;
   border-color: rgb(39 39 42 / var(--tw-border-opacity, 1));
@@ -1794,6 +1818,10 @@ video {
 
 .dark\:bg-transparent:is(.dark *) {
   background-color: transparent;
+}
+
+.dark\:bg-yellow-900\/20:is(.dark *) {
+  background-color: rgb(113 63 18 / 0.2);
 }
 
 .dark\:bg-zinc-900:is(.dark *) {
@@ -1854,6 +1882,16 @@ video {
 .dark\:text-white:is(.dark *) {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+.dark\:text-yellow-200:is(.dark *) {
+  --tw-text-opacity: 1;
+  color: rgb(254 240 138 / var(--tw-text-opacity, 1));
+}
+
+.dark\:text-yellow-300:is(.dark *) {
+  --tw-text-opacity: 1;
+  color: rgb(253 224 71 / var(--tw-text-opacity, 1));
 }
 
 .dark\:shadow-none:is(.dark *) {

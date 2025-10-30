@@ -44,7 +44,10 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'complete'>('idle');
   const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null);
+  const [showPaymentConfirm, setShowPaymentConfirm] = useState(false);
+  const [autoApprovePayments, setAutoApprovePayments] = useState(false);
   const [agent, setAgent] = useState<any>(null);
   const [loadingAgent, setLoadingAgent] = useState(true);
   const [agentNotFound, setAgentNotFound] = useState(false);
@@ -54,6 +57,12 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const MODEL_NAME = "Claude Sonnet 4";
+
+  // Load auto-approve preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('autoApprovePayments');
+    if (saved) setAutoApprovePayments(JSON.parse(saved));
+  }, []);
 
   useEffect(() => {
     loadAgent();
@@ -217,6 +226,14 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
         }
         setPaymentRequest(data);
         setIsLoading(false);
+        
+        // Auto-execute if user has enabled auto-approve
+        if (autoApprovePayments) {
+          setShowPaymentConfirm(false);
+          await executePayment();
+        } else {
+          setShowPaymentConfirm(true);
+        }
       } else if (data.type === 'message') {
         setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
         setIsLoading(false);
@@ -250,21 +267,19 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
     }
   };
 
-  const handlePayment = async () => {
+  const executePayment = async () => {
     if (!paymentRequest || !currentSessionId) return;
 
     try {
       setIsLoading(true);
+      setShowPaymentConfirm(false);
+      setPaymentStatus('processing');
 
       let txHash: string;
       let payer: string;
 
       // Use session-based payment if active session exists
       if (hasActiveSession && walletAddress && token) {
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: '⚡ Processing payment with your session wallet...',
-        }]);
 
         const paymentResponse = await fetch('/api/sessions/pay', {
           method: 'POST',
@@ -288,10 +303,9 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
         txHash = paymentData.txHash;
         payer = paymentData.sessionAddress;
 
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: `✅ Payment complete! No signatures needed.\n$${paymentRequest.tool.cost_usd.toFixed(3)} USD1 paid\nRemaining balance: $${paymentData.remainingBalance.toFixed(3)}`,
-        }]);
+        setPaymentStatus('complete');
+        // Brief delay to show complete status
+        await new Promise(resolve => setTimeout(resolve, 800));
       } else {
         // Fallback to manual wallet payment if no session
         if (typeof window.ethereum === 'undefined') {
@@ -299,10 +313,6 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           return;
         }
 
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: '⚠️ No active session. Using your wallet (requires 2 signatures)...',
-        }]);
 
         // Import ethers dynamically
         const { BrowserProvider, Contract, parseUnits, Signature } = await import('ethers');
@@ -330,20 +340,10 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
         const allowance = await usd1Contract.allowance(from, S402_FACILITATOR_ADDRESS);
 
         if (allowance < amountInUnits) {
-          setMessages(prev => [...prev, {
-            role: 'assistant',
-            content: '⏳ Signature 1/2: Approving USD1 for S402 payments...',
-          }]);
-
           const maxApproval = parseUnits('1000000', 18); // 1M USD1
           const approveTx = await usd1Contract.approve(S402_FACILITATOR_ADDRESS, maxApproval);
           await approveTx.wait();
         }
-
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: '⏳ Signature 2/2: Authorizing payment...',
-        }]);
 
         // Generate nonce
         const randomBytes = new Uint8Array(32);
@@ -401,17 +401,17 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
         // Submit to S402 Facilitator
         const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, signer);
         const tx = await facilitator.settlePayment(payment, authSigStruct);
-        
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: `⏳ Payment confirmed! Executing tool...\n$${paymentRequest.tool.cost_usd.toFixed(3)} USD1 paid`,
-        }]);
-
         const receipt = await tx.wait();
         txHash = receipt.hash;
+        
+        setPaymentStatus('complete');
+        await new Promise(resolve => setTimeout(resolve, 800));
       }
 
       setPaymentRequest(null);
+      
+      // Reset payment status after brief delay
+      setPaymentStatus('idle');
 
       // Show generating indicator for image generation tools
       const isImageTool = paymentRequest.tool.name?.toLowerCase().includes('image') || 
@@ -419,10 +419,6 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       
       if (isImageTool) {
         setIsGeneratingImage(true);
-        setMessages(prev => [...prev, {
-          role: 'assistant',
-          content: '🎨 Generating image... This may take 10-30 seconds.',
-        }]);
       }
 
       const response = await fetch(`/api/agents/${agentId}/execute-tool`, {
@@ -475,10 +471,20 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
 
   const cancelPayment = () => {
     setPaymentRequest(null);
+    setShowPaymentConfirm(false);
+    setPaymentStatus('idle');
     setMessages(prev => [...prev, {
       role: 'assistant',
       content: '❌ Payment cancelled. How else can I help you?',
     }]);
+  };
+
+  const handlePaymentConfirm = (dontShowAgain: boolean) => {
+    if (dontShowAgain) {
+      localStorage.setItem('autoApprovePayments', 'true');
+      setAutoApprovePayments(true);
+    }
+    executePayment();
   };
 
   if (loadingAgent) {
@@ -701,6 +707,28 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
                 </div>
               )}
 
+              {paymentStatus === 'processing' && (
+                <div className="flex justify-start">
+                  <div className="bg-s402-light-card dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 shadow-soft dark:shadow-none">
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <div className="animate-pulse">⚡</div>
+                      <div>Processing payment...</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {paymentStatus === 'complete' && (
+                <div className="flex justify-start">
+                  <div className="bg-s402-light-card dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 shadow-soft dark:shadow-none">
+                    <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                      <div>✅</div>
+                      <div>Payment complete</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {isGeneratingImage && (
                 <div className="flex justify-start">
                   <div className="bg-s402-light-card dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-4 py-3 shadow-soft dark:shadow-none">
@@ -741,7 +769,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
                   Cancel
                 </button>
                 <button
-                  onClick={handlePayment}
+                  onClick={() => setShowPaymentConfirm(true)}
                   disabled={isLoading}
                   className="px-4 py-2 bg-s402-orange hover:bg-orange-600 text-white rounded text-sm font-medium transition-colors disabled:opacity-50"
                 >
@@ -805,6 +833,73 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           </div>
         </div>
       </div>
+
+      {/* Payment Confirmation Modal */}
+      {showPaymentConfirm && paymentRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+          <div className="bg-s402-light-card dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg max-w-md w-full shadow-2xl">
+            <div className="p-6">
+              <h2 className="text-xl font-bold mb-2">Confirm Payment</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                {hasActiveSession 
+                  ? 'This payment will be processed automatically using your session wallet.'
+                  : 'This payment will require signatures from your connected wallet.'}
+              </p>
+
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-4">
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-gray-600 dark:text-gray-400">Tool:</span>
+                  <span className="font-medium">{paymentRequest.tool.name}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600 dark:text-gray-400">Cost:</span>
+                  <span className="font-medium text-s402-orange">${paymentRequest.tool.cost_usd.toFixed(3)} USD1</span>
+                </div>
+              </div>
+
+              {hasActiveSession && (
+                <label className="flex items-start gap-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg mb-4 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    id="dontShowAgain"
+                    className="mt-0.5 w-4 h-4 rounded border-gray-300"
+                  />
+                  <div className="text-sm">
+                    <div className="font-medium text-yellow-900 dark:text-yellow-200 mb-1">
+                      Don't show this again
+                    </div>
+                    <div className="text-yellow-700 dark:text-yellow-300 text-xs">
+                      ⚠️ Payments will be processed automatically without confirmation. 
+                      You can still see payment status during execution.
+                    </div>
+                  </div>
+                </label>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowPaymentConfirm(false);
+                    cancelPayment();
+                  }}
+                  className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const checkbox = document.getElementById('dontShowAgain') as HTMLInputElement;
+                    handlePaymentConfirm(checkbox?.checked || false);
+                  }}
+                  className="flex-1 px-4 py-3 bg-s402-orange hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
+                >
+                  Confirm & Pay
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
