@@ -90,8 +90,19 @@ export async function POST(request: NextRequest) {
     const usd1Contract = new ethers.Contract(USD1_ADDRESS, USD1_ABI, sessionWallet);
     const sessionBalance = await usd1Contract.balanceOf(session.session_address);
     
+    console.log('Session payment balance check:', {
+      sessionAddress: session.session_address,
+      requiredUSD: costUSD,
+      requiredWei: amountInUnits.toString(),
+      availableWei: sessionBalance.toString(),
+      availableUSD: ethers.formatUnits(sessionBalance, 18),
+      maxLimit: maxAmount,
+      spentSoFar: spentAmount,
+    });
+    
     // Verify session has enough USD1
     if (sessionBalance < amountInUnits) {
+      console.error('Insufficient USD1 balance on session wallet');
       return NextResponse.json(
         { 
           error: 'Insufficient session balance',
