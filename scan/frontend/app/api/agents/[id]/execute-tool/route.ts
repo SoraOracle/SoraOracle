@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Pool } from 'pg';
 import Anthropic from '@anthropic-ai/sdk';
+import jwt from 'jsonwebtoken';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -164,10 +165,35 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           throw new Error('Tool endpoint URL not configured');
         }
 
+        // Get session wallet address for JWT authentication
+        const sessionResult = await pool.query(
+          'SELECT wallet_address FROM s402_sessions WHERE id = $1',
+          [session_id]
+        );
+
+        if (sessionResult.rows.length === 0) {
+          throw new Error('Session not found');
+        }
+
+        const sessionAddress = sessionResult.rows[0].wallet_address;
+
+        // Generate JWT token for proxy authentication
+        const jwtToken = jwt.sign(
+          { address: sessionAddress },
+          process.env.JWT_SECRET!,
+          { expiresIn: '5m' }
+        );
+
         const headers: any = {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`,
           'X-S402-TxID': tx_hash,
           ...tool.auth_headers,
+        };
+
+        const requestBody = {
+          input,
+          tx_hash,
         };
 
         if (tool.http_method === 'GET') {
@@ -179,7 +205,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           const response = await fetch(url, {
             method: 'POST',
             headers,
-            body: JSON.stringify(input),
+            body: JSON.stringify(requestBody),
           });
           toolOutput = await response.json();
         }

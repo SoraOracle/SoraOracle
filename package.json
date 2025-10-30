@@ -59,6 +59,7 @@
     "@metamask/eth-sig-util": "^8.2.0",
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@openzeppelin/contracts": "^5.4.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "emoji-picker-react": "^4.15.0",
