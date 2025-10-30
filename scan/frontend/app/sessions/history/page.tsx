@@ -30,6 +30,7 @@ export default function SessionHistoryPage() {
   const [needsAuth, setNeedsAuth] = useState(false);
   const [toppingUp, setToppingUp] = useState<string | null>(null);
   const [topUpAmount, setTopUpAmount] = useState('0.001');
+  const [activating, setActivating] = useState(false);
 
   useEffect(() => {
     // Wait for wallet provider to initialize
@@ -264,6 +265,39 @@ export default function SessionHistoryPage() {
     }
   };
 
+  const handleActivateSession = async (sessionId: string) => {
+    if (!token) return;
+
+    setActivating(true);
+    setError('');
+
+    try {
+      const response = await fetch('/api/sessions/activate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userAddress: walletAddress,
+          sessionId,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to activate session');
+      }
+
+      alert('Session activated! USD1 approved for payments.');
+      loadSessions();
+    } catch (err: any) {
+      setError(err.message || 'Activation failed');
+    } finally {
+      setActivating(false);
+    }
+  };
+
   // Show authentication wall if needed
   if (needsAuth) {
     return (
@@ -442,6 +476,16 @@ export default function SessionHistoryPage() {
                             Send BNB
                           </button>
                         </div>
+                      )}
+                      
+                      {session.currentBnbBalance > 0 && (
+                        <button
+                          onClick={() => handleActivateSession(session.id)}
+                          disabled={activating}
+                          className="w-full text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium text-sm py-2 transition-colors flex items-center justify-center gap-1 group border border-green-300 dark:border-green-800 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20"
+                        >
+                          {activating ? 'Activating...' : '🔓 Activate Session'}
+                        </button>
                       )}
                       
                       <button
