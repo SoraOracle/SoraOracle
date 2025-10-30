@@ -80,6 +80,16 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/composers/top/route.js"
+    ],
+    "/api/sessions/pay/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/sessions/pay/route.js"
+    ],
+    "/api/agents/[id]/execute-tool/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/agents/[id]/execute-tool/route.js"
     ]
   }
 }
