@@ -229,7 +229,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
         if (autoApprovePayments) {
           setPaymentRequest(data);
           setShowPaymentConfirm(false);
-          await executePayment();
+          await executePayment(data);
         } else {
           // Show payment confirmation UI
           setPaymentRequest(data);
@@ -268,8 +268,9 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
     }
   };
 
-  const executePayment = async () => {
-    if (!paymentRequest || !currentSessionId) return;
+  const executePayment = async (paymentData?: any) => {
+    const request = paymentData || paymentRequest;
+    if (!request || !currentSessionId) return;
 
     try {
       setIsLoading(true);
@@ -290,8 +291,8 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           },
           body: JSON.stringify({
             userAddress: walletAddress,
-            costUSD: paymentRequest.tool.cost_usd,
-            recipientAddress: paymentRequest.tool.provider_address,
+            costUSD: request.tool.cost_usd,
+            recipientAddress: request.tool.provider_address,
           }),
         });
 
@@ -337,7 +338,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
 
         // Check and approve USD1 if needed
         const usd1Contract = new Contract(USD1_ADDRESS, USD1_ABI, signer);
-        const amountInUnits = parseUnits(paymentRequest.tool.cost_usd.toString(), 18);
+        const amountInUnits = parseUnits(request.tool.cost_usd.toString(), 18);
         const allowance = await usd1Contract.allowance(from, S402_FACILITATOR_ADDRESS);
 
         if (allowance < amountInUnits) {
@@ -378,7 +379,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           spender: S402_FACILITATOR_ADDRESS,
           value: amountInUnits,
           deadline: deadline,
-          recipient: paymentRequest.tool.provider_address,
+          recipient: request.tool.provider_address,
           nonce: nonce
         };
 
@@ -389,7 +390,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           owner: from,
           value: amountInUnits,
           deadline: deadline,
-          recipient: paymentRequest.tool.provider_address,
+          recipient: request.tool.provider_address,
           nonce: nonce
         };
 
@@ -415,8 +416,8 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
       setPaymentStatus('idle');
 
       // Show generating indicator for image generation tools
-      const isImageTool = paymentRequest.tool.name?.toLowerCase().includes('image') || 
-                          paymentRequest.tool.name?.toLowerCase().includes('seedream');
+      const isImageTool = request.tool.name?.toLowerCase().includes('image') || 
+                          request.tool.name?.toLowerCase().includes('seedream');
       
       if (isImageTool) {
         setIsGeneratingImage(true);
@@ -426,10 +427,10 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tool_call_id: paymentRequest.tool_call_id,
-          tool_id: paymentRequest.tool.id,
+          tool_call_id: request.tool_call_id,
+          tool_id: request.tool.id,
           tx_hash: txHash,
-          input: paymentRequest.tool.input,
+          input: request.tool.input,
           payer_address: payer,
           session_id: currentSessionId,
         }),
