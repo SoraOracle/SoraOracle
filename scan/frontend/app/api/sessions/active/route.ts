@@ -35,6 +35,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Find active session for this user
+    // Note: Sessions no longer expire automatically (expires_at is nullable)
     const result = await db.query(
       `SELECT 
         id,
@@ -42,14 +43,11 @@ export async function GET(request: NextRequest) {
         session_address,
         max_usd1_amount,
         spent_amount,
-        duration_seconds,
-        expires_at,
         created_at,
         last_used_at
       FROM s402_sessions
       WHERE user_address = $1 
-        AND is_active = true 
-        AND expires_at > NOW()
+        AND is_active = true
       ORDER BY created_at DESC
       LIMIT 1`,
       [userAddress.toLowerCase()]
@@ -92,8 +90,6 @@ export async function GET(request: NextRequest) {
         maxUsd1Amount: maxAmount,
         spentAmount: spentAmount,
         remainingAmount: maxAmount - spentAmount,
-        durationSeconds: session.duration_seconds,
-        expiresAt: session.expires_at,
         createdAt: session.created_at,
         lastUsedAt: session.last_used_at,
       },

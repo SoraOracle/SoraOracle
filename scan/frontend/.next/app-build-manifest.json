@@ -16,35 +16,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/sessions/active/route.js"
     ],
-    "/api/sessions/create/route": [
+    "/agents/my/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/api/sessions/create/route.js"
+      "static/chunks/app/agents/my/page.js"
     ],
-    "/composer/page": [
+    "/api/agents/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/composer/page.js"
-    ],
-    "/api/tools/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/tools/route.js"
+      "static/chunks/app/api/agents/route.js"
     ],
     "/api/admin/check/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/admin/check/route.js"
-    ],
-    "/api/sessions/fund/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/sessions/fund/route.js"
-    ],
-    "/api/sessions/activate/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/sessions/activate/route.js"
     ]
   }
 }

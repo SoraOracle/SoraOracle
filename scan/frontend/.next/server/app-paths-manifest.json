@@ -1,10 +1,7 @@
 {
   "/api/sessions/active/route": "app/api/sessions/active/route.js",
-  "/api/sessions/create/route": "app/api/sessions/create/route.js",
-  "/api/tools/route": "app/api/tools/route.js",
+  "/api/agents/route": "app/api/agents/route.js",
   "/api/admin/check/route": "app/api/admin/check/route.js",
-  "/api/sessions/fund/route": "app/api/sessions/fund/route.js",
-  "/api/sessions/activate/route": "app/api/sessions/activate/route.js",
   "/page": "app/page.js",
-  "/composer/page": "app/composer/page.js"
+  "/agents/my/page": "app/agents/my/page.js"
 }
