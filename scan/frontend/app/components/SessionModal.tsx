@@ -23,10 +23,12 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
   const [sessionAddress, setSessionAddress] = useState('');
   const [mounted, setMounted] = useState(false);
   
-  // Dynamic BNB calculation: (usd1Amount / 0.02) * 0.0000075
+  // Dynamic BNB calculation based on real BSC gas costs
+  // S402 payment contract call: ~100k gas at 0.05 Gwei = 0.000005 BNB per transaction
   const calculateGas = (usd1Amount: number) => {
-    const transactions = usd1Amount / 0.02;
-    const bnbNeeded = transactions * 0.0000075;
+    const transactions = usd1Amount / 0.02; // Number of potential 0.02 USD1 payments
+    const bnbPerTx = 0.000005; // Real cost: 100k gas * 0.05 Gwei
+    const bnbNeeded = transactions * bnbPerTx;
     return bnbNeeded.toFixed(6); // Round to 6 decimals
   };
   
