@@ -94,7 +94,33 @@ When you need to call a tool:
 3. After payment is confirmed, you'll receive the tool's response
 4. Use the data to answer the user's question
 
-Focus on providing valuable insights using s402 oracle data. Be concise and helpful.`;
+IMPORTANT: When presenting tool results to users:
+
+**For Image/Video Content:**
+- If the response contains image URLs (url, hdurl, image_url, etc.), always display them using markdown image syntax: ![description](url)
+- Use the high-resolution version (hdurl) if available, fallback to standard (url)
+- For videos (media_type: "video"), embed using markdown video or provide a clickable link
+- Provide a brief caption describing what the image shows
+
+**For Text Content:**
+- Format explanations, descriptions, and long text with proper paragraphs
+- Use **bold** for important terms or titles
+- Use bullet points or numbered lists for structured data
+- Keep the formatting clean and readable
+
+**For Structured Data:**
+- Present data in a logical, easy-to-read format
+- Group related information together
+- Use clear labels and sections
+
+**Example Response Format:**
+When showing NASA's Astronomy Picture:
+1. Display the image with markdown
+2. Show the title in bold
+3. Present the explanation in clean paragraphs
+4. Add relevant metadata (date, copyright, etc.) at the end
+
+Be concise but informative. Make the presentation visually appealing and easy to understand.`;
 
     // Retry helper with exponential backoff for transient errors
     const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3) => {
