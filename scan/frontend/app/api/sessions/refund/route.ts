@@ -64,6 +64,14 @@ export async function POST(request: NextRequest) {
 
     const session = sessionResult.rows[0];
 
+    // Check if session private key exists (may be null if already refunded)
+    if (!session.session_private_key) {
+      return NextResponse.json(
+        { error: 'Session private key not found. This session may have already been refunded.' },
+        { status: 400 }
+      );
+    }
+
     // Decrypt session private key
     const privateKey = decryptPrivateKey(session.session_private_key);
     
@@ -194,10 +202,11 @@ export async function POST(request: NextRequest) {
       END $$;
     `);
 
-    // Mark session as refunded and record refund details (tx hashes + amounts)
+    // Mark session as refunded, delete private key, and record refund details
     await db.query(
       `UPDATE s402_sessions 
        SET is_active = false,
+           session_private_key = NULL,
            refund_usd1_tx_hash = $1,
            refund_bnb_tx_hash = $2,
            refunded_usd1_amount = $3,
