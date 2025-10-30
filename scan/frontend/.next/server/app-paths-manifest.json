@@ -1,6 +1,4 @@
 {
-  "/api/agents/[id]/chat/route": "app/api/agents/[id]/chat/route.js",
   "/api/sessions/active/route": "app/api/sessions/active/route.js",
-  "/api/sessions/pay/route": "app/api/sessions/pay/route.js",
   "/page": "app/page.js"
 }

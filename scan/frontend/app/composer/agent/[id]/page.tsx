@@ -223,14 +223,16 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
         if (data.assistant_message) {
           setMessages(prev => [...prev, { role: 'assistant', content: data.assistant_message }]);
         }
-        setPaymentRequest(data);
         setIsLoading(false);
         
-        // Auto-execute if user has enabled auto-approve
+        // Auto-execute if user has enabled auto-approve (skip showing banner/modal)
         if (autoApprovePayments) {
+          setPaymentRequest(data);
           setShowPaymentConfirm(false);
           await executePayment();
         } else {
+          // Show payment confirmation UI
+          setPaymentRequest(data);
           setShowPaymentConfirm(true);
         }
       } else if (data.type === 'message') {
@@ -744,8 +746,8 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           )}
         </div>
 
-        {/* Payment Request Banner */}
-        {paymentRequest && (
+        {/* Payment Request Banner - only show when user needs to manually approve */}
+        {paymentRequest && !autoApprovePayments && paymentStatus === 'idle' && (
           <div className="border-t border-s402-orange bg-s402-orange/10 dark:bg-s402-orange/5 px-6 py-4 shadow-soft-lg dark:shadow-none">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
