@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { ethers } from 'ethers';
 import crypto from 'crypto';
-import { verifyJWT, validateSessionAccess } from './auth';
+import { verifyJWT, validateSessionAccess } from '../auth';
 
 // Encryption configuration
 const ENCRYPTION_KEY = process.env.SESSION_ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');

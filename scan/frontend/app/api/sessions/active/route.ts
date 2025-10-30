@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyJWT, validateSessionAccess } from './auth';
+import { verifyJWT, validateSessionAccess } from '../auth';
 
 export async function GET(request: NextRequest) {
   try {
