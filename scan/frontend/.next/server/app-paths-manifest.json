@@ -1,4 +1,3 @@
 {
-  "/api/sessions/active/route": "app/api/sessions/active/route.js",
-  "/sessions/history/page": "app/sessions/history/page.js"
+  "/page": "app/page.js"
 }
