@@ -8,10 +8,12 @@ export async function GET() {
         t.name,
         t.category,
         t.cost_usd,
-        COUNT(p.id) as query_count,
+        COUNT(u.id) as query_count,
         SUM(p.value_usd) as total_volume
       FROM s402_tools t
-      LEFT JOIN s402_payments p ON LOWER(p.to_address) = LOWER(t.provider_address)
+      LEFT JOIN s402_proxy_usage u ON u.service = t.id
+        AND u.created_at >= NOW() - INTERVAL '24 hours'
+      LEFT JOIN s402_payments p ON p.tx_hash = u.tx_hash
         AND p.block_timestamp >= NOW() - INTERVAL '24 hours'
       WHERE t.is_active = true
       GROUP BY t.id, t.name, t.category, t.cost_usd

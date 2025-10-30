@@ -25,10 +25,11 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
   
   // Dynamic BNB calculation based on real BSC gas costs
   // S402 payment contract call: ~100k gas at 0.05 Gwei = 0.000005 BNB per transaction
+  // Add 25% buffer for gas price fluctuations
   const calculateGas = (usd1Amount: number) => {
     const transactions = usd1Amount / 0.02; // Number of potential 0.02 USD1 payments
     const bnbPerTx = 0.000005; // Real cost: 100k gas * 0.05 Gwei
-    const bnbNeeded = transactions * bnbPerTx;
+    const bnbNeeded = transactions * bnbPerTx * 1.25; // 25% buffer
     return bnbNeeded.toFixed(6); // Round to 6 decimals
   };
   
