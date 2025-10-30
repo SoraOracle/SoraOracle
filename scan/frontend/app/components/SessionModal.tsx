@@ -84,7 +84,7 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
       const transferAmount = parseUnits(amount.toString(), 18);
       
       const transferTx = await usd1Contract.transfer(data.session.sessionAddress, transferAmount);
-      await transferTx.wait();
+      const usd1Receipt = await transferTx.wait();
 
       // Step 3: Send BNB for gas
       setFundingStep('funding');
@@ -92,9 +92,24 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
         to: data.session.sessionAddress,
         value: parseUnits(estimatedGas, 18),
       });
-      await gasTx.wait();
+      const bnbReceipt = await gasTx.wait();
 
       setFundingStep('complete');
+      
+      // Record funding transaction hashes
+      await fetch('/api/sessions/fund', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          sessionId: data.session.id,
+          userAddress: walletAddress,
+          usd1TxHash: usd1Receipt?.hash || '',
+          bnbTxHash: bnbReceipt?.hash || '',
+        }),
+      });
       
       // Refresh session data
       await createSession(amount, minutes * 60);

@@ -51,17 +51,18 @@ export async function POST(request: NextRequest) {
 
         let refundedUSD1 = '0';
         let refundedBNB = '0';
-        const txHashes: string[] = [];
+        let usd1TxHash: string | null = null;
+        let bnbTxHash: string | null = null;
 
         // Check USD1 balance
         const usd1Contract = new ethers.Contract(USD1_ADDRESS, USD1_ABI, sessionWallet);
         const usd1Balance = await usd1Contract.balanceOf(session.session_address);
 
-        if (usd1Balance > 0) {
+        if (usd1Balance > 0n) {
           const transferTx = await usd1Contract.transfer(session.user_address, usd1Balance);
           const receipt = await transferTx.wait();
           refundedUSD1 = ethers.formatUnits(usd1Balance, 18);
-          txHashes.push(receipt.hash);
+          usd1TxHash = receipt.hash;
         }
 
         // Check BNB balance
@@ -78,15 +79,47 @@ export async function POST(request: NextRequest) {
           });
           const receipt = await bnbTx.wait();
           refundedBNB = ethers.formatUnits(refundAmount, 18);
-          txHashes.push(receipt?.hash || '');
+          bnbTxHash = receipt?.hash || null;
         }
 
-        // Mark session as inactive
+        // Ensure refund columns exist (idempotent)
+        await db.query(`
+          DO $$ 
+          BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                          WHERE table_name='s402_sessions' AND column_name='refund_usd1_tx_hash') THEN
+              ALTER TABLE s402_sessions ADD COLUMN refund_usd1_tx_hash varchar(66);
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                          WHERE table_name='s402_sessions' AND column_name='refund_bnb_tx_hash') THEN
+              ALTER TABLE s402_sessions ADD COLUMN refund_bnb_tx_hash varchar(66);
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                          WHERE table_name='s402_sessions' AND column_name='refunded_at') THEN
+              ALTER TABLE s402_sessions ADD COLUMN refunded_at timestamp;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                          WHERE table_name='s402_sessions' AND column_name='refunded_usd1_amount') THEN
+              ALTER TABLE s402_sessions ADD COLUMN refunded_usd1_amount numeric(20, 8);
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                          WHERE table_name='s402_sessions' AND column_name='refunded_bnb_amount') THEN
+              ALTER TABLE s402_sessions ADD COLUMN refunded_bnb_amount numeric(20, 8);
+            END IF;
+          END $$;
+        `);
+
+        // Mark session as inactive and record refund details (tx hashes + amounts)
         await db.query(
           `UPDATE s402_sessions 
-           SET is_active = false 
-           WHERE id = $1`,
-          [session.id]
+           SET is_active = false, 
+               refund_usd1_tx_hash = $1,
+               refund_bnb_tx_hash = $2,
+               refunded_usd1_amount = $3,
+               refunded_bnb_amount = $4,
+               refunded_at = NOW()
+           WHERE id = $5`,
+          [usd1TxHash, bnbTxHash, parseFloat(refundedUSD1), parseFloat(refundedBNB), session.id]
         );
 
         results.push({
@@ -94,7 +127,8 @@ export async function POST(request: NextRequest) {
           userAddress: session.user_address,
           refundedUSD1,
           refundedBNB,
-          txHashes,
+          usd1TxHash,
+          bnbTxHash,
         });
 
         console.log(`✅ Auto-refunded expired session ${session.id}: $${refundedUSD1} USD1, ${refundedBNB} BNB`);
