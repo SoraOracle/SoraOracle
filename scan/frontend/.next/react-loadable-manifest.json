@@ -5,6 +5,12 @@
       "static/chunks/_app-pages-browser_node_modules_ethers_lib_esm_index_js.js"
     ]
   },
+  "app/composer/agent/[id]/page.tsx -> ethers": {
+    "id": "app/composer/agent/[id]/page.tsx -> ethers",
+    "files": [
+      "static/chunks/_app-pages-browser_node_modules_ethers_lib_esm_index_js.js"
+    ]
+  },
   "app/sessions/history/page.tsx -> ethers": {
     "id": "app/sessions/history/page.tsx -> ethers",
     "files": [

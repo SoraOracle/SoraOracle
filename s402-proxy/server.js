@@ -213,16 +213,36 @@ app.post('/api/tool/:tool_id', async (req, res) => {
       });
     }
 
-    // Verify payment
-    const paymentCheck = await pool.query(
-      `SELECT tx_hash, from_address, to_address, value_usd, block_timestamp 
-       FROM s402_payments 
-       WHERE tx_hash = $1`,
-      [tx_hash]
-    );
+    // Verify payment (with retry for indexer lag)
+    let paymentCheck;
+    let retries = 0;
+    const maxRetries = 5;
+    const retryDelay = 2000; // 2 seconds
+    
+    while (retries < maxRetries) {
+      paymentCheck = await pool.query(
+        `SELECT tx_hash, from_address, to_address, value_usd, block_timestamp 
+         FROM s402_payments 
+         WHERE tx_hash = $1`,
+        [tx_hash]
+      );
+      
+      if (paymentCheck.rows.length > 0) {
+        break; // Payment found!
+      }
+      
+      if (retries < maxRetries - 1) {
+        console.log(`⏳ Payment ${tx_hash} not indexed yet, retry ${retries + 1}/${maxRetries}...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
+      retries++;
+    }
 
     if (paymentCheck.rows.length === 0) {
-      return res.status(402).json({ error: 'Payment not found on-chain' });
+      return res.status(402).json({ 
+        error: 'Payment not found on-chain',
+        message: 'Transaction not yet indexed. Please wait a moment and try again.'
+      });
     }
 
     const payment = paymentCheck.rows[0];
