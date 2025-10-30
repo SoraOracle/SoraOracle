@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { ethers } from 'ethers';
 import crypto from 'crypto';
+import { verifyJWT, validateSessionAccess } from './auth';
 
 // Encryption configuration
 const ENCRYPTION_KEY = process.env.SESSION_ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
@@ -27,12 +28,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate user is authenticated
+    // Verify JWT and authenticate user
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authenticatedAddress = verifyJWT(authHeader);
+    
+    if (!authenticatedAddress) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized: Invalid or missing token' },
         { status: 401 }
+      );
+    }
+
+    // Ensure authenticated user matches the requested userAddress
+    if (!validateSessionAccess(authenticatedAddress, userAddress)) {
+      return NextResponse.json(
+        { error: 'Forbidden: Cannot create session for another user' },
+        { status: 403 }
       );
     }
 

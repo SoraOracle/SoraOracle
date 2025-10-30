@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { verifyJWT, validateSessionAccess } from './auth';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,12 +15,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validate user is authenticated
+    // Verify JWT and authenticate user
     const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authenticatedAddress = verifyJWT(authHeader);
+    
+    if (!authenticatedAddress) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized: Invalid or missing token' },
         { status: 401 }
+      );
+    }
+
+    // Ensure authenticated user matches the requested userAddress
+    if (!validateSessionAccess(authenticatedAddress, userAddress)) {
+      return NextResponse.json(
+        { error: 'Forbidden: Cannot access another user\'s session' },
+        { status: 403 }
       );
     }
 
