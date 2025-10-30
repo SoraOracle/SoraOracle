@@ -195,42 +195,138 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     console.log('📋 Conversation history length:', conversationHistory.length);
     console.log('📋 Last 2 messages:', JSON.stringify(conversationHistory.slice(-2), null, 2));
 
+    // === CRITICAL: Check for multi-tool plan BEFORE calling Claude ===
+    const sessionMetaResult = await pool.query(
+      'SELECT metadata FROM s402_chat_sessions WHERE id = $1',
+      [chat_session_id]
+    );
+
+    // Store current tool output as user message (tool_result)
+    await pool.query(
+      'INSERT INTO s402_agent_chats (agent_id, session_id, role, tool_output) VALUES ($1, $2, $3, $4)',
+      [agentId, chat_session_id, 'user', JSON.stringify({ tool_use_id: tool_call_id, result: toolOutput })]
+    );
+
+    // Check if more tools are pending
+    if (sessionMetaResult.rows[0]?.metadata) {
+      const metadata = sessionMetaResult.rows[0].metadata;
+      const { plan, tools_completed = 0, total_tools = 0 } = metadata;
+      
+      if (plan && tools_completed < total_tools - 1) {
+        // More tools to execute - return next tool WITHOUT calling Claude
+        const nextTaskIndex = tools_completed + 1;
+        const nextTask = plan.tasks[nextTaskIndex];
+        
+        // Update metadata
+        await pool.query(
+          'UPDATE s402_chat_sessions SET metadata = $1 WHERE id = $2',
+          [JSON.stringify({ plan, tools_completed: nextTaskIndex, total_tools }), chat_session_id]
+        );
+
+        // Get next tool details
+        const nextToolResult = await pool.query(
+          'SELECT * FROM s402_tools WHERE id = $1',
+          [nextTask.tool_id]
+        );
+
+        if (nextToolResult.rows.length > 0) {
+          const nextTool = nextToolResult.rows[0];
+          const nextToolCallId = `toolu_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
+          // Store tool_use for next tool
+          await pool.query(
+            'INSERT INTO s402_agent_chats (agent_id, session_id, role, content, tool_calls) VALUES ($1, $2, $3, $4, $5)',
+            [agentId, chat_session_id, 'assistant', '', JSON.stringify([{
+              id: nextToolCallId,
+              type: 'tool_use',
+              name: nextTask.tool_id,
+              input: nextTask.input
+            }])]
+          );
+
+          // Update agent stats
+          await pool.query(
+            'UPDATE s402_agents SET total_spent_usd = total_spent_usd + $1, query_count = query_count + 1, last_active_at = NOW() WHERE id = $2',
+            [parseFloat(tool.cost_usd), agentId]
+          );
+
+          return NextResponse.json({
+            type: 'payment_required',
+            assistant_message: `Processing task ${nextTaskIndex + 1} of ${total_tools}...`,
+            tool: {
+              id: nextTool.id,
+              name: nextTool.name,
+              cost_usd: parseFloat(nextTool.cost_usd),
+              provider_address: nextTool.provider_address || '0x0000000000000000000000000000000000000000',
+              input: nextTask.input,
+            },
+            tool_call_id: nextToolCallId,
+          });
+        }
+      } else if (plan && tools_completed === total_tools - 1) {
+        // All tools complete - clear metadata and proceed to synthesis
+        await pool.query(
+          'UPDATE s402_chat_sessions SET metadata = NULL WHERE id = $1',
+          [chat_session_id]
+        );
+      }
+    }
+
+    // === SYNTHESIS: All tools complete or no plan, call Claude to format results ===
     const agentResult = await pool.query(
-      'SELECT description FROM s402_agents WHERE id = $1',
+      'SELECT name, description FROM s402_agents WHERE id = $1',
       [agentId]
     );
 
-    const systemPrompt = agentResult.rows[0]?.description || 'You are a helpful AI assistant powered by s402 oracle data.';
+    const agentName = agentResult.rows[0]?.name || 'AI Assistant';
+    const agentDesc = agentResult.rows[0]?.description || 'You are a helpful AI assistant powered by s402 oracle data.';
 
-    // Retry helper with exponential backoff for transient errors
+    const systemPrompt = `You are "${agentName}" - ${agentDesc}
+
+**IMPORTANT: You just received data from paid API tools. Present it beautifully:**
+
+**For Images:**
+- Automatically embed images using markdown: ![description](url)
+- Use hdurl for high-res when available, fallback to url
+- Add engaging captions and context
+
+**For Text/Data:**
+- Write conversationally like a helpful AI, NOT like a robot
+- Use **bold** for titles and emphasis
+- Format long text into readable paragraphs
+- Present lists with bullet points or numbers
+- Group related information together
+
+**Examples:**
+✅ GOOD: "Here's today's Astronomy Picture! ![Witch's Broom Nebula](url) Ten thousand years ago, a supernova created this stunning remnant..."
+❌ BAD: "Tool executed successfully! Result: {success: true, data: {...}}"
+
+✅ GOOD: "I found 3 great breweries in Kamloops: • **Iron Road Brewing** - Craft brewery... • **Noble Pig Brewhouse** - Award-winning..."
+❌ BAD: "breweries: [{name: 'Iron Road', type: 'micro'}, ...]"
+
+Be conversational, engaging, and make the data easy to understand. Never show raw JSON.`;
+
+    // Retry helper
     const retryWithBackoff = async (fn: () => Promise<any>, maxRetries = 3) => {
-      const delays = [1000, 2000, 4000]; // 1s, 2s, 4s
+      const delays = [1000, 2000, 4000];
       let lastError;
-      
       for (let i = 0; i < maxRetries; i++) {
         try {
           return await fn();
         } catch (error: any) {
           lastError = error;
-          const is529 = error.status === 529;
-          const isTransient = error.status >= 500 && error.status < 600;
-          
-          // Only retry on 529 or transient server errors
-          if ((is529 || isTransient) && i < maxRetries - 1) {
-            console.log(`⚠️ Anthropic API ${error.status} error, retrying in ${delays[i]}ms (attempt ${i + 1}/${maxRetries})...`);
+          if ((error.status === 529 || (error.status >= 500 && error.status < 600)) && i < maxRetries - 1) {
+            console.log(`⚠️ Anthropic API ${error.status} error, retrying in ${delays[i]}ms...`);
             await new Promise(resolve => setTimeout(resolve, delays[i]));
             continue;
           }
-          
           throw error;
         }
       }
-      
       throw lastError;
     };
 
     let reply: string;
-    
     try {
       const response = await retryWithBackoff(() => 
         anthropic.messages.create({
@@ -240,30 +336,20 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           messages: conversationHistory,
         })
       );
-
       const textContent = response.content.find(c => c.type === 'text');
       reply = textContent ? (textContent as any).text : 'I received the data but could not process it.';
     } catch (error: any) {
-      // Graceful fallback when Claude is unavailable
-      console.error('❌ Claude API unavailable after retries:', error.status, error.message);
-      
-      // Build fallback response with tool output details
-      if (toolOutput && typeof toolOutput === 'object' && 'images' in toolOutput && toolOutput.images) {
-        // Images will be rendered from tool_output, no need for markdown links
-        reply = `✅ Your image has been generated successfully!`;
-      } else if (toolOutput) {
-        reply = `✅ Tool executed successfully!\n\nResult: ${JSON.stringify(toolOutput, null, 2)}`;
-      } else {
-        reply = `⚠️ The tool was executed successfully, but I'm temporarily experiencing high load and can't provide a detailed response right now. Please try again in a moment.`;
-      }
+      console.error('❌ Claude API unavailable:', error.status, error.message);
+      reply = toolOutput ? `✅ Tool executed successfully!\n\nResult: ${JSON.stringify(toolOutput, null, 2)}` : '⚠️ Tool executed but synthesis failed.';
     }
 
+    // Store synthesis reply
     await pool.query(
-      'INSERT INTO s402_agent_chats (agent_id, session_id, role, content, tool_output) VALUES ($1, $2, $3, $4, $5)',
-      [agentId, chat_session_id, 'assistant', reply, JSON.stringify(toolOutput)]
+      'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
+      [agentId, chat_session_id, 'assistant', reply]
     );
 
-    // Update agent stats: increment query count and total spent
+    // Update agent stats
     await pool.query(
       'UPDATE s402_agents SET total_spent_usd = total_spent_usd + $1, query_count = query_count + 1, last_active_at = NOW() WHERE id = $2',
       [parseFloat(tool.cost_usd), agentId]

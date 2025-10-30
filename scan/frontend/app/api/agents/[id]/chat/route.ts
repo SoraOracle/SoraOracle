@@ -209,41 +209,54 @@ If no tools are needed, return: {"summary": "response", "tasks": []}`;
       });
     }
 
-    // === PHASE 2: EXECUTION ===
-    // Return all tools that need payment
-    const toolsToExecute = [];
+    // === PHASE 2: EXECUTION (Simplified - One tool at a time) ===
+    // Return first tool for payment (frontend will handle execution)
+    // When tool completes, frontend calls this endpoint again
+    // We detect completion and trigger synthesis
     
-    for (const task of plan.tasks) {
-      const toolResult = await pool.query(
-        'SELECT * FROM s402_tools WHERE id = $1',
-        [task.tool_id]
-      );
+    const firstTask = plan.tasks[0];
+    const toolResult = await pool.query(
+      'SELECT * FROM s402_tools WHERE id = $1',
+      [firstTask.tool_id]
+    );
 
-      if (toolResult.rows.length === 0) {
-        console.error(`Tool not found: ${task.tool_id}`);
-        continue;
-      }
+    if (toolResult.rows.length === 0) {
+      return NextResponse.json({ error: 'Tool not found' }, { status: 404 });
+    }
 
-      const tool = toolResult.rows[0];
-      toolsToExecute.push({
+    const tool = toolResult.rows[0];
+
+    // Generate tool_call_id ONCE and store it
+    const toolCallId = `toolu_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Store the plan and tool request
+    await pool.query(
+      'INSERT INTO s402_agent_chats (agent_id, session_id, role, content, tool_calls) VALUES ($1, $2, $3, $4, $5)',
+      [agentId, session_id, 'assistant', '', JSON.stringify([{
+        id: toolCallId,
+        type: 'tool_use',
+        name: firstTask.tool_id,
+        input: firstTask.input
+      }])]
+    );
+
+    // Store plan metadata separately for synthesis later
+    await pool.query(
+      'UPDATE s402_chat_sessions SET metadata = $1 WHERE id = $2',
+      [JSON.stringify({ plan, tools_completed: 0, total_tools: plan.tasks.length }), session_id]
+    );
+
+    return NextResponse.json({
+      type: 'payment_required',
+      assistant_message: plan.summary,
+      tool: {
         id: tool.id,
         name: tool.name,
         cost_usd: parseFloat(tool.cost_usd),
         provider_address: tool.provider_address || '0x0000000000000000000000000000000000000000',
-        input: task.input,
-      });
-    }
-
-    // Store the plan
-    await pool.query(
-      'INSERT INTO s402_agent_chats (agent_id, session_id, role, content) VALUES ($1, $2, $3, $4)',
-      [agentId, session_id, 'assistant', JSON.stringify({ type: 'plan', plan })]
-    );
-
-    return NextResponse.json({
-      type: 'multi_tool_payment_required',
-      summary: plan.summary,
-      tools: toolsToExecute
+        input: firstTask.input,
+      },
+      tool_call_id: toolCallId,
     });
   } catch (error) {
     console.error('Chat error:', error);
