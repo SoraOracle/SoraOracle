@@ -85,13 +85,15 @@ export async function POST(request: NextRequest) {
     const provider = new ethers.JsonRpcProvider('https://bsc-dataseed.binance.org/');
     const sessionWallet = new ethers.Wallet(privateKey, provider);
 
-    // Check and approve USD1 if needed
-    const usd1Contract = new ethers.Contract(USD1_ADDRESS, USD1_ABI, sessionWallet);
     const amountInUnits = ethers.parseUnits(costUSD.toString(), 18);
-    const allowance = await usd1Contract.allowance(session.session_address, S402_FACILITATOR_ADDRESS);
-
-    if (allowance < amountInUnits) {
-      const maxApproval = ethers.parseUnits('1000000', 18); // 1M USD1
+    
+    // Check session wallet's USD1 balance (we transferred USD1 to it during session creation)
+    const usd1Contract = new ethers.Contract(USD1_ADDRESS, USD1_ABI, sessionWallet);
+    const sessionBalance = await usd1Contract.allowance(session.session_address, S402_FACILITATOR_ADDRESS);
+    
+    // Approve facilitator if needed (first time only)
+    if (sessionBalance < amountInUnits) {
+      const maxApproval = ethers.parseUnits('1000000', 18);
       const approveTx = await usd1Contract.approve(S402_FACILITATOR_ADDRESS, maxApproval);
       await approveTx.wait();
     }
@@ -122,8 +124,9 @@ export async function POST(request: NextRequest) {
       ]
     };
 
+    // Payment authorization signed by session wallet (which owns the USD1)
     const authMessage = {
-      owner: session.session_address,
+      owner: session.session_address, // Session wallet owns the USD1
       spender: S402_FACILITATOR_ADDRESS,
       value: amountInUnits,
       deadline: deadline,
@@ -135,7 +138,7 @@ export async function POST(request: NextRequest) {
     const authSig = ethers.Signature.from(authSigRaw);
 
     const payment = {
-      owner: session.session_address,
+      owner: session.session_address, // Session wallet owns the USD1
       value: amountInUnits,
       deadline: deadline,
       recipient: recipientAddress,

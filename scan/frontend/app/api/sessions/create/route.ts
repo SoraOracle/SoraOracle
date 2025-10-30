@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      requiresFunding: true, // Frontend needs to fund this wallet
       session: {
         id: session.id,
         userAddress: session.user_address,

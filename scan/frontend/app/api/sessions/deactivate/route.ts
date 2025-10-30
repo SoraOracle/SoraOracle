@@ -48,9 +48,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Trigger refund in background (don't wait for it)
+    fetch(`${process.env.NEXT_PUBLIC_URL || 'http://localhost:5000'}/api/sessions/refund`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader || '',
+      },
+      body: JSON.stringify({ sessionId, userAddress }),
+    }).catch(err => console.error('Refund error:', err));
+
     return NextResponse.json({
       success: true,
-      message: 'Session deactivated successfully',
+      message: 'Session deactivated successfully. Refund processing...',
     });
   } catch (error) {
     console.error('Error deactivating session:', error);
