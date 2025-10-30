@@ -1,8 +1,5 @@
 {
-  "/api/tools/route": "app/api/tools/route.js",
-  "/api/agents/route": "app/api/agents/route.js",
+  "/api/agents/[id]/chat/route": "app/api/agents/[id]/chat/route.js",
   "/api/sessions/active/route": "app/api/sessions/active/route.js",
-  "/api/admin/check/route": "app/api/admin/check/route.js",
-  "/composers/[address]/page": "app/composers/[address]/page.js",
-  "/composer/page": "app/composer/page.js"
+  "/api/sessions/pay/route": "app/api/sessions/pay/route.js"
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { use } from 'react';
 import Link from 'next/link';
 import { useWallet } from '../../../providers/WalletProvider';
+import { useSession } from '../../../providers/SessionProvider';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -37,7 +38,8 @@ interface Tool {
 
 export default function AgentDashboard({ params }: { params: Promise<{ id: string }> }) {
   const { id: agentId } = use(params);
-  const { walletAddress } = useWallet();
+  const { walletAddress, token } = useWallet();
+  const { hasActiveSession } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -251,115 +253,165 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
   const handlePayment = async () => {
     if (!paymentRequest || !currentSessionId) return;
 
-    if (typeof window.ethereum === 'undefined') {
-      alert('Please install MetaMask to make payments');
-      return;
-    }
-
     try {
       setIsLoading(true);
 
-      // Import ethers dynamically
-      const { BrowserProvider, Contract, parseUnits, Signature } = await import('ethers');
+      let txHash: string;
+      let payer: string;
 
-      const S402_FACILITATOR_ADDRESS = '0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3';
-      const USD1_ADDRESS = '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d';
-
-      const S402_ABI = [
-        'function settlePayment((address owner, uint256 value, uint256 deadline, address recipient, bytes32 nonce) payment, (uint8 v, bytes32 r, bytes32 s) authSig) external returns (bool)',
-      ];
-
-      const USD1_ABI = [
-        'function allowance(address owner, address spender) external view returns (uint256)',
-        'function approve(address spender, uint256 amount) external returns (bool)',
-      ];
-
-      const provider = new BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const from = await signer.getAddress();
-
-      // Check and approve USD1 if needed
-      const usd1Contract = new Contract(USD1_ADDRESS, USD1_ABI, signer);
-      const amountInUnits = parseUnits(paymentRequest.tool.cost_usd.toString(), 18);
-      const allowance = await usd1Contract.allowance(from, S402_FACILITATOR_ADDRESS);
-
-      if (allowance < amountInUnits) {
+      // Use session-based payment if active session exists
+      if (hasActiveSession && walletAddress && token) {
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: '⏳ Approving USD1 for S402 payments...',
+          content: '⚡ Processing payment with your session wallet...',
         }]);
 
-        const maxApproval = parseUnits('1000000', 18); // 1M USD1
-        const approveTx = await usd1Contract.approve(S402_FACILITATOR_ADDRESS, maxApproval);
-        await approveTx.wait();
+        const paymentResponse = await fetch('/api/sessions/pay', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userAddress: walletAddress,
+            costUSD: paymentRequest.tool.cost_usd,
+            recipientAddress: paymentRequest.tool.provider_address,
+          }),
+        });
+
+        if (!paymentResponse.ok) {
+          const error = await paymentResponse.json();
+          throw new Error(error.error || 'Session payment failed');
+        }
+
+        const paymentData = await paymentResponse.json();
+        txHash = paymentData.txHash;
+        payer = paymentData.sessionAddress;
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `✅ Payment complete! No signatures needed.\n$${paymentRequest.tool.cost_usd.toFixed(3)} USD1 paid\nRemaining balance: $${paymentData.remainingBalance.toFixed(3)}`,
+        }]);
+      } else {
+        // Fallback to manual wallet payment if no session
+        if (typeof window.ethereum === 'undefined') {
+          alert('Please install MetaMask or create a session to make payments');
+          return;
+        }
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '⚠️ No active session. Using your wallet (requires 2 signatures)...',
+        }]);
+
+        // Import ethers dynamically
+        const { BrowserProvider, Contract, parseUnits, Signature } = await import('ethers');
+
+        const S402_FACILITATOR_ADDRESS = '0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3';
+        const USD1_ADDRESS = '0x8d0D000Ee44948FC98c9B98A4FA4921476f08B0d';
+
+        const S402_ABI = [
+          'function settlePayment((address owner, uint256 value, uint256 deadline, address recipient, bytes32 nonce) payment, (uint8 v, bytes32 r, bytes32 s) authSig) external returns (bool)',
+        ];
+
+        const USD1_ABI = [
+          'function allowance(address owner, address spender) external view returns (uint256)',
+          'function approve(address spender, uint256 amount) external returns (bool)',
+        ];
+
+        const provider = new BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const from = await signer.getAddress();
+        payer = from;
+
+        // Check and approve USD1 if needed
+        const usd1Contract = new Contract(USD1_ADDRESS, USD1_ABI, signer);
+        const amountInUnits = parseUnits(paymentRequest.tool.cost_usd.toString(), 18);
+        const allowance = await usd1Contract.allowance(from, S402_FACILITATOR_ADDRESS);
+
+        if (allowance < amountInUnits) {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: '⏳ Signature 1/2: Approving USD1 for S402 payments...',
+          }]);
+
+          const maxApproval = parseUnits('1000000', 18); // 1M USD1
+          const approveTx = await usd1Contract.approve(S402_FACILITATOR_ADDRESS, maxApproval);
+          await approveTx.wait();
+        }
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '⏳ Signature 2/2: Authorizing payment...',
+        }]);
+
+        // Generate nonce
+        const randomBytes = new Uint8Array(32);
+        crypto.getRandomValues(randomBytes);
+        const nonce = '0x' + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
+        const currentTimestamp = Math.floor(Date.now() / 1000);
+        const deadline = currentTimestamp + 3600; // 1 hour
+
+        // Create EIP-712 signature for payment authorization
+        const authDomain = {
+          name: 'S402Facilitator',
+          version: '1',
+          chainId: 56,
+          verifyingContract: S402_FACILITATOR_ADDRESS
+        };
+
+        const authTypes = {
+          PaymentAuthorization: [
+            { name: 'owner', type: 'address' },
+            { name: 'spender', type: 'address' },
+            { name: 'value', type: 'uint256' },
+            { name: 'deadline', type: 'uint256' },
+            { name: 'recipient', type: 'address' },
+            { name: 'nonce', type: 'bytes32' }
+          ]
+        };
+
+        const authMessage = {
+          owner: from,
+          spender: S402_FACILITATOR_ADDRESS,
+          value: amountInUnits,
+          deadline: deadline,
+          recipient: paymentRequest.tool.provider_address,
+          nonce: nonce
+        };
+
+        const authSigRaw = await signer.signTypedData(authDomain, authTypes, authMessage);
+        const authSig = Signature.from(authSigRaw);
+
+        const payment = {
+          owner: from,
+          value: amountInUnits,
+          deadline: deadline,
+          recipient: paymentRequest.tool.provider_address,
+          nonce: nonce
+        };
+
+        const authSigStruct = {
+          v: authSig.v,
+          r: authSig.r,
+          s: authSig.s
+        };
+
+        // Submit to S402 Facilitator
+        const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, signer);
+        const tx = await facilitator.settlePayment(payment, authSigStruct);
+        
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `⏳ Payment confirmed! Executing tool...\n$${paymentRequest.tool.cost_usd.toFixed(3)} USD1 paid`,
+        }]);
+
+        const receipt = await tx.wait();
+        txHash = receipt.hash;
       }
 
-      // Generate nonce
-      const randomBytes = new Uint8Array(32);
-      crypto.getRandomValues(randomBytes);
-      const nonce = '0x' + Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
-
-      const currentTimestamp = Math.floor(Date.now() / 1000);
-      const deadline = currentTimestamp + 3600; // 1 hour
-
-      // Create EIP-712 signature for payment authorization
-      const authDomain = {
-        name: 'S402Facilitator',
-        version: '1',
-        chainId: 56,
-        verifyingContract: S402_FACILITATOR_ADDRESS
-      };
-
-      const authTypes = {
-        PaymentAuthorization: [
-          { name: 'owner', type: 'address' },
-          { name: 'spender', type: 'address' },
-          { name: 'value', type: 'uint256' },
-          { name: 'deadline', type: 'uint256' },
-          { name: 'recipient', type: 'address' },
-          { name: 'nonce', type: 'bytes32' }
-        ]
-      };
-
-      const authMessage = {
-        owner: from,
-        spender: S402_FACILITATOR_ADDRESS,
-        value: amountInUnits,
-        deadline: deadline,
-        recipient: paymentRequest.tool.provider_address,
-        nonce: nonce
-      };
-
-      const authSigRaw = await signer.signTypedData(authDomain, authTypes, authMessage);
-      const authSig = Signature.from(authSigRaw);
-
-      const payment = {
-        owner: from,
-        value: amountInUnits,
-        deadline: deadline,
-        recipient: paymentRequest.tool.provider_address,
-        nonce: nonce
-      };
-
-      const authSigStruct = {
-        v: authSig.v,
-        r: authSig.r,
-        s: authSig.s
-      };
-
-      // Submit to S402 Facilitator
-      const facilitator = new Contract(S402_FACILITATOR_ADDRESS, S402_ABI, signer);
-      const tx = await facilitator.settlePayment(payment, authSigStruct);
-      
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: `⏳ Payment confirmed! Executing tool...\n$${paymentRequest.tool.cost_usd.toFixed(3)} USD1 paid`,
-      }]);
-
       setPaymentRequest(null);
-
-      const receipt = await tx.wait();
-      const txHash = receipt.hash;
 
       // Show generating indicator for image generation tools
       const isImageTool = paymentRequest.tool.name?.toLowerCase().includes('image') || 
@@ -381,7 +433,7 @@ export default function AgentDashboard({ params }: { params: Promise<{ id: strin
           tool_id: paymentRequest.tool.id,
           tx_hash: txHash,
           input: paymentRequest.tool.input,
-          payer_address: from,
+          payer_address: payer,
           session_id: currentSessionId,
         }),
       });
