@@ -88,9 +88,8 @@ export async function POST(request: NextRequest) {
 
     // Approve the ENTIRE balance to S402Facilitator (eliminates per-payment approvals)
     // Using balance instead of max uint to be more precise and gas-efficient
-    const approveTx = await usd1Contract.approve(S402_FACILITATOR_ADDRESS, balance, {
-      gasLimit: 50000, // Approval is a simple operation, 50k gas is plenty
-    });
+    // Let ethers estimate gas for approval (typically ~50k gas)
+    const approveTx = await usd1Contract.approve(S402_FACILITATOR_ADDRESS, balance);
     const receipt = await approveTx.wait();
 
     return NextResponse.json({

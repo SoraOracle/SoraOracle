@@ -24,8 +24,6 @@ const S402_ABI = [
 ];
 
 const USD1_ABI = [
-  'function allowance(address owner, address spender) external view returns (uint256)',
-  'function approve(address spender, uint256 amount) external returns (bool)',
   'function balanceOf(address owner) external view returns (uint256)',
 ];
 
@@ -89,6 +87,7 @@ export async function POST(request: NextRequest) {
     const amountInUnits = ethers.parseUnits(costUSD.toString(), 18);
     
     // Check session wallet's actual USD1 balance (we transferred USD1 to it during session creation)
+    // Note: USD1 is already pre-approved to S402Facilitator during session activation
     const usd1Contract = new ethers.Contract(USD1_ADDRESS, USD1_ABI, sessionWallet);
     const sessionBalance = await usd1Contract.balanceOf(session.session_address);
     
@@ -102,14 +101,6 @@ export async function POST(request: NextRequest) {
         },
         { status: 402 }
       );
-    }
-    
-    // Check allowance and approve facilitator if needed (first time only)
-    const allowance = await usd1Contract.allowance(session.session_address, S402_FACILITATOR_ADDRESS);
-    if (allowance < amountInUnits) {
-      const maxApproval = ethers.parseUnits('1000000', 18);
-      const approveTx = await usd1Contract.approve(S402_FACILITATOR_ADDRESS, maxApproval);
-      await approveTx.wait();
     }
 
     // Generate nonce
@@ -165,8 +156,9 @@ export async function POST(request: NextRequest) {
       s: authSig.s
     };
 
-    // Submit to S402 Facilitator
+    // Submit to S402 Facilitator (gas-optimized: approval already done during activation)
     const facilitator = new ethers.Contract(S402_FACILITATOR_ADDRESS, S402_ABI, sessionWallet);
+    // Let ethers estimate gas automatically for settlePayment (typically ~150k gas)
     const tx = await facilitator.settlePayment(payment, authSigStruct);
     const receipt = await tx.wait();
 

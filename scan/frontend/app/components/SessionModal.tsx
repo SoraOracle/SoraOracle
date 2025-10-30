@@ -21,7 +21,7 @@ export default function SessionModal({ isOpen, onClose, onSuccess }: SessionModa
   const [error, setError] = useState('');
   const [fundingStep, setFundingStep] = useState<FundingStep>('configure');
   const [sessionAddress, setSessionAddress] = useState('');
-  const [estimatedGas] = useState('0.002'); // 0.002 BNB for ~10-20 transactions on BSC
+  const [estimatedGas] = useState('0.01'); // 0.01 BNB for 10-15 payments (activation ~50k + settlePayment ~150-165k, with safe buffer)
 
   if (!isOpen) return null;
 
