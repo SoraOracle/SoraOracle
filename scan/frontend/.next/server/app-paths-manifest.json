@@ -1,4 +1,9 @@
 {
   "/api/sessions/active/route": "app/api/sessions/active/route.js",
-  "/page": "app/page.js"
+  "/api/sessions/create/route": "app/api/sessions/create/route.js",
+  "/api/sessions/fund/route": "app/api/sessions/fund/route.js",
+  "/api/sessions/activate/route": "app/api/sessions/activate/route.js",
+  "/api/sessions/history/route": "app/api/sessions/history/route.js",
+  "/api/admin/check/route": "app/api/admin/check/route.js",
+  "/sessions/history/page": "app/sessions/history/page.js"
 }
