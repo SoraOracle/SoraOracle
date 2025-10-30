@@ -28,6 +28,8 @@ export default function SessionHistoryPage() {
   const [error, setError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [needsAuth, setNeedsAuth] = useState(false);
+  const [toppingUp, setToppingUp] = useState<string | null>(null);
+  const [topUpAmount, setTopUpAmount] = useState('0.001');
 
   useEffect(() => {
     // Wait for wallet provider to initialize
@@ -216,6 +218,52 @@ export default function SessionHistoryPage() {
     }
   };
 
+  const handleTopUpGas = async (sessionAddress: string) => {
+    if (!walletAddress || typeof window.ethereum === 'undefined') {
+      setError('Wallet not connected');
+      return;
+    }
+
+    const amount = parseFloat(topUpAmount);
+    if (isNaN(amount) || amount <= 0) {
+      setError('Please enter a valid BNB amount');
+      return;
+    }
+
+    if (amount > 0.01) {
+      setError('Maximum top-up is 0.01 BNB');
+      return;
+    }
+
+    setToppingUp(sessionAddress);
+    setError('');
+
+    try {
+      // Send BNB directly to session wallet
+      const { ethers } = await import('ethers');
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      
+      const tx = await signer.sendTransaction({
+        to: sessionAddress,
+        value: ethers.parseEther(topUpAmount),
+      });
+
+      await tx.wait();
+      alert(`Successfully added ${topUpAmount} BNB to session wallet!`);
+      setTopUpAmount('0.001');
+      loadSessions(); // Refresh to show new balance
+    } catch (err: any) {
+      if (err.code === 4001 || err.code === 'ACTION_REJECTED') {
+        setError('Transaction cancelled');
+      } else {
+        setError(err.message || 'Failed to top up gas');
+      }
+    } finally {
+      setToppingUp(null);
+    }
+  };
+
   // Show authentication wall if needed
   if (needsAuth) {
     return (
@@ -361,22 +409,56 @@ export default function SessionHistoryPage() {
                     )}
                   </div>
 
-                  {/* Action Button */}
+                  {/* Action Buttons */}
                   {session.isActive ? (
-                    <button
-                      onClick={handleCloseSession}
-                      disabled={refunding === 'closing'}
-                      className="w-full text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 disabled:text-gray-400 font-medium text-sm py-2 transition-colors flex items-center justify-center gap-1 group"
-                    >
-                      {refunding === 'closing' ? (
-                        'Closing...'
-                      ) : (
-                        <>
-                          Close & Refund
-                          <span className="group-hover:translate-x-1 transition-transform">→</span>
-                        </>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => setToppingUp(toppingUp === session.sessionAddress ? null : session.sessionAddress)}
+                        className="w-full text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm py-2 transition-colors flex items-center justify-center gap-1 group border border-blue-300 dark:border-blue-800 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      >
+                        {toppingUp === session.sessionAddress ? '✕ Cancel' : '⛽ Top Up Gas'}
+                      </button>
+                      
+                      {toppingUp === session.sessionAddress && (
+                        <div className="space-y-2 p-3 bg-gray-50 dark:bg-zinc-800 rounded-lg border border-gray-300 dark:border-zinc-700">
+                          <label className="block text-xs text-gray-600 dark:text-gray-400">
+                            BNB Amount
+                          </label>
+                          <input
+                            type="number"
+                            step="0.0001"
+                            min="0.0001"
+                            max="0.01"
+                            value={topUpAmount}
+                            onChange={(e) => setTopUpAmount(e.target.value)}
+                            className="w-full px-3 py-2 text-sm bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="0.001"
+                          />
+                          <button
+                            onClick={() => handleTopUpGas(session.sessionAddress)}
+                            disabled={!!toppingUp}
+                            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white text-sm font-medium py-2 rounded transition-colors"
+                          >
+                            Send BNB
+                          </button>
+                        </div>
                       )}
-                    </button>
+                      
+                      <button
+                        onClick={handleCloseSession}
+                        disabled={refunding === 'closing'}
+                        className="w-full text-yellow-600 dark:text-yellow-500 hover:text-yellow-700 dark:hover:text-yellow-400 disabled:text-gray-400 font-medium text-sm py-2 transition-colors flex items-center justify-center gap-1 group"
+                      >
+                        {refunding === 'closing' ? (
+                          'Closing...'
+                        ) : (
+                          <>
+                            Close & Refund
+                            <span className="group-hover:translate-x-1 transition-transform">→</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   ) : session.canRefund ? (
                     <button
                       onClick={() => handleRefund(session.id)}
