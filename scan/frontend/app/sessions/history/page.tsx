@@ -16,6 +16,7 @@ interface HistoricalSession {
   currentUsd1Balance: number;
   currentBnbBalance: number;
   canRefund: boolean;
+  isActive: boolean;
 }
 
 export default function SessionHistoryPage() {
@@ -265,11 +266,23 @@ export default function SessionHistoryPage() {
             {sessions.map((session) => (
               <div
                 key={session.id}
-                className="bg-s402-light-card dark:bg-zinc-900 border border-gray-300 dark:border-zinc-800 rounded-lg p-6 shadow-soft dark:shadow-none"
+                className={`bg-s402-light-card dark:bg-zinc-900 border ${
+                  session.isActive 
+                    ? 'border-green-500 dark:border-green-600' 
+                    : 'border-gray-300 dark:border-zinc-800'
+                } rounded-lg p-6 shadow-soft dark:shadow-none`}
               >
                 <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Session ID</div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">Session ID</div>
+                      {session.isActive && (
+                        <span className="px-2 py-0.5 bg-green-500 text-white text-xs font-medium rounded-full flex items-center gap-1">
+                          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></div>
+                          ACTIVE
+                        </span>
+                      )}
+                    </div>
                     <div className="font-mono text-sm text-gray-700 dark:text-gray-300">
                       {session.id.slice(0, 20)}...
                     </div>
@@ -314,7 +327,13 @@ export default function SessionHistoryPage() {
                   </div>
                 )}
 
-                {session.canRefund ? (
+                {session.isActive ? (
+                  <div className="p-3 bg-green-500/10 border border-green-500/20 rounded text-center">
+                    <div className="text-sm text-green-600 dark:text-green-400">
+                      ✨ This is your current active session. Close it from the header to refund remaining balance.
+                    </div>
+                  </div>
+                ) : session.canRefund ? (
                   <button
                     onClick={() => handleRefund(session.id)}
                     disabled={refunding === session.id}

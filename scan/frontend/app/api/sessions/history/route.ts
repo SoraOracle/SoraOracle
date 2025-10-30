@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get all closed sessions for this user
+    // Get all sessions for this user (active first, then closed by creation date)
     const result = await db.query(
       `SELECT 
         id,
@@ -42,11 +42,11 @@ export async function GET(request: NextRequest) {
         created_at,
         refunded_at,
         refunded_usd1_amount,
-        refunded_bnb_amount
+        refunded_bnb_amount,
+        is_active
       FROM s402_sessions
-      WHERE user_address = $1 
-        AND is_active = false
-      ORDER BY created_at DESC
+      WHERE user_address = $1
+      ORDER BY is_active DESC, created_at DESC
       LIMIT 50`,
       [userAddress.toLowerCase()]
     );
@@ -75,6 +75,7 @@ export async function GET(request: NextRequest) {
           refundedBnbAmount: session.refunded_bnb_amount ? parseFloat(session.refunded_bnb_amount) : null,
           currentUsd1Balance: currentUsd1,
           currentBnbBalance: currentBnb,
+          isActive: session.is_active,
           // Only allow refund if balance exceeds gas costs
           // BSC gas: BNB transfer = 21,000 * 0.05 Gwei = 0.00000105 BNB
           // S402 refund = ~100,000 * 0.05 Gwei = 0.000005 BNB

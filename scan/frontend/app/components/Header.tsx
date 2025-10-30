@@ -221,7 +221,7 @@ export default function Header() {
 
                     {/* Menu Options */}
                     <div className="p-2">
-                      {!hasActiveSession && (
+                      {!hasActiveSession ? (
                         <button
                           onClick={() => {
                             setShowSessionModal(true);
@@ -231,6 +231,41 @@ export default function Header() {
                         >
                           <span>➕</span>
                           <span>Create Session</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={async () => {
+                            if (!confirm('Close your active session? Any remaining balance will be refunded to your wallet.')) {
+                              return;
+                            }
+                            try {
+                              const token = localStorage.getItem('composer_auth_token');
+                              const response = await fetch('/api/sessions/close', {
+                                method: 'POST',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${token}`,
+                                },
+                              });
+                              
+                              if (!response.ok) {
+                                const error = await response.json();
+                                alert(`Failed to close session: ${error.error}`);
+                                return;
+                              }
+                              
+                              alert('Session closed successfully! Your remaining balance has been refunded.');
+                              setShowSessionDropdown(false);
+                              window.location.reload();
+                            } catch (error) {
+                              console.error('Error closing session:', error);
+                              alert('Failed to close session. Please try again.');
+                            }
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm rounded hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400 transition-colors flex items-center gap-2"
+                        >
+                          <span>⏹️</span>
+                          <span>Close Session</span>
                         </button>
                       )}
                       <a
