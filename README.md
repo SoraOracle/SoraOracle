@@ -11,7 +11,7 @@
 [![BNB Chain](https://img.shields.io/badge/Chain-BNB_Mainnet-orange.svg)](https://www.bnbchain.org/)
 [![npm](https://img.shields.io/badge/npm-@sora--oracle/sdk-red.svg)](https://www.npmjs.com/package/@sora-oracle/sdk)
 
-**[🌐 Website](https://sora-oracle.xyz)** • **[𝕏 Twitter](https://x.com/SoraOracle)** • **[📖 Docs](./SORA_ORACLE_TECHNICAL_SPECIFICATION.md)** • **[🔍 Contract](https://bscscan.com/address/0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3)**
+**[🌐 Website](https://soraoracle.com)** • **[𝕏 Twitter](https://x.com/SoraOracle)** • **[📖 Docs](./SORA_ORACLE_TECHNICAL_SPECIFICATION.md)** • **[🔍 Contract](https://bscscan.com/address/0x605c5c8d83152bd98ecAc9B77a845349DA3c48a3)**
 
 </div>
 
@@ -478,7 +478,7 @@ Use it, fork it, modify it, sell it - whatever you want! All smart contracts are
 
 ## 💬 Support & Community
 
-- **Website:** [sora-oracle.xyz](https://sora-oracle.xyz)
+- **Website:** [sora-oracle.xyz](https://soraoracle.com)
 - **𝕏 Twitter:** [@SoraOracle](https://x.com/SoraOracle)
 - **Email:** soraoracle@proton.me
 - **GitHub Issues:** [Report bugs & request features](https://github.com/sora-oracle/sora-oracle-sdk/issues)
